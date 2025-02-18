@@ -1,0 +1,57 @@
+image: "fedora:37"
+
+variables:
+  # format is <branch>=<name>
+  # the name is used in the URL
+  # latest release must be at the top
+  # (only relevant on main branch)
+  #RELEASES: |
+  #  v0.70=0.70
+  #  v0.66=0.66
+
+before_script:
+  - sudo dnf install git xorg-x11-server-Xvfb gcc vte291-gtk4-devel -y
+  - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain none -y
+  - source $HOME/.cargo/env
+  - rustup toolchain install nightly --profile minimal --allow-downgrade -c rustfmt
+  - git submodule update --init
+  - curl --proto '=https' --tlsv1.2 -sSf -o gir-rustdoc.py
+    https://gitlab.gnome.org/World/Rust/gir-rustdoc/-/raw/main/gir-rustdoc.py
+  - chmod +x gir-rustdoc.py
+
+build:
+  script:
+    - cargo build --features v0_70 --examples
+    # - xvfb-run -a -s "-screen 0 1024x768x24" cargo test
+
+docs:
+  stage: test
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  script:
+    # generate the docs
+    - cargo install rustdoc-stripper
+    - ./generator.py --embed-docs
+    - rustup default nightly
+    - eval $(./gir-rustdoc.py pre-docs)
+    - cargo doc --features dox --no-deps
+    - mv target/doc/ docs
+  artifacts:
+    paths:
+      - docs
+
+pages:
+  stage: deploy
+  script:
+    - ./gir-rustdoc.py html-index
+    # main docs
+    - mkdir public/git
+    - mv docs public/git/docs
+    # stable docs
+    - ./gir-rustdoc.py docs-from-artifacts
+  artifacts:
+    paths:
+      - public
+  only:
+    refs:
+      - 'main'

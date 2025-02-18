@@ -1,0 +1,69 @@
+[package]
+name = "vte4-sys"
+version = "0.8.0"
+license = "MIT"
+description = "FFI bindings to vte-2.91-gtk4"
+homepage = "https://gtk-rs.org/"
+repository = "https://gitlab.gnome.org/World/Rust/vte4-rs"
+links = "\"vte-2.91-gtk4\""
+edition = "2021"
+build = "build.rs"
+
+[package.metadata.system-deps.vte_2_91_gtk4]
+name = "vte-2.91-gtk4"
+version = "0.65"
+
+[package.metadata.system-deps.vte_2_91_gtk4.v0_66]
+version = "0.66"
+
+[package.metadata.system-deps.vte_2_91_gtk4.v0_70]
+version = "0.70"
+
+[package.metadata.system-deps.vte_2_91_gtk4.v0_72]
+version = "0.72"
+
+[package.metadata.docs.rs]
+features = []
+
+[lib]
+name = "vte_sys"
+
+[dependencies]
+libc = "0.2"
+
+[dependencies.glib]
+package = "glib-sys"
+git = "https://github.com/gtk-rs/gtk-rs-core"
+version = "0.19"
+
+[dependencies.gio]
+package = "gio-sys"
+git = "https://github.com/gtk-rs/gtk-rs-core"
+version = "0.19"
+
+[dependencies.pango]
+package = "pango-sys"
+git = "https://github.com/gtk-rs/gtk-rs-core"
+version = "0.19"
+
+[dependencies.gdk]
+package = "gdk4-sys"
+git = "https://github.com/gtk-rs/gtk4-rs"
+version = "0.8"
+
+[dependencies.gtk]
+package = "gtk4-sys"
+git = "https://github.com/gtk-rs/gtk4-rs"
+version = "0.8"
+
+[build-dependencies]
+system-deps = "6"
+
+[dev-dependencies]
+shell-words = "1.0.0"
+tempfile = "3"
+
+[features]
+v0_66 = []
+v0_70 = []
+v0_72 = ["v0_70"]

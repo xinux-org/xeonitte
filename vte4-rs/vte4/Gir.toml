@@ -1,0 +1,90 @@
+[external_libraries]
+Gio = {min_version = "2.66"}
+
+[options]
+girs_directories = ["../gir-files", "../"]
+library = "Vte"
+version = "3.91"
+min_cfg_version = "0.68"
+target_path = "."
+work_mode = "normal"
+
+generate_safety_asserts = true
+deprecate_by_min_version = true
+single_version_file = true
+generate_builder = true
+use_gi_docgen = true
+
+manual = [
+    "GLib.DestroyNotify",
+    "GLib.Error",
+    "GLib.Pid",
+    "GLib.SpawnChildSetupFunc",
+    "GLib.SpawnFlags",
+    # "GObject.InitiallyUnowned",
+    "Gdk.RGBA",
+    "Gio.AsyncReadyCallback",
+    "Gio.AsyncResult",
+    "Gio.Cancellable",
+    "Gio.Initable",
+    "Gio.OutputStream",
+    "Gtk.Accessible",
+    "Gtk.Buildable",
+    "Gtk.ConstraintTarget",
+    "Gtk.Scrollable",
+    "Gtk.Widget",
+    "Pango.FontDescription",
+]
+
+generate = [
+    "Vte.Align",
+    # TODO: Missing memory management functions for Vte.CharAttributes
+    # "Vte.CharAttributes",
+    "Vte.CursorBlinkMode",
+    "Vte.CursorShape",
+    "Vte.EraseBinding",
+    "Vte.FeatureFlags",
+    "Vte.Format",
+    "Vte.PtyFlags",
+    "Vte.PtyError",
+    "Vte.Regex",
+    "Vte.RegexError",
+    "Vte.TextBlinkMode",
+    "Vte.WriteFlags",
+    "Vte.TerminalSpawnAsyncCallback"
+]
+
+[[object]]
+name = "Vte.Pty"
+status = "generate"
+    [[object.function]]
+    name = "get_fd"  # Use safe-io
+    manual = true
+    [[object.function]]
+    name = "new_foreign_sync"  # Use safe-io
+    manual = true
+    [[object.function]]
+    name = "spawn_async"
+    manual = true
+    [[object.function]]
+    name = "spawn_with_fds_async"
+    manual = true
+
+[[object]]
+name = "Vte.Terminal"
+status = "generate"
+    [[object.function]]
+    name = "set_colors"
+    manual = true
+    [[object.function]]
+    name = "watch_child"
+    manual = true
+    [[object.function]]
+    name = "spawn_async"
+    manual = true
+    [[object.function]]
+    name = "spawn_with_fds_async"
+    manual = true
+    [[object.function]]
+    pattern = "(check_regex_simple_at|check_regex_array_at)"
+    manual = true
