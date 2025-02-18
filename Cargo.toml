@@ -1,0 +1,41 @@
+[package]
+name = "xeonitte"
+version = "0.0.2"
+edition = "2021"
+default-run = "xeonitte"
+
+[dependencies]
+relm4 = { version = "0.7.0-beta.2", features = ["libadwaita", "macros"]  }
+relm4-components = { package = "relm4-components", version = "0.7.0-beta.2"}
+adw = { package = "libadwaita", version = "0.5", features = ["v1_2", "gtk_v4_6"] }
+gtk = { package = "gtk4", version = "0.7", features = ["v4_6"] }
+glib = { package = "glib", version = "0.18", features = ["v2_68"] }
+tokio = { version = "1.32", features = ["full"] }
+tracker = "0.2"
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_yaml = "0.9"
+
+log = "0.4"
+simplelog = "0.12"
+
+anyhow = "1.0"
+
+isolang = "2.3.0"
+gnome-desktop = "0.4.2"
+libgweather = "4.3"
+
+size = "0.4"
+
+vte = { package = "vte4", git = "https://gitlab.gnome.org/vlinkz/vte4-rs", branch = "0.7" }
+
+distinst-disks = { git = "https://github.com/pop-os/distinst/" }
+
+reqwest = { version = "0.11", features = ["blocking"] }
+
+gettext-rs = { version = "0.7", features = ["gettext-system"] }
+regex = "1.9"
+
+[workspace]
+members = [".", "xeonitte-helper"]
+default-members = [".", "xeonitte-helper"]

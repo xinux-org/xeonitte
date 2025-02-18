@@ -1,0 +1,23 @@
+data/org.xinux.Xeonitte.desktop.in.in
+data/org.xinux.Xeonitte.gschema.xml.in
+data/org.xinux.Xeonitte.metainfo.xml.in.in
+data/org.xinux.Xeonitte.policy.in.in
+
+# Rust files
+src/main.rs
+src/ui/pages/base.rs
+src/ui/pages/error.rs
+src/ui/pages/install.rs
+src/ui/pages/keyboard.rs
+src/ui/pages/list.rs
+src/ui/pages/partitions.rs
+src/ui/pages/summary.rs
+src/ui/pages/timezone.rs
+src/ui/pages/user.rs
+src/ui/pages/welcome.rs
+src/ui/window.rs
+
+# YAML files
+config/xeonitte/advanced.yml.in
+config/xeonitte/basic.yml.in
+config/xeonitte/branding/xinux/slides.yml.in

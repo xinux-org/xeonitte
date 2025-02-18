@@ -1,0 +1,12 @@
+---
+distribution_name: SnowflakeOS
+distribution_logo: branding/xinux/xinux.svg
+branding: xinux
+internet_check_url: http://nmcheck.gnome.org/check_network_status.txt
+default_hostname: xinux
+choices:
+- !configuration
+  file: basic.yml
+- !configuration
+  file: advanced.yml
+- live
