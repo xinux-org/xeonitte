@@ -1,7 +1,0 @@
-[workspace]
-members = [
-     "vte4",
-     "vte4/sys",
-]
-
-exclude = ["gir"]
