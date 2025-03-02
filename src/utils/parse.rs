@@ -27,7 +27,7 @@ pub enum ChoiceEnum {
 #[derive(Deserialize, Serialize, Default, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum ConfigType {
-    Snowfall,
+    Xinux,
     #[default]
     Flakes,
     Legacy

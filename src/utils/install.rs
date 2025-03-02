@@ -138,7 +138,7 @@ impl Worker for InstallAsyncModel {
                     return;
                 }
 
-                if configtype == ConfigType::Snowfall {
+                if configtype == ConfigType::Xinux {
                     // Move /tmp/xeonitte/etc/nixos/hardware-configuration.nix to /tmp/xeonitte/etc/nixos/systems/{ARCH}-linux/{HOSTNAME}/hardware.nix
                     Command::new("pkexec")
                         .arg("mkdir")
