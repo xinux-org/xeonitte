@@ -10,9 +10,9 @@ libparted = "0.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 anyhow = "1.0"
-distinst-disks = { git = "https://github.com/pop-os/distinst/" }
-distinst-disk-ops = { git = "https://github.com/pop-os/distinst/" }
-disk-types = { git = "https://github.com/pop-os/distinst/" }
+distinst-disks = { git = "https://github.com/xinux-org/distinst/" }
+distinst-disk-ops = { git = "https://github.com/xinux-org/distinst/" }
+disk-types = { git = "https://github.com/xinux-org/distinst/" }
 
 [[bin]]
 name = "xeonitte-helper"

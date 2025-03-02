@@ -36,8 +36,8 @@ stdenv.mkDerivation rec {
   cargoDeps = rustPlatform.importCargoLock {
     lockFile = ../../Cargo.lock;
     outputHashes = {
-      "disk-types-0.1.5" = "sha256-TilJ+6Zgc3g1Vd2vWAwscbLGPIgaBWGb4CUxcTKrvlo=";
-      "vte4-0.7.0" = "sha256-BVOKGEQn/VwPhJPPGq1wTcjwcvVraCPPvFE72wNrGB0=";
+      "disk-types-0.1.5" = "sha256-QV5VoXnDJ6nU3co/hg5+luZvIuFEip6PoiSkbwSke8w=";
+      "vte4-0.7.0" = "sha256-jqu8GwfFIO/RDHe83YtYDSUmLhaVk3Vz3W5Q1zocLX4=";
     };
   };
 
