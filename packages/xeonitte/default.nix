@@ -20,6 +20,8 @@
 , pkg-config
 , polkit
 , rustc
+, rust-analyzer
+, clippy
 , rustPlatform
 , vte-gtk4
 , wrapGAppsHook4
@@ -37,13 +39,15 @@ stdenv.mkDerivation rec {
     lockFile = ../../Cargo.lock;
     outputHashes = {
       "disk-types-0.1.5" = "sha256-QV5VoXnDJ6nU3co/hg5+luZvIuFEip6PoiSkbwSke8w=";
-      "vte4-0.7.0" = "sha256-jqu8GwfFIO/RDHe83YtYDSUmLhaVk3Vz3W5Q1zocLX4=";
+      "vte4-0.7.0" = "sha256-LLZGnHypJz6PoiY6Mb1t0qAPKsx6klUBP3QeVqQfc2k=";
     };
   };
 
   nativeBuildInputs = [
     appstream-glib
     cargo
+    rust-analyzer
+    clippy
     convertyml
     desktop-file-utils
     gettext

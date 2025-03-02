@@ -346,7 +346,7 @@ impl Component for AppModel {
 
     fn init(
         _application: Self::Init,
-        root: &Self::Root,
+        root: Self::Root,
         sender: ComponentSender<Self>,
     ) -> ComponentParts<Self> {
         let config = parse_config().expect("Failed to parse config");

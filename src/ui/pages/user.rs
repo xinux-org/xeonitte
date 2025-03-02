@@ -191,7 +191,7 @@ impl SimpleComponent for UserModel {
 
     fn init(
         _parent_window: Self::Init,
-        root: &Self::Root,
+        root: Self::Root,
         sender: ComponentSender<Self>,
     ) -> ComponentParts<Self> {
         let model = UserModel {

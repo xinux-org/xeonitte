@@ -88,7 +88,7 @@ impl SimpleComponent for TimeZoneModel {
 
     fn init(
         _parent_window: Self::Init,
-        root: &Self::Root,
+        root: Self::Root,
         sender: ComponentSender<Self>,
     ) -> ComponentParts<Self> {
         let mut locvec: Vec<libgweather::Location> = vec![];
@@ -122,11 +122,12 @@ impl SimpleComponent for TimeZoneModel {
         let mut selected = gnome_desktop::WallClock::new()
             .timezone()
             .map(|x| x.identifier().to_string());
+
         if ["UTC", "CET", "Etc/GMT+12"].contains(&selected.as_ref().unwrap().as_str()) {
             selected = Some("America/New_York".to_string());
         }
         debug!("Selected timezone: {:?}", selected);
-        
+
         for tz in y.get(2..).unwrap() {
             if let (Some(country), Some(region)) = (
                 tz.identifier().split('/').next(),
