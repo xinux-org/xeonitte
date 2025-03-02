@@ -1,5 +1,5 @@
 ---
-distribution_name: SnowflakeOS
+distribution_name: Xinux
 distribution_logo: branding/xinux/xinux.svg
 branding: xinux
 internet_check_url: http://nmcheck.gnome.org/check_network_status.txt
