@@ -1244,49 +1244,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "xeonitte"
-version = "0.0.2"
-dependencies = [
- "anyhow",
- "distinst-disks",
- "gettext-rs",
- "glib",
- "gnome-desktop",
- "gtk4",
- "isolang",
- "libadwaita",
- "libgweather",
- "log",
- "regex",
- "relm4",
- "relm4-components",
- "reqwest",
- "serde",
- "serde_json",
- "serde_yaml",
- "simplelog",
- "size",
- "tokio",
- "tracker",
- "vte4",
-]
-
-[[package]]
-name = "xeonitte-helper"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "disk-types",
- "distinst-disk-ops",
- "distinst-disks",
- "libparted",
- "serde",
- "serde_json",
- "users",
-]
-
-[[package]]
 name = "idna"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2868,7 +2825,7 @@ checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
 [[package]]
 name = "vte4"
 version = "0.7.0"
-source = "git+https://gitlab.gnome.org/vlinkz/vte4-rs?branch=0.7#305d3518f4f79928895a5fa6548e96ca844e431f"
+source = "git+https://github.com/xinux-org/vte4#1a52f14465cb690a8af4f7cc4f36486afe9757f6"
 dependencies = [
  "bitflags 2.4.1",
  "gdk4",
@@ -2884,7 +2841,7 @@ dependencies = [
 [[package]]
 name = "vte4-sys"
 version = "0.7.0"
-source = "git+https://gitlab.gnome.org/vlinkz/vte4-rs?branch=0.7#305d3518f4f79928895a5fa6548e96ca844e431f"
+source = "git+https://github.com/xinux-org/vte4#1a52f14465cb690a8af4f7cc4f36486afe9757f6"
 dependencies = [
  "gdk4-sys",
  "gio-sys",
@@ -3118,4 +3075,47 @@ checksum = "524e57b2c537c0f9b1e69f1965311ec12182b4122e45035b1508cd24d2adadb1"
 dependencies = [
  "cfg-if",
  "windows-sys",
+]
+
+[[package]]
+name = "xeonitte"
+version = "0.0.2"
+dependencies = [
+ "anyhow",
+ "distinst-disks",
+ "gettext-rs",
+ "glib",
+ "gnome-desktop",
+ "gtk4",
+ "isolang",
+ "libadwaita",
+ "libgweather",
+ "log",
+ "regex",
+ "relm4",
+ "relm4-components",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "simplelog",
+ "size",
+ "tokio",
+ "tracker",
+ "vte4",
+]
+
+[[package]]
+name = "xeonitte-helper"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "disk-types",
+ "distinst-disk-ops",
+ "distinst-disks",
+ "libparted",
+ "serde",
+ "serde_json",
+ "users",
 ]

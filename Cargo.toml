@@ -32,7 +32,7 @@ size = "0.4"
 
 vte4 = { git = "https://github.com/xinux-org/vte4" }
 
-distinst-disks = { git = "https://github.com/pop-os/distinst/" }
+distinst-disks = { git = "https://github.com/xinux-org/distinst" }
 
 reqwest = { version = "0.11", features = ["blocking"] }
 

@@ -52,8 +52,9 @@ enum SubCommands {
 }
 
 fn main() {
-    let cli =
-        SubCommands::augment_subcommands(clap::Command::new("Helper binary for Xeonitte installer"));
+    let cli = SubCommands::augment_subcommands(clap::Command::new(
+        "Helper binary for Xeonitte installer",
+    ));
     let matches = cli.get_matches();
     let derived_subcommands = SubCommands::from_arg_matches(&matches)
         .map_err(|err| err.exit())
@@ -343,18 +344,18 @@ fn partition() -> Result<()> {
                         .context("Failed to create mountpoint")?;
                     let _output = if target == "/boot" {
                         Command::new("mount")
-                        .arg("-o")
-                        .arg("umask=0077")
-                        .arg(&part)
-                        .arg(format!("/tmp/xeonitte{}", target))
-                        .output()
-                        .context("Failed to mount partition")?
+                            .arg("-o")
+                            .arg("umask=0077")
+                            .arg(&part)
+                            .arg(format!("/tmp/xeonitte{}", target))
+                            .output()
+                            .context("Failed to mount partition")?
                     } else {
                         Command::new("mount")
-                        .arg(&part)
-                        .arg(format!("/tmp/xeonitte{}", target))
-                        .output()
-                        .context("Failed to mount partition")?
+                            .arg(&part)
+                            .arg(format!("/tmp/xeonitte{}", target))
+                            .output()
+                            .context("Failed to mount partition")?
                     };
                 }
             }

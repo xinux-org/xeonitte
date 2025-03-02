@@ -1,14 +1,14 @@
 use adw::gio;
 use gettextrs::{gettext, LocaleCategory};
 use gtk::{glib, prelude::ApplicationExt};
-use xeonitte::{
-    config::{GETTEXT_PACKAGE, LOCALEDIR, RESOURCES_FILE},
-    ui::window::AppModel,
-};
 use log::{error, info};
 use relm4::*;
 use simplelog::*;
 use std::fs::File;
+use xeonitte::{
+    config::{GETTEXT_PACKAGE, LOCALEDIR, RESOURCES_FILE},
+    ui::window::AppModel,
+};
 
 fn main() {
     CombinedLogger::init(vec![
@@ -35,7 +35,10 @@ fn main() {
         error!("Failed to load resources");
     }
     gtk::Window::set_default_icon_name(xeonitte::config::APP_ID);
-    let app = adw::Application::new(Some(xeonitte::config::APP_ID), gio::ApplicationFlags::empty());
+    let app = adw::Application::new(
+        Some(xeonitte::config::APP_ID),
+        gio::ApplicationFlags::empty(),
+    );
     app.set_resource_base_path(Some("/org/xinux/Xeonitte"));
     let app = RelmApp::from_app(app);
     app.run::<AppModel>(());
