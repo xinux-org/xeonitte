@@ -40,8 +40,6 @@ stdenv.mkDerivation rec {
     outputHashes = {
       "disk-types-0.1.5" = "sha256-QV5VoXnDJ6nU3co/hg5+luZvIuFEip6PoiSkbwSke8w=";
       "vte4-0.7.0" = "sha256-LLZGnHypJz6PoiY6Mb1t0qAPKsx6klUBP3QeVqQfc2k=";
-      "gnome-desktop-0.4.2" = "sha256-UlYHRHUtoQax7XlGuXNct8Zys5JO5TdhQPCDpXtlCcM=";
-      "gsettings-desktop-schemas-0.3.1" = "sha256-km3pO25ZjYfGD8skYTHYO1rRSjHaHtVYFgRaoDZXq2s=";
     };
   };
 

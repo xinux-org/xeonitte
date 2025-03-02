@@ -206,7 +206,7 @@ version = "0.20.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f18b6bb8e43c7eb0f2aac7976afe0c61b6f5fc2ab7bc4c139537ea56c92290df"
 dependencies = [
- "glib-sys 0.20.9",
+ "glib-sys",
  "libc",
  "system-deps 7.0.3",
 ]
@@ -750,7 +750,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "67f2587c9202bf997476bbba6aaed4f78a11538a2567df002a5f57f5331d0b5c"
 dependencies = [
  "gio-sys",
- "glib-sys 0.20.9",
+ "glib-sys",
  "gobject-sys",
  "libc",
  "system-deps 7.0.3",
@@ -780,7 +780,7 @@ dependencies = [
  "cairo-sys-rs",
  "gdk-pixbuf-sys",
  "gio-sys",
- "glib-sys 0.20.9",
+ "glib-sys",
  "gobject-sys",
  "libc",
  "pango-sys",
@@ -873,7 +873,7 @@ version = "0.20.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "160eb5250a26998c3e1b54e6a3d4ea15c6c7762a6062a19a7b63eff6e2b33f9e"
 dependencies = [
- "glib-sys 0.20.9",
+ "glib-sys",
  "gobject-sys",
  "libc",
  "system-deps 7.0.3",
@@ -894,7 +894,7 @@ dependencies = [
  "futures-util",
  "gio-sys",
  "glib-macros",
- "glib-sys 0.20.9",
+ "glib-sys",
  "gobject-sys",
  "libc",
  "memchr",
@@ -916,16 +916,6 @@ dependencies = [
 
 [[package]]
 name = "glib-sys"
-version = "0.18.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "063ce2eb6a8d0ea93d2bf8ba1957e78dbab6be1c2220dd3daca57d5a9d869898"
-dependencies = [
- "libc",
- "system-deps 6.2.2",
-]
-
-[[package]]
-name = "glib-sys"
 version = "0.20.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a8928869a44cfdd1fccb17d6746e4ff82c8f82e41ce705aa026a52ca8dc3aefb"
@@ -941,30 +931,32 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a8d1add55171497b4705a648c6b583acafb01d58050a51727785f0b2c8e0a2b2"
 
 [[package]]
-name = "gnome-desktop"
-version = "0.4.2"
-source = "git+https://github.com/xinux-org/desktop#bf79efd3d5c967f6ffa1445994a1580ffbe8371d"
+name = "gnome-desktop-sys-xinux"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "90219ea153a2cad5dd77c7b6efeec9e329833753c7b2736ff277d5595abdc601"
+dependencies = [
+ "gdk-pixbuf-sys",
+ "gio-sys",
+ "glib-sys",
+ "gobject-sys",
+ "gsettings-desktop-schemas-sys-xinux",
+ "libc",
+ "system-deps 6.2.2",
+]
+
+[[package]]
+name = "gnome-desktop-xinux"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7f53de7e654b2e3f23cc2ad34f837d35828044e61f58c68521d4293f5de5832a"
 dependencies = [
  "gdk-pixbuf",
  "gio",
  "glib",
- "gnome-desktop-sys",
- "gsettings-desktop-schemas",
+ "gnome-desktop-sys-xinux",
+ "gsettings-desktop-schemas-xinux",
  "libc",
-]
-
-[[package]]
-name = "gnome-desktop-sys"
-version = "0.4.2"
-source = "git+https://github.com/xinux-org/desktop#bf79efd3d5c967f6ffa1445994a1580ffbe8371d"
-dependencies = [
- "gdk-pixbuf-sys",
- "gio-sys",
- "glib-sys 0.20.9",
- "gobject-sys",
- "gsettings-desktop-schemas-sys 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "libc",
- "system-deps 6.2.2",
 ]
 
 [[package]]
@@ -973,7 +965,7 @@ version = "0.20.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c773a3cb38a419ad9c26c81d177d96b4b08980e8bdbbf32dace883e96e96e7e3"
 dependencies = [
- "glib-sys 0.20.9",
+ "glib-sys",
  "libc",
  "system-deps 7.0.3",
 ]
@@ -995,42 +987,33 @@ version = "0.20.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "11a68d39515bf340e879b72cecd4a25c1332557757ada6e8aba8654b4b81d23a"
 dependencies = [
- "glib-sys 0.20.9",
+ "glib-sys",
  "libc",
  "pkg-config",
  "system-deps 7.0.3",
 ]
 
 [[package]]
-name = "gsettings-desktop-schemas"
-version = "0.3.1"
-source = "git+https://github.com/xinux-org/desktop-schemas#5a0aad05bc908b26e735d3fd0758df1a6d5e7375"
+name = "gsettings-desktop-schemas-sys-xinux"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5d257364e09864c13b0770ad44de6bed7eb35775213d28c6721e8b00411039cf"
+dependencies = [
+ "glib-sys",
+ "libc",
+ "system-deps 7.0.3",
+]
+
+[[package]]
+name = "gsettings-desktop-schemas-xinux"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "38455ebcf86c5b83c2e4639d08e42da7ccbe8956b08342da59af6c2dfc10de34"
 dependencies = [
  "bitflags 2.9.0",
  "glib",
- "gsettings-desktop-schemas-sys 0.3.1 (git+https://github.com/xinux-org/desktop-schemas)",
+ "gsettings-desktop-schemas-sys-xinux",
  "libc",
-]
-
-[[package]]
-name = "gsettings-desktop-schemas-sys"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3badaaef1ab8bd74d009abde5694c2713178b0ee6f7c9bf70af986a8ed7cee58"
-dependencies = [
- "glib-sys 0.18.1",
- "libc",
- "system-deps 6.2.2",
-]
-
-[[package]]
-name = "gsettings-desktop-schemas-sys"
-version = "0.3.1"
-source = "git+https://github.com/xinux-org/desktop-schemas#5a0aad05bc908b26e735d3fd0758df1a6d5e7375"
-dependencies = [
- "glib-sys 0.20.9",
- "libc",
- "system-deps 7.0.3",
 ]
 
 [[package]]
@@ -1056,7 +1039,7 @@ checksum = "755059de55fa6f85a46bde8caf03e2184c96bfda1f6206163c72fb0ea12436dc"
 dependencies = [
  "cairo-sys-rs",
  "gdk4-sys",
- "glib-sys 0.20.9",
+ "glib-sys",
  "gobject-sys",
  "graphene-sys",
  "libc",
@@ -1107,7 +1090,7 @@ dependencies = [
  "gdk-pixbuf-sys",
  "gdk4-sys",
  "gio-sys",
- "glib-sys 0.20.9",
+ "glib-sys",
  "gobject-sys",
  "graphene-sys",
  "gsk4-sys",
@@ -1123,7 +1106,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7e3b0a9e7c2ee9b88ba86e80e75a4f54c374c50ac2e02e8df5d6e08909ed9d2e"
 dependencies = [
  "gio-sys",
- "glib-sys 0.20.9",
+ "glib-sys",
  "gobject-sys",
  "libc",
  "system-deps 7.0.3",
@@ -1485,7 +1468,7 @@ checksum = "b099a223560118d4d4fa04b6d23f3ea5b7171fe1d83dfb7e6b45b54cdfc83af9"
 dependencies = [
  "gdk4-sys",
  "gio-sys",
- "glib-sys 0.20.9",
+ "glib-sys",
  "gobject-sys",
  "gtk4-sys",
  "libc",
@@ -1832,7 +1815,7 @@ version = "0.20.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0dbb9b751673bd8fe49eb78620547973a1e719ed431372122b20abd12445bab5"
 dependencies = [
- "glib-sys 0.20.9",
+ "glib-sys",
  "gobject-sys",
  "libc",
  "system-deps 7.0.3",
@@ -3006,7 +2989,7 @@ source = "git+https://github.com/xinux-org/vte4#eaaaaf0da0b0ff9a45cdde394839c898
 dependencies = [
  "gdk4-sys",
  "gio-sys",
- "glib-sys 0.20.9",
+ "glib-sys",
  "gtk4-sys",
  "libc",
  "pango-sys",
@@ -3363,7 +3346,7 @@ dependencies = [
  "distinst-disks",
  "gettext-rs",
  "glib",
- "gnome-desktop",
+ "gnome-desktop-xinux",
  "gtk4",
  "isolang",
  "libadwaita",
