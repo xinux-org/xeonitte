@@ -9,7 +9,7 @@
       url = "github:xinux-org/lib";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    xinux-modules.url = "github:xinux-org/xinux-modules";
+    xinux-modules.url = "github:xinux-org/modules";
   };
 
   outputs = inputs:
