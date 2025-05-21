@@ -3,6 +3,10 @@ name = "xeonitte"
 version = "0.0.2"
 edition = "2021"
 default-run = "xeonitte"
+authors = [
+  "Sokhibjon Orzikulov <sakhib@orzklv.uz>",
+  "Victor Fuentes <vlinkz@snowflakeos.org>",
+]
 
 [dependencies]
 relm4 = { version = "0.9", features = ["libadwaita", "macros"] }
