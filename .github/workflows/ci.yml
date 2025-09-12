@@ -1,0 +1,27 @@
+name: Flake check & build (Xeonitte)
+
+on: [push, pull_request]
+
+jobs:
+  flake-check:
+    runs-on: self-hosted
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Check flake x86_64-linux host
+        run: nix flake check --system x86_64-linux --show-trace
+
+      - name: Check flake aarch64-linux
+        run: nix flake check --system aarch64-linux --show-trace
+
+  nix-build:
+    runs-on: self-hosted
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Build project with Nix
+        run: nix build . --show-trace
