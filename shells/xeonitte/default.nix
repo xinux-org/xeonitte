@@ -1,32 +1,34 @@
-{ mkShell
-, appstream-glib
-, cargo
-, clippy
-, desktop-file-utils
-, gdk-pixbuf
-, gettext
-, gnome-desktop
-, gobject-introspection
-, gtk4
-, internal
-, libadwaita
-, libgweather
-, meson
-, ninja
-, openssl
-, pango
-, parted
-, pkg-config
-, polkit
-, rust-analyzer
-, rustc
-, rustfmt
-, rustPlatform
-, vte-gtk4
-, wrapGAppsHook4
-, ...
+{
+  pkgs,
+  mkShell,
+  appstream-glib,
+  cargo,
+  clippy,
+  desktop-file-utils,
+  gdk-pixbuf,
+  gettext,
+  gnome-desktop,
+  gobject-introspection,
+  gtk4,
+  internal,
+  libadwaita,
+  libgweather,
+  meson,
+  ninja,
+  openssl,
+  pango,
+  parted,
+  pkg-config,
+  polkit,
+  rust-analyzer,
+  rustc,
+  rustup,
+  rustfmt,
+  rustPlatform,
+  vte-gtk4,
+  wrapGAppsHook4,
+  ...
 }:
-
 mkShell {
   nativeBuildInputs = [
     appstream-glib
@@ -50,9 +52,14 @@ mkShell {
     polkit
     rust-analyzer
     rustc
+    rustup
     rustfmt
     rustPlatform.bindgenHook
     vte-gtk4
     wrapGAppsHook4
   ];
+
+  # Set Environment Variables
+  RUST_BACKTRACE = "full";
+  RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
 }
