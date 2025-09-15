@@ -11,6 +11,7 @@
     inputs.xinux-lib.mkFlake {
       inherit inputs;
       alias.packages.default = "xeonitte";
+      alias.shells.default = "xeonitte";
       src = ./.;
     };
 }
