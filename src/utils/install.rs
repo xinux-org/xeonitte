@@ -269,7 +269,9 @@ impl Worker for InstallAsyncModel {
                 // Step 6: Set root password
                 info!("Step 6: Set root password if specified");
                 if let Some(rootpasswd) = &self.rootpassword {
-                    if let Err(e) = setuserpasswd(Some("root".to_string()), Some(rootpasswd.clone())) {
+                    if let Err(e) =
+                        setuserpasswd(Some("root".to_string()), Some(rootpasswd.clone()))
+                    {
                         error!("Failed to set root password: {}", e);
                         let _ = sender.output(AppMsg::Error);
                         return;
@@ -278,7 +280,10 @@ impl Worker for InstallAsyncModel {
 
                 if imperative_timezone {
                     if let Some(timezone) = timezone {
-                        commands.insert(0, format!("ln -sf ../etc/zoneinfo/{} /etc/localtime", timezone));
+                        commands.insert(
+                            0,
+                            format!("ln -sf ../etc/zoneinfo/{} /etc/localtime", timezone),
+                        );
                     }
                 }
 
@@ -301,7 +306,7 @@ impl Worker for InstallAsyncModel {
                     "--root".to_string(),
                     "/tmp/xeonitte".to_string(),
                     "-c".to_string(),
-                    active
+                    active,
                 ]));
             }
         }
@@ -412,17 +417,27 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
                     arch,
                 );
             } else if file.file_name().to_string_lossy().ends_with(".nix") {
+                println!("@BOOTLOADER@:+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+                println!("{:?}", file);
+                println!("@BOOTLOADER@++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+                debug!("@BOOTLOADER@:+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+                debug!("{:?}", file);
+                debug!("@BOOTLOADER@++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
                 let mut config = fs::read_to_string(file.path())?;
                 config = config.replace("@NVIDIAOFFLOAD@", "");
 
                 config = config.replace("@ARCH@", &format!("{}-linux", arch));
 
                 if efi {
+                    println!("@BOOTLOADER@:+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+                    println!("{}", config);
+                    println!("@BOOTLOADER@++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+                    debug!("@BOOTLOADER@:+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+                    debug!("{}", config);
+                    debug!("@BOOTLOADER@++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
                     config = config.replace("@BOOTLOADER@", "");
-                    config = config.replace(
-                        "@BOOTLOADER_MODULE@",
-                        "xinux-modules.nixosModules.efiboot",
-                    )
+                    config =
+                        config.replace("@BOOTLOADER_MODULE@", "xinux-modules.nixosModules.efiboot")
                 } else {
                     config = config.replace(
                         "@BOOTLOADER@",
@@ -434,10 +449,8 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
                                 .context("Failed to get bootloader disk")?
                         ),
                     );
-                    config = config.replace(
-                        "@BOOTLOADER_MODULE@",
-                        "xinux-modules.nixosModules.biosboot",
-                    )
+                    config =
+                        config.replace("@BOOTLOADER_MODULE@", "xinux-modules.nixosModules.biosboot")
                 }
 
                 config = config.replace(
