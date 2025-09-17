@@ -518,8 +518,8 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
                     if user.autologin {
                         autocfg.push_str(&format!(
                             r#"  # Enable automatic login for the user.
-  services.xserver.displayManager.autoLogin.enable = true;
-  services.xserver.displayManager.autoLogin.user = "{}";
+  services.displayManager.autoLogin.enable = true;
+  services.displayManager.autoLogin.user = "{}";
 "#,
                             user.username
                         ));
