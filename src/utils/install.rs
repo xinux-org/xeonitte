@@ -417,24 +417,12 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
                     arch,
                 );
             } else if file.file_name().to_string_lossy().ends_with(".nix") {
-                println!("@BOOTLOADER@:+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-                println!("{:?}", file);
-                println!("@BOOTLOADER@++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-                debug!("@BOOTLOADER@:+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-                debug!("{:?}", file);
-                debug!("@BOOTLOADER@++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
                 let mut config = fs::read_to_string(file.path())?;
                 config = config.replace("@NVIDIAOFFLOAD@", "");
 
                 config = config.replace("@ARCH@", &format!("{}-linux", arch));
 
                 if efi {
-                    println!("@BOOTLOADER@:+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-                    println!("{}", config);
-                    println!("@BOOTLOADER@++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-                    debug!("@BOOTLOADER@:+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-                    debug!("{}", config);
-                    debug!("@BOOTLOADER@++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
                     config = config.replace("@BOOTLOADER@", "");
                     config =
                         config.replace("@BOOTLOADER_MODULE@", "xinux-modules.nixosModules.efiboot")
