@@ -1,0 +1,259 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-09-25 15:24+0500\n"
+"PO-Revision-Date: 2025-09-26 13:40+0500\n"
+"Last-Translator: BeMeritus <bemerituss@gmail.com>\n"
+"Language-Team: \n"
+"Language: uz\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.5\n"
+
+#: data/org.xinux.Xeonitte.desktop.in.in:3
+msgid "Install Xinux"
+msgstr "Xinux o‘rnatish"
+
+#: data/org.xinux.Xeonitte.desktop.in.in:4
+msgid "Install"
+msgstr "O‘rnatish"
+
+#: data/org.xinux.Xeonitte.desktop.in.in:10
+msgid "Installer;Xeonitte;"
+msgstr "O‘rnatuvchi;Xeonitte;"
+
+#: data/org.xinux.Xeonitte.metainfo.xml.in.in:6 src/main.rs:30
+msgid "Xeonitte Installer"
+msgstr "Xeonitte o‘rnatuvchisi"
+
+#: data/org.xinux.Xeonitte.metainfo.xml.in.in:7
+#: data/org.xinux.Xeonitte.metainfo.xml.in.in:9
+msgid "A graphical installer for NixOS based distributions."
+msgstr "NixOS asosidagi distributivlar uchun grafik o‘rnatuvchi."
+
+#: data/org.xinux.Xeonitte.policy.in.in:8
+msgid "Give Xeonitte Installer root access"
+msgstr "Xeonitte o‘rnatuvchisiga root huquqini bering"
+
+#: data/org.xinux.Xeonitte.policy.in.in:9
+msgid "Authentication is required to install operating system"
+msgstr "Operatsion tizimni o‘rnatish uchun autentifikatsiya talab qilinadi"
+
+#: src/ui/pages/error.rs:51
+msgid "Installation Failed!"
+msgstr "O‘rnatish muvaffaqiyatsiz!"
+
+#: src/ui/pages/error.rs:80
+msgid "Upload Report"
+msgstr "Hisobotni yuklash"
+
+#: src/ui/pages/error.rs:98
+msgid "Open Report"
+msgstr "Hisobotni ochish"
+
+#: src/ui/pages/keyboard.rs:52
+msgid "Keyboard Layout"
+msgstr "Klaviatura maketi"
+
+#: src/ui/pages/keyboard.rs:60
+msgid "Test the Keyboard Layout"
+msgstr "Klaviatura maketini sinash"
+
+#: src/ui/pages/keyboard.rs:85 src/ui/pages/timezone.rs:77
+#: src/ui/pages/welcome.rs:76
+msgid "Show less"
+msgstr "Kamroq ko‘rsatish"
+
+#: src/ui/pages/keyboard.rs:85 src/ui/pages/timezone.rs:77
+#: src/ui/pages/welcome.rs:76
+msgid "Show all"
+msgstr "Hammasini ko‘rsatish"
+
+#: src/ui/pages/list.rs:66
+msgid "Clear"
+msgstr "Tiniq"
+
+#: src/ui/pages/partitions.rs:80
+msgid "Select a disk"
+msgstr "Diskni tanlash"
+
+#: src/ui/pages/partitions.rs:85
+msgid "Disk will be formatted and all data will be lost"
+msgstr "Disk formatlanadi va barcha ma’lumotlar o‘chib ketadi"
+
+#: src/ui/pages/partitions.rs:102
+msgid "Advanced"
+msgstr "Murakkab"
+
+#: src/ui/pages/partitions.rs:117 src/ui/pages/partitions.rs:232
+msgid "Refresh"
+msgstr "Yangilash"
+
+#: src/ui/pages/partitions.rs:127
+msgid "Select partitions"
+msgstr "Bo‘laklarni tanlash"
+
+#: src/ui/pages/partitions.rs:172
+msgid "Ready to install!"
+msgstr "O‘rnatishga tayyor!"
+
+#: src/ui/pages/partitions.rs:174
+msgid "Missing <tt>/boot</tt> partition"
+msgstr "<tt>/boot</tt> bo‘linmasi yetishmayapti"
+
+#: src/ui/pages/partitions.rs:176 src/ui/pages/partitions.rs:184
+msgid "Missing <tt>/</tt> partition"
+msgstr "<tt>/</tt> bo‘lim yetishmayapti"
+
+#: src/ui/pages/partitions.rs:178 src/ui/pages/partitions.rs:182
+msgid "Missing <tt>/</tt> and <tt>/boot</tt> partitions"
+msgstr "<tt>/</tt> va <tt>/boot</tt> bo‘limlari yetishmayapti"
+
+#: src/ui/pages/partitions.rs:200
+msgid "Launch GParted"
+msgstr "GParted ishga tushirish"
+
+#: src/ui/pages/partitions.rs:217
+msgid "Basic"
+msgstr "Oddiy"
+
+#: src/ui/pages/partitions.rs:615
+msgid "Format"
+msgstr "Format"
+
+#: src/ui/pages/partitions.rs:636 src/ui/pages/partitions.rs:655
+msgid "Mount"
+msgstr "Ulash"
+
+#: src/ui/pages/partitions.rs:670 src/ui/pages/summary.rs:311
+msgid "Do not mount"
+msgstr "Ulanmasin"
+
+#: src/ui/pages/partitions.rs:671
+msgid "Leave as is"
+msgstr "Shundayligicha qoldirish"
+
+#: src/ui/pages/summary.rs:58
+msgid "Summary"
+msgstr "Xulosa"
+
+#: src/ui/pages/summary.rs:63
+msgid "Language"
+msgstr "Til"
+
+#: src/ui/pages/summary.rs:74
+msgid "Keyboard"
+msgstr "Klaviatura"
+
+#: src/ui/pages/summary.rs:85 src/ui/pages/timezone.rs:52
+msgid "Timezone"
+msgstr "Vaqt zonasi"
+
+#: src/ui/pages/summary.rs:97 src/ui/pages/summary.rs:115
+#: src/ui/pages/summary.rs:121
+msgid "Partitions"
+msgstr "Bo'laklar"
+
+#: src/ui/pages/summary.rs:103
+msgid "Full Disk"
+msgstr "Butun Disk"
+
+#: src/ui/pages/summary.rs:106
+msgid "Entire disk will be formatted"
+msgstr "Butun disk formatlanadi"
+
+#: src/ui/pages/summary.rs:131
+msgid "User"
+msgstr "Foydalanuvchi"
+
+#: src/ui/pages/summary.rs:135 src/ui/pages/user.rs:70
+msgid "Name"
+msgstr "Nomi"
+
+#: src/ui/pages/summary.rs:153 src/ui/pages/user.rs:78
+msgid "Username"
+msgstr "Foydalanuvchi nomi"
+
+#: src/ui/pages/summary.rs:171 src/ui/pages/user.rs:148
+msgid "Hostname"
+msgstr "Host nomi"
+
+#: src/ui/pages/summary.rs:304
+msgid "Mountpoint:"
+msgstr "Ulash nuqtasi:"
+
+#: src/ui/pages/summary.rs:324
+msgid "Format:"
+msgstr "Format:"
+
+#: src/ui/pages/summary.rs:331
+msgid "Do not format"
+msgstr "Formatlanmasin"
+
+#: src/ui/pages/user.rs:62
+msgid "Create a new user"
+msgstr "Yangi foydalanuvchi yaratish"
+
+#: src/ui/pages/user.rs:110
+msgid "Password"
+msgstr "Parol"
+
+#: src/ui/pages/user.rs:118
+msgid "Confirm Password"
+msgstr "Parolni tasdiqlash"
+
+#: src/ui/pages/user.rs:125
+msgid "Log in automatically"
+msgstr "Avtomatik kirish"
+
+#: src/ui/pages/user.rs:173
+msgid "Root password"
+msgstr "Root parol"
+
+#: src/ui/pages/user.rs:181
+msgid "Confirm root password"
+msgstr "Root parolini tasdiqlash"
+
+#: src/ui/pages/welcome.rs:42
+msgid "Welcome!"
+msgstr "Xush kelibsiz!"
+
+#: src/ui/pages/welcome.rs:47
+msgid "Choose a language"
+msgstr "Tilni tanlang"
+
+#: src/ui/window.rs:186
+msgid "Installing…"
+msgstr "O‘rnatilmoqda..."
+
+#: src/ui/window.rs:192
+msgid "Installation Finished"
+msgstr "O‘rnatish yakunlandi"
+
+#: src/ui/window.rs:198
+msgid "Installation Failed"
+msgstr "O‘rnatilmadi"
+
+#: src/ui/window.rs:309
+msgid "Finished!"
+msgstr "Tamom!"
+
+#: src/ui/window.rs:322
+msgid "Reboot"
+msgstr "Qayta ishga tushirish"
+
+#: src/ui/window.rs:338
+msgid "No Internet"
+msgstr "Internet yo‘q"
+
+#: src/ui/window.rs:339
+msgid "Please connect to the Internet to continue"
+msgstr "Davom etish uchun Internetga ulaning"
