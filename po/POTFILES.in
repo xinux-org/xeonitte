@@ -18,6 +18,6 @@ src/ui/pages/welcome.rs
 src/ui/window.rs
 
 # YAML files
-config/xeonitte/advanced.yml.in
-config/xeonitte/basic.yml.in
-config/xeonitte/branding/xinux/slides.yml.in
+#config/xeonitte/advanced.yml.in
+#config/xeonitte/basic.yml.in
+# config/xeonitte/branding/xinux/slides.yml.in
