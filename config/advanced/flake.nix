@@ -10,8 +10,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     xinux-modules = {
-      url = "github:xinux-org/modules/25.05";
-      flake = false;
+      url = "github:xinux-org/modules";
     };
   };
 
