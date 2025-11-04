@@ -43,26 +43,10 @@ yaml_build = custom_target(
   ]
 )
 
-# Minimal
-yaml_build = custom_target(
-  'minimal.yml',
-  input: 'minimal.yml.in',
-  output: 'minimal.yml',
-  console: true,
-  install: true,
-  install_dir: pkgconfdir / 'xeonitte',
-  command: [
-    ymlconvert,
-    '@INPUT@',
-    '@OUTPUT@'
-  ]
-)
-
 install_data('config.yml', install_dir : pkgconfdir / 'xeonitte')
 
 install_subdir('basic', install_dir : pkgconfdir / 'xeonitte')
 install_subdir('advanced', install_dir : pkgconfdir / 'xeonitte')
 install_subdir('flatpak', install_dir : pkgconfdir / 'xeonitte')
-install_subdir('minimal', install_dir : pkgconfdir / 'xeonitte')
 
 subdir('branding/xinux')
