@@ -13,6 +13,6 @@
       alias.packages.default = "xeonitte";
       alias.shells.default = "xeonitte";
       src = ./.;
-      hydraJobs = inputs.self.packages.x86_64-linux;
+      # hydraJobs = inputs.self.packages.x86_64-linux;
     };
 }
