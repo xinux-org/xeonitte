@@ -14,13 +14,13 @@ steps:
 - !list
   multiple: false
   required: false
-  title: _("Install minimal without ui GNOME")
+  title: _("Install minimal Xinux")
   id: Minimal
   choices:
     - Minimal:
-        description: _("Install minimal without ui GNOME")
+        description: _("Install minimal Xinux")
         config: |-
-          modules.gnome.enable = false;
+          modules.gnome.removeUtils.enable = true;
 - !list
   multiple: true
   required: false
