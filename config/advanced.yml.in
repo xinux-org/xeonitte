@@ -12,6 +12,16 @@ steps:
   root: true
   hostname: true
 - !list
+  multiple: false
+  required: false
+  title: _("Install minimal without ui GNOME")
+  id: Minimal
+  choices:
+    - Minimal:
+        description: _("Install minimal without ui GNOME")
+        config: |-
+          modules.gnome.enable = false;
+- !list
   multiple: true
   required: false
   title: _("Extra Package Managers")
@@ -45,15 +55,5 @@ steps:
         description: _("Install the Zen kernel")
         config: |-
           boot.kernelPackages = pkgs.linuxPackages_zen;
-- !list
-  multiple: false
-  required: false
-  title: _("Install minimal without ui GNOME")
-  id: Minimal
-  choices:
-    - Minimal:
-        description: _("Install minimal without ui GNOME")
-        config: |-
-          modules.gnome.enable = false;
 - partitioning
 - summary
