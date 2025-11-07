@@ -11,6 +11,7 @@
     };
     xinux-modules = {
       url = "github:xinux-org/modules";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
