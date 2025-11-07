@@ -303,14 +303,14 @@ impl Worker for InstallAsyncModel {
                     }
                 }
 
-                if imperative_timezone {
-                    if let Some(timezone) = timezone {
-                        commands.insert(
-                            0,
-                            format!("ln -sf ../etc/zoneinfo/{} /etc/localtime", timezone),
-                        );
-                    }
-                }
+                // if imperative_timezone {
+                //     if let Some(timezone) = timezone {
+                //         commands.insert(
+                //             0,
+                //             format!("ln -sf ../etc/zoneinfo/{} /etc/localtime", timezone),
+                //         );
+                //     }
+                // }
 
                 self.postinstall_commands = commands;
                 sender.input(InstallAsyncMsg::RunNextCommand);
