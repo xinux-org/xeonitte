@@ -200,6 +200,31 @@ impl Worker for InstallAsyncModel {
                     return;
                 }
 
+                info!("Step 3.1: Backup flakes");
+
+                fn backup() -> Result<()> {
+                    Command::new("pkexec")
+                        .arg("rm")
+                        .arg("-rf")
+                        .arg("/flakes")
+                        .output()?;
+
+                    Command::new("pkexec")
+                        .arg("cp")
+                        .arg("-r")
+                        .arg("/tmp/xeonitte")
+                        .arg("/flakes")
+                        .output()?;
+
+                    Ok(())
+                }
+
+                if let Err(e) = backup() {
+                    error!("Failed to create backup /flakes: {}", e);
+                    let _ = sender.output(AppMsg::Error);
+                    return;
+                }
+
                 // Step 4: Install NixOS
                 info!("Step 4: Install NixOS");
                 if let Some(hostname) = user.as_ref().as_ref().map(|u| u.hostname.clone()) {
