@@ -202,28 +202,28 @@ impl Worker for InstallAsyncModel {
 
                 info!("Step 3.1: Backup flakes");
 
-                fn backup() -> Result<()> {
-                    Command::new("pkexec")
-                        .arg("rm")
-                        .arg("-rf")
-                        .arg("/flakes")
-                        .output()?;
+                // fn backup() -> Result<()> {
+                //     Command::new("pkexec")
+                //         .arg("rm")
+                //         .arg("-rf")
+                //         .arg("/flakes")
+                //         .output()?;
 
-                    Command::new("pkexec")
-                        .arg("cp")
-                        .arg("-r")
-                        .arg("/tmp/xeonitte")
-                        .arg("/flakes")
-                        .output()?;
+                //     Command::new("pkexec")
+                //         .arg("cp")
+                //         .arg("-r")
+                //         .arg("/tmp/xeonitte")
+                //         .arg("/flakes")
+                //         .output()?;
 
-                    Ok(())
-                }
+                //     Ok(())
+                // }
 
-                if let Err(e) = backup() {
-                    error!("Failed to create backup /flakes: {}", e);
-                    let _ = sender.output(AppMsg::Error);
-                    return;
-                }
+                // if let Err(e) = backup() {
+                //     error!("Failed to create backup /flakes: {}", e);
+                //     let _ = sender.output(AppMsg::Error);
+                //     return;
+                // }
 
                 // Step 4: Install NixOS
                 info!("Step 4: Install NixOS");
@@ -303,14 +303,14 @@ impl Worker for InstallAsyncModel {
                     }
                 }
 
-                // if imperative_timezone {
-                //     if let Some(timezone) = timezone {
-                //         commands.insert(
-                //             0,
-                //             format!("ln -sf ../etc/zoneinfo/{} /etc/localtime", timezone),
-                //         );
-                //     }
-                // }
+                if imperative_timezone {
+                    if let Some(timezone) = timezone {
+                        commands.insert(
+                            0,
+                            format!("ln -sf ../etc/zoneinfo/{} /etc/localtime", timezone),
+                        );
+                    }
+                }
 
                 self.postinstall_commands = commands;
                 sender.input(InstallAsyncMsg::RunNextCommand);
