@@ -527,7 +527,7 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
                             "@KEYBOARD@",
                             &format!(
                                 r#"  # Set the keyboard layout.
-  services.layout = "{}";
+  services.xserver.xkb.layout = "{}";
   console.useXkbConfig = true;"#,
                                 keymap
                             ),
