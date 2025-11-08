@@ -513,9 +513,9 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
                                 "@KEYBOARD@",
                                 &format!(
                                     r#"  # Set the keyboard layout.
-  services.xserver = {{
+  services.xserver.xkb = {{
     layout = "{}";
-    xkbVariant = "{}";
+    variant = "{}";
   }};
   console.useXkbConfig = true;"#,
                                     layout, variant
@@ -527,7 +527,7 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
                             "@KEYBOARD@",
                             &format!(
                                 r#"  # Set the keyboard layout.
-  services.xserver.layout = "{}";
+  services.layout = "{}";
   console.useXkbConfig = true;"#,
                                 keymap
                             ),
