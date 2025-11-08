@@ -221,6 +221,11 @@ impl Worker for InstallAsyncModel {
                         .arg("/flakes")
                         .output()?;
 
+                    Command::new("pkexec")
+                        .arg("chmod")
+                        .arg("a-w")
+                        .arg("/tmp/")
+                        .output()?;
                     Ok(())
                 }
 
