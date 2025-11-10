@@ -1037,10 +1037,10 @@
       },
       "locked": {
         "lastModified": 1762515300,
-        "narHash": "sha256-r6gkG0G5xR6s9C7R27N+ySxlKyRjy8FZ9mNZiV4QrOo=",
+        "narHash": "sha256-NwkhfDvdofUyZgINsJDOrUWcgGD6R6RKH5dlX9TTR0s=",
         "owner": "xinux-org",
         "repo": "modules",
-        "rev": "8b78ccc1c6b8001de14ee3958b41c853f16b61e0",
+        "rev": "78e4b87cf6559441a7d117a53fcc7e6f35cf65f2",
         "type": "github"
       },
       "original": {
