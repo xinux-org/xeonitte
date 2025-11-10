@@ -20,7 +20,7 @@ steps:
     - Minimal:
         description: _("Install minimal Xinux")
         config: |-
-          modules.gnome.removeUtils.enable = true;
+          modules.gnome.removeUtils.enable = mkForce true;
 - !list
   multiple: true
   required: false
