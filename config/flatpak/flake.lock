@@ -1036,11 +1036,11 @@
         "xinux-module-manager": "xinux-module-manager"
       },
       "locked": {
-        "lastModified": 1762780775,
-        "narHash": "sha256-wIw6/jb7eXt5oILpcu8Y0wi4l86kMwiiqOHxOiXNCXc=",
+        "lastModified": 1762783041,
+        "narHash": "sha256-nBAmstz58soCGgRzkzsh4WdEZymfnpgYx0v7/G9cXjw=",
         "owner": "xinux-org",
         "repo": "modules",
-        "rev": "25950b5bfb3ae8e423b62e78a1f24ddfea5c78d9",
+        "rev": "52bd147ce17e9ce7784828cb6e00428bf4bbdf71",
         "type": "github"
       },
       "original": {
