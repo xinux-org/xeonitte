@@ -21,7 +21,7 @@ fn main() {
         WriteLogger::new(
             LevelFilter::Debug,
             Config::default(),
-            File::create("/xeonitte/xeonitte.log").unwrap(),
+            File::create("/tmp/xeonitte.log").unwrap(),
         ),
     ])
     .unwrap();

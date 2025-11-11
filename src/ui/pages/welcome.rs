@@ -103,12 +103,9 @@ impl SimpleComponent for WelcomeModel {
             "uz_UZ.UTF-8",
             "en_US.UTF-8",
             "ru_RU.UTF-8",
-            "es_ES.UTF-8",
-            "de_DE.UTF-8",
-            "pt_BR.UTF-8",
         ];
 
-        let defaultlang = "uz_UZ.UTF-8";
+        let defaultlang = "uz_UZ.UTF-8/UTF-8";
         model.selected = Some(defaultlang.to_string());
 
         let langbox = gtk::ListBox::new();

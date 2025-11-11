@@ -112,10 +112,7 @@ impl SimpleComponent for TimeZoneModel {
             "Asia/Tashkent",
             "America/New_York",
             "Asia/Tokyo",
-            "Europe/London",
-            "Europe/Paris",
-            "Europe/Berlin",
-            "Australia/Sydney",
+            "Europe/Moscow"
         ];
 
         let mut shorttzvec = vec![];
