@@ -215,7 +215,7 @@ impl SimpleComponent for InstallModel {
             }
             InstallMsg::VTEOutput(status) => {
                 debug!("VTE command exited with status: {}", status);
-                if let Ok(file) = File::create("/tmp/xeonitte-term.log") {
+                if let Ok(file) = File::create("/xeonitte/xeonitte-term.log") {
                     let output = gio::WriteOutputStream::new(file);
                     if let Err(e) = self.terminal.write_contents_sync(
                         &output,

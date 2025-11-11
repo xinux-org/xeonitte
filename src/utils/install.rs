@@ -200,25 +200,25 @@ impl Worker for InstallAsyncModel {
                     return;
                 }
 
-                info!("Step 3.1: Backup flakes");
+                info!("Step 3.1: Backup xeonitte");
 
                 fn backup() -> Result<()> {
                     Command::new("pkexec")
                         .arg("rm")
                         .arg("-rf")
-                        .arg("/flakes")
+                        .arg("/xeonitte")
                         .output()?;
 
                      Command::new("pkexec")
                         .arg("mkdir")
-                        .arg("/flakes")
+                        .arg("/xeonitte")
                         .output()?;
 
                     Command::new("pkexec")
                         .arg("cp")
                         .arg("-r")
                         .arg("/tmp/xeonitte")
-                        .arg("/flakes")
+                        .arg("/xeonitte")
                         .output()?;
 
                     Command::new("pkexec")
