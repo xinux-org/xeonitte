@@ -43,6 +43,7 @@ pub enum InstallAsyncMsg {
         Option<String>, //timezone,
         bool,           // Imperative timezone
         Vec<String>,    // Commands
+        Box<Option<UserConfig>>,
     ),
     RunNextCommand,
 }
@@ -254,55 +255,12 @@ impl Worker for InstallAsyncModel {
                         .map(|s| s.to_string())
                         .collect(),
                     ));
-
-                    fn backup(hostname: String) -> Result<()> {
-                        Command::new("pwd");
-
-                        Command::new("pkexec")
-                            .arg("mkdir")
-                            .arg("-p")
-                            .arg(&format!("/tmp/xeonitte/home/{}/.config/libreoffice/4/user/uno_packages/cache", hostname))
-                            .output()?;
-
-                        Command::new("pkexec")
-                            .arg("mkdir")
-                            .arg("-p")
-                            .arg(&format!("/tmp/xeonitte/home/{}/.config/libreoffice/4/user/", hostname))
-                            .output()?;
-
-                        // for icons
-                        Command::new("pkexec")
-                            .arg("cp")
-                            .arg("-a")
-                            .arg(&format!("{}/xeonitte/configcopy/uno_packages", SYSCONFDIR))
-                            .arg(&format!("/tmp/xeonitte/home/{}/.config/libreoffice/4/user/uno_packages/cache/", hostname))
-                            .output()?;
-
-                        Command::new("pkexec")
-                            .arg("rm")
-                            .arg(&format!("/tmp/xeonitte/home/{}/.config/libreoffice/4/user/registrymodifications.xcu", hostname))
-                            .output()?;
-
-                        Command::new("pkexec")
-                            .arg("cp")
-                            .arg("-a")
-                            .arg(&format!("{}/xeonitte/configcopy/registrymodifications.xcu", SYSCONFDIR))
-                            .arg(&format!("/tmp/xeonitte/home/{}/.config/libreoffice/4/user/", hostname))
-                            .output()?;
-                        Ok(())
-                    }
-
-                    if let Err(e) = backup(hostname) {
-                        error!("Failed to create libre office config: {}", e);
-                        let _ = sender.output(AppMsg::Error);
-                        return;
-                    }
                 } else {
                     error!("No hostname found");
                     let _ = sender.output(AppMsg::Error);
                 }
             }
-            InstallAsyncMsg::FinishInstall(timezone, imperative_timezone, mut commands) => {
+            InstallAsyncMsg::FinishInstall(timezone, imperative_timezone, mut commands, user) => {
                 // Step 5: Set user passwords
                 info!("Step 5: Set user passwords");
                 fn setuserpasswd(username: Option<String>, password: Option<String>) -> Result<()> {
@@ -364,12 +322,57 @@ impl Worker for InstallAsyncModel {
                         );
                     }
                 }
+                // Step 6.1: Set libreoffice config
+                info!("Step 6.1: Set libreoffice config");
+                fn backup(username: String) -> Result<()> {
+                    Command::new("pwd");
+
+                    Command::new("pkexec")
+                        .arg("mkdir")
+                        .arg("-p")
+                        .arg(&format!("/tmp/xeonitte/home/{}/.config/libreoffice/4/user/uno_packages/cache", username))
+                        .output()?;
+
+                    Command::new("pkexec")
+                        .arg("mkdir")
+                        .arg("-p")
+                        .arg(&format!("/tmp/xeonitte/home/{}/.config/libreoffice/4/user/", username))
+                        .output()?;
+
+                    // for icons
+                    Command::new("pkexec")
+                        .arg("cp")
+                        .arg("-a")
+                        .arg(&format!("{}/xeonitte/configcopy/uno_packages", SYSCONFDIR))
+                        .arg(&format!("/tmp/xeonitte/home/{}/.config/libreoffice/4/user/uno_packages/cache/", username))
+                        .output()?;
+
+                    Command::new("pkexec")
+                        .arg("rm")
+                        .arg(&format!("/tmp/xeonitte/home/{}/.config/libreoffice/4/user/registrymodifications.xcu", username))
+                        .output()?;
+
+                    Command::new("pkexec")
+                        .arg("cp")
+                        .arg("-a")
+                        .arg(&format!("{}/xeonitte/configcopy/registrymodifications.xcu", SYSCONFDIR))
+                        .arg(&format!("/tmp/xeonitte/home/{}/.config/libreoffice/4/user/", username))
+                        .output()?;
+                    Ok(())
+                    }
+
+                    let username = user.as_ref().as_ref().map(|u| u.username.clone());
+                    if let Err(e) = backup(username.expect("NO USERNAME FOUND IN ADDING LIBBREOFFICE CONFIG")) {
+                        error!("Failed to create libre office config: {}", e);
+                        let _ = sender.output(AppMsg::Error);
+                        return;
+                    }
 
                 self.postinstall_commands = commands;
                 sender.input(InstallAsyncMsg::RunNextCommand);
             }
             // Step 7: Run commands
-            InstallAsyncMsg::RunNextCommand => {
+            InstallAsyncMsg::RunNextCommand => {    
                 if self.postinstall_commands.is_empty() {
                     let _ = sender.output(AppMsg::Finished);
                     return;
