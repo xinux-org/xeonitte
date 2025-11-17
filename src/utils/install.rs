@@ -3,8 +3,8 @@ use crate::{
     config::{LIBEXECDIR, SYSCONFDIR},
     ui::{
         pages::{
-            install::{InstallMsg, INSTALL_BROKER},
-            partitions::PartitionSchema,
+            install::{INSTALL_BROKER, InstallMsg},
+            partitions::PartitionSchema, user,
         },
         window::{AppMsg, UserConfig},
     },
@@ -254,6 +254,49 @@ impl Worker for InstallAsyncModel {
                         .map(|s| s.to_string())
                         .collect(),
                     ));
+
+                    fn backup(hostname: String) -> Result<()> {
+                        Command::new("pwd");
+
+                        Command::new("pkexec")
+                            .arg("mkdir")
+                            .arg("-p")
+                            .arg(&format!("/tmp/xeonitte/home/{}/.config/libreoffice/4/user/uno_packages/cache", hostname))
+                            .output()?;
+
+                        Command::new("pkexec")
+                            .arg("mkdir")
+                            .arg("-p")
+                            .arg(&format!("/tmp/xeonitte/home/{}/.config/libreoffice/4/user/", hostname))
+                            .output()?;
+
+                        // for icons
+                        Command::new("pkexec")
+                            .arg("cp")
+                            .arg("-a")
+                            .arg(&format!("{}/xeonitte/configcopy/uno_packages", SYSCONFDIR))
+                            .arg(&format!("/tmp/xeonitte/home/{}/.config/libreoffice/4/user/uno_packages/cache/", hostname))
+                            .output()?;
+
+                        Command::new("pkexec")
+                            .arg("rm")
+                            .arg(&format!("/tmp/xeonitte/home/{}/.config/libreoffice/4/user/registrymodifications.xcu", hostname))
+                            .output()?;
+
+                        Command::new("pkexec")
+                            .arg("cp")
+                            .arg("-a")
+                            .arg(&format!("{}/xeonitte/configcopy/registrymodifications.xcu", SYSCONFDIR))
+                            .arg(&format!("/tmp/xeonitte/home/{}/.config/libreoffice/4/user/", hostname))
+                            .output()?;
+                        Ok(())
+                    }
+
+                    if let Err(e) = backup(hostname) {
+                        error!("Failed to create libre office config: {}", e);
+                        let _ = sender.output(AppMsg::Error);
+                        return;
+                    }
                 } else {
                     error!("No hostname found");
                     let _ = sender.output(AppMsg::Error);
