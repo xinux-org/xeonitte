@@ -324,7 +324,7 @@ impl Worker for InstallAsyncModel {
                 }
                 // Step 6.1: Set libreoffice config
                 info!("Step 6.1: Set libreoffice config");
-                fn backup(username: String) -> Result<()> {
+                fn init_libreoffice_config(username: String) -> Result<()> {
                     Command::new("pwd");
 
                     Command::new("pkexec")
@@ -358,11 +358,17 @@ impl Worker for InstallAsyncModel {
                         .arg(&format!("{}/xeonitte/configcopy/registrymodifications.xcu", SYSCONFDIR))
                         .arg(&format!("/tmp/xeonitte/home/{}/.config/libreoffice/4/user/", username))
                         .output()?;
+
+                    Command::new("chown")
+                        .arg("-R")
+                        .arg(&format!("{}:users", username))
+                        .arg(&format!("/tmp/xeonitte/home/{}", username))
+                        .output()?;
                     Ok(())
                     }
 
                     let username = user.as_ref().as_ref().map(|u| u.username.clone());
-                    if let Err(e) = backup(username.expect("NO USERNAME FOUND IN ADDING LIBBREOFFICE CONFIG")) {
+                    if let Err(e) = init_libreoffice_config(username.expect("NO USERNAME FOUND IN ADDING LIBBREOFFICE CONFIG")) {
                         error!("Failed to create libre office config: {}", e);
                         let _ = sender.output(AppMsg::Error);
                         return;
