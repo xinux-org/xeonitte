@@ -359,7 +359,8 @@ impl Worker for InstallAsyncModel {
                         .arg(&format!("/tmp/xeonitte/home/{}/.config/libreoffice/4/user/", username))
                         .output()?;
 
-                    Command::new("chown")
+                    Command::new("pkexec")
+                        .arg("chown")
                         .arg("-R")
                         .arg(&format!("{}:users", username))
                         .arg(&format!("/tmp/xeonitte/home/{}", username))
