@@ -363,7 +363,7 @@ impl Worker for InstallAsyncModel {
                         .arg("chown")
                         .arg("-R")
                         .arg(&format!("{}:users", username))
-                        .arg(&format!("/tmp/xeonitte/home/{}", username))
+                        .arg(&format!("/tmp/xeonitte/home/{}/.config", username))
                         .output()?;
                     Ok(())
                     }
