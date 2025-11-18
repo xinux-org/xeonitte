@@ -93,12 +93,13 @@ impl SimpleComponent for ListModel {
         let mut model = ListModel {
             id: init.id,
             title: init.title,
-            list: FactoryVecDeque::builder()
-                .launch_default()
-                .forward(sender.input_sender(), |msg| match msg {
+            list: FactoryVecDeque::builder().launch_default().forward(
+                sender.input_sender(),
+                |msg| match msg {
                     ListItemMsg::Select(key) => ListMsg::Select(key),
                     ListItemMsg::Deselect(key) => ListMsg::Deselect(key),
-                }),
+                },
+            ),
             choices,
             selected: Vec::new(),
             required: init.required,

@@ -26,7 +26,7 @@ use crate::{
         i18n::i18n_f,
         install::{InstallAsyncModel, InstallAsyncMsg},
         language::{get_country, get_lang},
-        parse::{parse_config, Choice, ChoiceEnum, XeonitteConfig, InstallationConfig, StepType},
+        parse::{parse_config, Choice, ChoiceEnum, InstallationConfig, StepType, XeonitteConfig},
     },
 };
 use adw::prelude::*;

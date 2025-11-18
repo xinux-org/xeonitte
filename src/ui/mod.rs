@@ -1,3 +1,3 @@
 pub mod pages;
-pub mod window;
 pub mod quitdialog;
+pub mod window;

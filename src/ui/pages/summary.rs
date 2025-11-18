@@ -204,9 +204,7 @@ impl SimpleComponent for SummaryModel {
             userconfig: None,
             prettylanguage: None,
             prettykeyboard: None,
-            partitions: FactoryVecDeque::builder()
-                .launch_default()
-                .detach(),
+            partitions: FactoryVecDeque::builder().launch_default().detach(),
             showhostname: false,
             tracker: 0,
         };

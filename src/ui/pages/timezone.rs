@@ -3,7 +3,7 @@ use adw::prelude::*;
 use gettextrs::gettext;
 use glib::TimeZone;
 use gnome_desktop::{self, WallClockExt};
-use log::{trace, debug};
+use log::{debug, trace};
 use relm4::*;
 use std::{collections::HashMap, process::Command};
 
@@ -112,7 +112,7 @@ impl SimpleComponent for TimeZoneModel {
             "Asia/Tashkent",
             "America/New_York",
             "Asia/Tokyo",
-            "Europe/Moscow"
+            "Europe/Moscow",
         ];
 
         let mut shorttzvec = vec![];

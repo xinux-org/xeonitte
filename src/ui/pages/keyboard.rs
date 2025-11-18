@@ -331,7 +331,17 @@ impl SimpleComponent for KeyboardModel {
                 self.showall = !self.showall;
             }
             KeyboardMsg::SetCountry(language, country) => {
-                let layouts = self.layouts.iter().filter_map(|(layout, (_name, lang, _country, _variant))| if lang == &language.to_lowercase() { Some(layout.to_string()) } else { None }).collect::<Vec<_>>();
+                let layouts = self
+                    .layouts
+                    .iter()
+                    .filter_map(|(layout, (_name, lang, _country, _variant))| {
+                        if lang == &language.to_lowercase() {
+                            Some(layout.to_string())
+                        } else {
+                            None
+                        }
+                    })
+                    .collect::<Vec<_>>();
                 let mut shortvec = layouts
                     .iter()
                     .filter(|k| !k.contains('-') && !k.contains('_'))

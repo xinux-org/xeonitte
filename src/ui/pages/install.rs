@@ -108,9 +108,7 @@ impl SimpleComponent for InstallModel {
             showterminal: false,
             progressbar: gtk::ProgressBar::new(),
             installing: false,
-            slides: FactoryVecDeque::builder()
-                .launch_default()
-                .detach(),
+            slides: FactoryVecDeque::builder().launch_default().detach(),
             locale: None,
         };
 

@@ -30,7 +30,7 @@ pub enum ConfigType {
     Xinux,
     #[default]
     Flakes,
-    Legacy
+    Legacy,
 }
 
 #[derive(Deserialize, Serialize, Default, Clone, Debug)]

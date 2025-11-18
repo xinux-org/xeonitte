@@ -247,16 +247,11 @@ impl SimpleComponent for PartitionModel {
         sender: ComponentSender<Self>,
     ) -> ComponentParts<Self> {
         let model = PartitionModel {
-            disks: FactoryVecDeque::builder()
-                .launch_default()
-                .detach(),
+            disks: FactoryVecDeque::builder().launch_default().detach(),
             method: PartitionMethod::Basic,
             partition_groups: FactoryVecDeque::builder()
-            .launch(gtk::Box::new(
-                gtk::Orientation::Vertical,
-                20,
-            ))
-            .detach(),
+                .launch(gtk::Box::new(gtk::Orientation::Vertical, 20))
+                .detach(),
             diskgroupbtn: gtk::CheckButton::new(),
             schema: None,
             efi: distinst_disks::Bootloader::detect() == distinst_disks::Bootloader::Efi,
@@ -318,9 +313,7 @@ impl SimpleComponent for PartitionModel {
                                 });
 
                                 let mut part_factoryvec: FactoryVecDeque<Partition> =
-                                    FactoryVecDeque::builder()
-                                        .launch_default()
-                                        .detach();
+                                    FactoryVecDeque::builder().launch_default().detach();
                                 let mut part_guard = part_factoryvec.guard();
 
                                 for part in disk.partitions {
