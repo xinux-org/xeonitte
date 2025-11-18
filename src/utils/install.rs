@@ -640,14 +640,14 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
                     &if extrapkgs.is_empty() {
                         r#"  # List packages installed in system profile.
   environment.systemPackages = with pkgs; [
-    firefox
+    libreoffice
   ];"#
                         .to_string()
                     } else {
                         format!(
                             r#"  # List packages installed in system profile.
   environment.systemPackages = with pkgs; [
-    firefox
+    libreoffice
     {}
   ];"#,
                             extrapkgs.join("\n    ")
