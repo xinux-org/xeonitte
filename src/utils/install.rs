@@ -43,7 +43,6 @@ pub enum InstallAsyncMsg {
         Option<String>, //timezone,
         bool,           // Imperative timezone
         Vec<String>,    // Commands
-        Box<Option<UserConfig>>,
     ),
     RunNextCommand,
 }
@@ -260,7 +259,7 @@ impl Worker for InstallAsyncModel {
                     let _ = sender.output(AppMsg::Error);
                 }
             }
-            InstallAsyncMsg::FinishInstall(timezone, imperative_timezone, mut commands, user) => {
+            InstallAsyncMsg::FinishInstall(timezone, imperative_timezone, mut commands) => {
                 // Step 5: Set user passwords
                 info!("Step 5: Set user passwords");
                 fn setuserpasswd(username: Option<String>, password: Option<String>) -> Result<()> {
@@ -320,6 +319,10 @@ impl Worker for InstallAsyncModel {
                             0,
                             format!("ln -sf ../etc/zoneinfo/{} /etc/localtime", timezone),
                         );
+                        commands.insert(
+                            1,
+                            format!("pkexec chown -R {:?}:users /tmp/xeonitte/home/{:?}/.config", &self.username, &self.username),
+                        );
                     }
                 }
                 // Step 6.1: Set libreoffice config
@@ -358,18 +361,10 @@ impl Worker for InstallAsyncModel {
                         .arg(&format!("{}/xeonitte/configcopy/registrymodifications.xcu", SYSCONFDIR))
                         .arg(&format!("/tmp/xeonitte/home/{}/.config/libreoffice/4/user/", username))
                         .output()?;
-
-                    Command::new("pkexec")
-                        .arg("chown")
-                        .arg("-R")
-                        .arg(&format!("{}:users", username))
-                        .arg(&format!("/tmp/xeonitte/home/{}/.config", username))
-                        .output()?;
                     Ok(())
                     }
 
-                    let username = user.as_ref().as_ref().map(|u| u.username.clone());
-                    if let Err(e) = init_libreoffice_config(username.expect("NO USERNAME FOUND IN ADDING LIBBREOFFICE CONFIG")) {
+                    if let Err(e) = init_libreoffice_config(self.username.clone().unwrap()) {
                         error!("Failed to create libre office config: {}", e);
                         let _ = sender.output(AppMsg::Error);
                         return;

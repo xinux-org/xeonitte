@@ -777,7 +777,6 @@ impl Component for AppModel {
                         self.timezoneconfig.clone(),
                         config.imperative_timezone.clone(),
                         config.commands.clone(),
-                        Box::new(self.userconfig.clone()),
                     ));
                 }
             }
