@@ -319,12 +319,12 @@ impl Worker for InstallAsyncModel {
                             0,
                             format!("ln -sf ../etc/zoneinfo/{} /etc/localtime", timezone),
                         );
-                        commands.insert(
-                            1,
-                            format!("pkexec chown -R {:?}:users /tmp/xeonitte/home/{:?}/.config", &self.username, &self.username),
-                        );
                     }
                 }
+                commands.push(
+                    format!("pkexec chown -R {:?}:users /tmp/xeonitte/home/{:?}/.config", &self.username, &self.username),
+                );
+
                 // Step 6.1: Set libreoffice config
                 info!("Step 6.1: Set libreoffice config");
                 fn init_libreoffice_config(username: String) -> Result<()> {
