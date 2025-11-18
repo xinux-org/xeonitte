@@ -3,8 +3,9 @@ use crate::{
     config::{LIBEXECDIR, SYSCONFDIR},
     ui::{
         pages::{
-            install::{INSTALL_BROKER, InstallMsg},
-            partitions::PartitionSchema, user,
+            install::{InstallMsg, INSTALL_BROKER},
+            partitions::PartitionSchema,
+            user,
         },
         window::{AppMsg, UserConfig},
     },
@@ -209,7 +210,7 @@ impl Worker for InstallAsyncModel {
                         .arg("/xeonitte")
                         .output()?;
 
-                     Command::new("pkexec")
+                    Command::new("pkexec")
                         .arg("mkdir")
                         .arg("/xeonitte")
                         .output()?;
@@ -321,9 +322,11 @@ impl Worker for InstallAsyncModel {
                         );
                     }
                 }
-                commands.push(
-                    format!("pkexec chown -R {:?}:users /tmp/xeonitte/home/{:?}/.config", &self.username, &self.username),
-                );
+                commands.push(format!(
+                    "pkexec chown -R {}:users /tmp/xeonitte/home/{}/.config",
+                    &self.username.clone().unwrap(),
+                    &self.username.clone().unwrap()
+                ));
 
                 // Step 6.1: Set libreoffice config
                 info!("Step 6.1: Set libreoffice config");
@@ -333,13 +336,19 @@ impl Worker for InstallAsyncModel {
                     Command::new("pkexec")
                         .arg("mkdir")
                         .arg("-p")
-                        .arg(&format!("/tmp/xeonitte/home/{}/.config/libreoffice/4/user/uno_packages/cache", username))
+                        .arg(&format!(
+                            "/tmp/xeonitte/home/{}/.config/libreoffice/4/user/uno_packages/cache",
+                            username
+                        ))
                         .output()?;
 
                     Command::new("pkexec")
                         .arg("mkdir")
                         .arg("-p")
-                        .arg(&format!("/tmp/xeonitte/home/{}/.config/libreoffice/4/user/", username))
+                        .arg(&format!(
+                            "/tmp/xeonitte/home/{}/.config/libreoffice/4/user/",
+                            username
+                        ))
                         .output()?;
 
                     // for icons
@@ -347,7 +356,10 @@ impl Worker for InstallAsyncModel {
                         .arg("cp")
                         .arg("-a")
                         .arg(&format!("{}/xeonitte/configcopy/uno_packages", SYSCONFDIR))
-                        .arg(&format!("/tmp/xeonitte/home/{}/.config/libreoffice/4/user/uno_packages/cache/", username))
+                        .arg(&format!(
+                            "/tmp/xeonitte/home/{}/.config/libreoffice/4/user/uno_packages/cache/",
+                            username
+                        ))
                         .output()?;
 
                     Command::new("pkexec")
@@ -358,23 +370,29 @@ impl Worker for InstallAsyncModel {
                     Command::new("pkexec")
                         .arg("cp")
                         .arg("-a")
-                        .arg(&format!("{}/xeonitte/configcopy/registrymodifications.xcu", SYSCONFDIR))
-                        .arg(&format!("/tmp/xeonitte/home/{}/.config/libreoffice/4/user/", username))
+                        .arg(&format!(
+                            "{}/xeonitte/configcopy/registrymodifications.xcu",
+                            SYSCONFDIR
+                        ))
+                        .arg(&format!(
+                            "/tmp/xeonitte/home/{}/.config/libreoffice/4/user/",
+                            username
+                        ))
                         .output()?;
                     Ok(())
-                    }
+                }
 
-                    if let Err(e) = init_libreoffice_config(self.username.clone().unwrap()) {
-                        error!("Failed to create libre office config: {}", e);
-                        let _ = sender.output(AppMsg::Error);
-                        return;
-                    }
+                if let Err(e) = init_libreoffice_config(self.username.clone().unwrap()) {
+                    error!("Failed to create libre office config: {}", e);
+                    let _ = sender.output(AppMsg::Error);
+                    return;
+                }
 
                 self.postinstall_commands = commands;
                 sender.input(InstallAsyncMsg::RunNextCommand);
             }
             // Step 7: Run commands
-            InstallAsyncMsg::RunNextCommand => {    
+            InstallAsyncMsg::RunNextCommand => {
                 if self.postinstall_commands.is_empty() {
                     let _ = sender.output(AppMsg::Finished);
                     return;
