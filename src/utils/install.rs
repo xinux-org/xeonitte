@@ -323,7 +323,7 @@ impl Worker for InstallAsyncModel {
                     }
                 }
                 commands.push(format!(
-                    "pkexec chown -R {}:users /tmp/xeonitte/home/{}/.config",
+                    "chown -R {}:users /home/{}/.config", // path relative to chroot
                     &self.username.clone().unwrap(),
                     &self.username.clone().unwrap()
                 ));
