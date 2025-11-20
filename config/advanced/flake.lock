@@ -1092,11 +1092,11 @@
         "xinux-module-manager": "xinux-module-manager"
       },
       "locked": {
-        "lastModified": 1763634983,
-        "narHash": "sha256-trQXbj5WVar4FVH4Yaa+BQQjerJVci3rDrxJKIkxqLM=",
+        "lastModified": 1763639750,
+        "narHash": "sha256-IjfYeMr1Clo+Cw3IJK3m/z5lqoMxmgz1fEuQoqY6Atk=",
         "owner": "xinux-org",
         "repo": "modules",
-        "rev": "81fd5eefa3af26578aa857da4f71d4038b59e85c",
+        "rev": "99777b444ec514ebe8d45daaef2b4d20d7c1a50b",
         "type": "github"
       },
       "original": {
