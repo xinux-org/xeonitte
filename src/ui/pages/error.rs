@@ -143,7 +143,7 @@ impl SimpleComponent for ErrorModel {
                 }
                 outlog.push_str("\n=== End of Xeonitte Log ===\n\n");
                 outlog.push_str("=== nixos-install Log ===\n");
-                if let Ok(nixoslog) = std::fs::read_to_string("/xeonitte/xeonitte-term.log") {
+                if let Ok(nixoslog) = std::fs::read_to_string("/tmp/xeonitte-term.log") {
                     outlog.push_str(nixoslog.trim());
                 } else {
                     outlog.push_str("No log found!");

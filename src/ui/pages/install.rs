@@ -214,15 +214,15 @@ impl SimpleComponent for InstallModel {
             InstallMsg::VTEOutput(status) => {
                 debug!("VTE command exited with status: {}", status);
 
-                if let Err(e) = Command::new("pkexec")
-                    .arg("mkdir")
-                    .arg("/xeonitte")
-                    .output()
-                {
-                    debug!("Created /xeonitte: {:?}", e);
-                }
+                // if let Err(e) = Command::new("pkexec")
+                //     .arg("mkdir")
+                //     .arg("/xeonitte")
+                //     .output()
+                // {
+                //     debug!("Created /xeonitte: {:?}", e);
+                // }
 
-                if let Ok(file) = File::create("/xeonitte/xeonitte-term.log") {
+                if let Ok(file) = File::create("/tmp/xeonitte-term.log") {
                     let output = gio::WriteOutputStream::new(file);
                     if let Err(e) = self.terminal.write_contents_sync(
                         &output,
