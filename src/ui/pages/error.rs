@@ -136,7 +136,7 @@ impl SimpleComponent for ErrorModel {
                 }
 
                 let mut outlog = "=== Xeonitte Log ===\n".to_string();
-                if let Ok(xeonittelog) = std::fs::read_to_string("/xeonitte/xeonitte.log") {
+                if let Ok(xeonittelog) = std::fs::read_to_string("/tmp/xeonitte.log") {
                     outlog.push_str(xeonittelog.trim());
                 } else {
                     outlog.push_str("No log found!");
