@@ -575,7 +575,7 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
                         "@LOCALE@",
                         &format!(
                             r#"  # Select internationalisation properties.
-  i18n.defaultLocale = "{}";"#,
+  modules.xinux.language = "{}";"#,
                             locale
                         ),
                     );
