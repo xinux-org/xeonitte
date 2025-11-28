@@ -203,38 +203,38 @@ impl Worker for InstallAsyncModel {
 
                 info!("Step 3.1: Backup xeonitte");
 
-                // fn backup() -> Result<()> {
-                //     Command::new("pkexec")
-                //         .arg("rm")
-                //         .arg("-rf")
-                //         .arg("/xeonitte")
-                //         .output()?;
+                fn backup() -> Result<()> {
+                    Command::new("pkexec")
+                        .arg("rm")
+                        .arg("-rf")
+                        .arg("/xeonitte")
+                        .output()?;
 
-                //     Command::new("pkexec")
-                //         .arg("mkdir")
-                //         .arg("/xeonitte")
-                //         .output()?;
+                    Command::new("pkexec")
+                        .arg("mkdir")
+                        .arg("/xeonitte")
+                        .output()?;
 
-                //     Command::new("pkexec")
-                //         .arg("cp")
-                //         .arg("-r")
-                //         .arg("/tmp/xeonitte")
-                //         .arg("/xeonitte")
-                //         .output()?;
+                    Command::new("pkexec")
+                        .arg("cp")
+                        .arg("-r")
+                        .arg("/tmp/xeonitte")
+                        .arg("/xeonitte")
+                        .output()?;
 
-                //     // Command::new("pkexec")
-                //     //     .arg("chmod")
-                //     //     .arg("a-w")
-                //     //     .arg("/tmp/")
-                //     //     .output()?;
-                //     Ok(())
-                // }
+                    Command::new("pkexec")
+                        .arg("chmod")
+                        .arg("a-w")
+                        .arg("/tmp/")
+                        .output()?;
+                    Ok(())
+                }
 
-                // if let Err(e) = backup() {
-                //     error!("Failed to create backup /flakes: {}", e);
-                //     let _ = sender.output(AppMsg::Error);
-                //     return;
-                // }
+                if let Err(e) = backup() {
+                    error!("Failed to create backup /flakes: {}", e);
+                    let _ = sender.output(AppMsg::Error);
+                    return;
+                }
 
                 // Step 4: Install NixOS
                 info!("Step 4: Install NixOS");
@@ -330,63 +330,63 @@ impl Worker for InstallAsyncModel {
 
                 // Step 6.1: Set libreoffice config
                 info!("Step 6.1: Set libreoffice config");
-                // fn init_libreoffice_config(username: String) -> Result<()> {
-                //     Command::new("pwd");
+                fn init_libreoffice_config(username: String) -> Result<()> {
+                    Command::new("pwd");
 
-                //     Command::new("pkexec")
-                //         .arg("mkdir")
-                //         .arg("-p")
-                //         .arg(&format!(
-                //             "/tmp/xeonitte/home/{}/.config/libreoffice/4/user/uno_packages/cache",
-                //             username
-                //         ))
-                //         .output()?;
+                    Command::new("pkexec")
+                        .arg("mkdir")
+                        .arg("-p")
+                        .arg(&format!(
+                            "/tmp/xeonitte/home/{}/.config/libreoffice/4/user/uno_packages/cache",
+                            username
+                        ))
+                        .output()?;
 
-                //     Command::new("pkexec")
-                //         .arg("mkdir")
-                //         .arg("-p")
-                //         .arg(&format!(
-                //             "/tmp/xeonitte/home/{}/.config/libreoffice/4/user/",
-                //             username
-                //         ))
-                //         .output()?;
+                    Command::new("pkexec")
+                        .arg("mkdir")
+                        .arg("-p")
+                        .arg(&format!(
+                            "/tmp/xeonitte/home/{}/.config/libreoffice/4/user/",
+                            username
+                        ))
+                        .output()?;
 
-                //     // for icons
-                //     Command::new("pkexec")
-                //         .arg("cp")
-                //         .arg("-a")
-                //         .arg(&format!("{}/xeonitte/configcopy/uno_packages", SYSCONFDIR))
-                //         .arg(&format!(
-                //             "/tmp/xeonitte/home/{}/.config/libreoffice/4/user/uno_packages/cache/",
-                //             username
-                //         ))
-                //         .output()?;
+                    // for icons
+                    Command::new("pkexec")
+                        .arg("cp")
+                        .arg("-a")
+                        .arg(&format!("{}/xeonitte/configcopy/uno_packages", SYSCONFDIR))
+                        .arg(&format!(
+                            "/tmp/xeonitte/home/{}/.config/libreoffice/4/user/uno_packages/cache/",
+                            username
+                        ))
+                        .output()?;
 
-                //     Command::new("pkexec")
-                //         .arg("rm")
-                //         .arg(&format!("/tmp/xeonitte/home/{}/.config/libreoffice/4/user/registrymodifications.xcu", username))
-                //         .output()?;
+                    Command::new("pkexec")
+                        .arg("rm")
+                        .arg(&format!("/tmp/xeonitte/home/{}/.config/libreoffice/4/user/registrymodifications.xcu", username))
+                        .output()?;
 
-                //     Command::new("pkexec")
-                //         .arg("cp")
-                //         .arg("-a")
-                //         .arg(&format!(
-                //             "{}/xeonitte/configcopy/registrymodifications.xcu",
-                //             SYSCONFDIR
-                //         ))
-                //         .arg(&format!(
-                //             "/tmp/xeonitte/home/{}/.config/libreoffice/4/user/",
-                //             username
-                //         ))
-                //         .output()?;
-                //     Ok(())
-                // }
+                    Command::new("pkexec")
+                        .arg("cp")
+                        .arg("-a")
+                        .arg(&format!(
+                            "{}/xeonitte/configcopy/registrymodifications.xcu",
+                            SYSCONFDIR
+                        ))
+                        .arg(&format!(
+                            "/tmp/xeonitte/home/{}/.config/libreoffice/4/user/",
+                            username
+                        ))
+                        .output()?;
+                    Ok(())
+                }
 
-                // if let Err(e) = init_libreoffice_config(self.username.clone().unwrap()) {
-                //     error!("Failed to create libre office config: {}", e);
-                //     let _ = sender.output(AppMsg::Error);
-                //     return;
-                // }
+                if let Err(e) = init_libreoffice_config(self.username.clone().unwrap()) {
+                    error!("Failed to create libre office config: {}", e);
+                    let _ = sender.output(AppMsg::Error);
+                    return;
+                }
 
                 self.postinstall_commands = commands;
                 sender.input(InstallAsyncMsg::RunNextCommand);
