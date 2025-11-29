@@ -26,6 +26,7 @@ pub enum InstallMsg {
     VTEOutput(i32),
     SetLocale(Option<String>),
     PostInstall(Vec<String>),
+    PreInstall(Vec<String>),
 }
 
 pub static INSTALL_BROKER: MessageBroker<InstallMsg> = MessageBroker::new();
@@ -195,6 +196,22 @@ impl SimpleComponent for InstallModel {
                     |err| (debug!("VTE Install: {:?}", err)),
                 );
             }
+            InstallMsg::PreInstall(cmds) => {
+                debug!("PreInstall command: {:?}", cmds);
+                self.installing = false;
+                let cmds: Vec<&str> = cmds.iter().map(|x| &**x).collect();
+                self.terminal.spawn_async(
+                    vte::PtyFlags::DEFAULT,
+                    Some("/"),
+                    &cmds,
+                    &[],
+                    adw::glib::SpawnFlags::DEFAULT,
+                    || (),
+                    5,
+                    gio::Cancellable::NONE,
+                    |err| (debug!("VTE preinstall: {:?}", err)),
+                );
+            }
             InstallMsg::PostInstall(cmds) => {
                 debug!("PostInstall command: {:?}", cmds);
                 self.installing = false;
@@ -213,14 +230,6 @@ impl SimpleComponent for InstallModel {
             }
             InstallMsg::VTEOutput(status) => {
                 debug!("VTE command exited with status: {}", status);
-
-                // if let Err(e) = Command::new("pkexec")
-                //     .arg("mkdir")
-                //     .arg("/xeonitte")
-                //     .output()
-                // {
-                //     debug!("Created /xeonitte: {:?}", e);
-                // }
 
                 if let Ok(file) = File::create("/tmp/xeonitte-term.log") {
                     let output = gio::WriteOutputStream::new(file);

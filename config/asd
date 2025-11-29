@@ -1,0 +1,221 @@
+=== Xeonitte Log ===
+09:25:49 [INFO] Resource loaded: /nix/store/sm0b61hj9h0fsh7jv6l2q5q6p4axwq04-xeonitte-0.0.2/share/xeonitte/resources.gresource
+09:25:50 [DEBUG] (1) xeonitte::utils::parse: Parsing config /etc/xeonitte/config.yml
+09:25:50 [DEBUG] (1) xeonitte::ui::pages::timezone: Selected timezone: Some("Asia/Tashkent")
+09:25:50 [DEBUG] (4) reqwest::connect: starting new connection: http://nmcheck.gnome.org/
+09:25:55 [DEBUG] (1) xeonitte::ui::pages::partitions: Got disks: [InputDisk { name: "/dev/sda", size: 1024209543168, partitions: [InputPartition { name: "/dev/sda1", _format: "fat32", size: 2147483648 }, InputPartition { name: "/dev/sda2", _format: "linux-swap(v1)", size: 74088185856 }, InputPartition { name: "/dev/sda3", _format: "ext4", size: 947972472832 }] }, InputDisk { name: "/dev/sdb", size: 2000398934016, partitions: [InputPartition { name: "/dev/sdb1", _format: "ext4", size: 966367641600 }, InputPartition { name: "/dev/sdb2", _format: "ext4", size: 1034030153728 }] }, InputDisk { name: "/dev/sdc", size: 256060514304, partitions: [InputPartition { name: "/dev/sdc1", _format: "fat32", size: 1071644160 }, InputPartition { name: "/dev/sdc2", _format: "ext4", size: 254984674816 }] }]
+09:25:55 [INFO] Partition: "/dev/sda1" length 2.00 GiB
+09:25:55 [INFO] Partition: "/dev/sda2" length 69.0 GiB
+09:25:55 [INFO] Partition: "/dev/sda3" length 883 GiB
+09:25:55 [INFO] Partition: "/dev/sdb1" length 900 GiB
+09:25:55 [INFO] Partition: "/dev/sdb2" length 963 GiB
+09:25:55 [INFO] Partition: "/dev/sdc1" length 1022 MiB
+09:25:55 [INFO] Partition: "/dev/sdc2" length 237 GiB
+09:26:04 [DEBUG] (1) xeonitte::ui::window: StackPage: Carousel
+09:26:04 [DEBUG] (1) xeonitte::ui::window: Config: Some(InstallationConfig { config_id: "basic", config_name: "Basic Installation", config_logo: "emoji-symbols-symbolic", config_type: Xinux, imperative_timezone: true, steps: [Welcome, Keyboard, Location, User { root: None, hostname: None }, Partitioning, Summary], commands: [] })
+09:26:04 [DEBUG] (1) xeonitte::ui::pages::user: Hostname changed to the same value, ignoring
+09:26:05 [INFO] Selected language: Some("uz_UZ.UTF-8")
+09:26:14 [DEBUG] (1) xeonitte::ui::pages::summary: SetConfig: Some("uz_UZ.UTF-8"), Some("uz+latin"), Some("Asia/Tashkent"), Some(FullDisk("/dev/sdc")), Some(UserConfig { name: "a", username: "a", password: "*****", hostname: "xinux", rootpassword: None, autologin: false })
+09:26:15 [DEBUG] (1) xeonitte::ui::window: StackPage: Install
+09:26:15 [DEBUG] (1) xeonitte::ui::window: Installing!
+09:26:15 [INFO] Step 0: Clear /tmp/xeonitte
+09:26:21 [INFO] Step 1: Setup and mount partitions
+09:26:21 [DEBUG] (3) xeonitte::utils::install: Executing partition with json: {"FullDisk":"/dev/sdc"}
+09:26:24 [DEBUG] (3) xeonitte::utils::install: PARTITION OUTPUT: Partition: Finding disk
+09:26:24 [DEBUG] (3) xeonitte::utils::install: PARTITION OUTPUT: Partition: Creating GPT partition table
+09:26:24 [DEBUG] (3) xeonitte::utils::install: PARTITION OUTPUT: Partition: Creating EFI partition
+09:26:24 [DEBUG] (3) xeonitte::utils::install: PARTITION OUTPUT: Partition: Creating root partition
+09:26:24 [DEBUG] (3) xeonitte::utils::install: PARTITION OUTPUT: Partition: Committing changes
+09:26:26 [DEBUG] (3) xeonitte::utils::install: PARTITION OUTPUT: Partition: Formatting partitions
+09:26:27 [DEBUG] (3) xeonitte::utils::install: PARTITION OUTPUT: Partition: Reloading disk
+09:26:27 [DEBUG] (3) xeonitte::utils::install: PARTITION OUTPUT: Partition: Sorting partitions
+09:26:27 [DEBUG] (3) xeonitte::utils::install: PARTITION OUTPUT: Partition: Mounting partitions
+09:26:27 [DEBUG] (3) xeonitte::utils::install: PARTITION OUTPUT: -- Target: /
+09:26:27 [DEBUG] (3) xeonitte::utils::install: PARTITION OUTPUT: -- Device: /dev/sdc2
+09:26:27 [DEBUG] (3) xeonitte::utils::install: PARTITION OUTPUT: -- Filesystem: "ext4"
+09:26:27 [DEBUG] (3) xeonitte::utils::install: PARTITION OUTPUT: -- Target: /boot
+09:26:27 [DEBUG] (3) xeonitte::utils::install: PARTITION OUTPUT: -- Device: /dev/sdc1
+09:26:27 [DEBUG] (3) xeonitte::utils::install: PARTITION OUTPUT: -- Filesystem: "fat32"
+09:26:27 [INFO] Step 2: Generate base config
+09:26:38 [INFO] Step 3: Make configuration
+09:26:38 [DEBUG] (3) xeonitte::utils::install: Iterating through /etc/xeonitte/basic/systems
+09:26:38 [DEBUG] (3) xeonitte::utils::install: Path: 
+09:26:38 [DEBUG] (3) xeonitte::utils::install: != /etc/xeonitte/basic/modules/{efiboot,biosboot}
+09:26:38 [DEBUG] (3) xeonitte::utils::install: Iterating through /etc/xeonitte/basic/systems/ARCH
+09:26:38 [DEBUG] (3) xeonitte::utils::install: Path: /systems
+09:26:38 [DEBUG] (3) xeonitte::utils::install: != /etc/xeonitte/basic/modules/{efiboot,biosboot}
+09:26:38 [DEBUG] (3) xeonitte::utils::install: Iterating through /etc/xeonitte/basic/systems/ARCH/HOSTNAME
+09:26:38 [DEBUG] (3) xeonitte::utils::install: Path: /systems/ARCH
+09:26:38 [DEBUG] (3) xeonitte::utils::install: != /etc/xeonitte/basic/modules/{efiboot,biosboot}
+09:26:45 [INFO] Step 3.1: Backup xeonitte
+09:26:55 [INFO] Step 4: Install NixOS
+09:26:55 [DEBUG] (1) xeonitte::ui::pages::install: Installing: ["/usr/bin/env", "pkexec", "nix", "flake", "update", "--flake", "/tmp/xeonitte/etc/nixos"]
+09:26:55 [DEBUG] (1) xeonitte::ui::pages::install: Installing: ["/usr/bin/env", "pkexec", "nixos-install", "--root", "/tmp/xeonitte", "--no-root-passwd", "--no-channel-copy", "--flake", "/tmp/xeonitte/etc/nixos#xinux"]
+09:26:55 [DEBUG] (1) xeonitte::ui::pages::install: VTE Install: Ok(Pid(128861))
+09:26:55 [DEBUG] (1) xeonitte::ui::pages::install: VTE Install: Ok(Pid(128863))
+09:26:57 [DEBUG] (1) xeonitte::ui::pages::install: VTE command exited with status: 34304
+09:26:57 [DEBUG] (1) xeonitte::ui::pages::install: Installation Failed!
+09:26:57 [DEBUG] (1) xeonitte::ui::window: Error!
+=== End of Xeonitte Log ===
+
+=== nixos-install Log ===
+warning: creating lock file "/tmp/xeonitte/etc/nixos/flake.lock": 
+• Added input 'nix-data':
+    'github:xinux-org/nix-data/bcf69e19b9c7d5b112b03674132781b698d6b252?narHash=sha256-V3fiBuHxhLJco%2Buv4DfUKSy18%2B%2BEpD%2BymgC2pG5TGeU%3D' (2025-11-29)
+• Added input 'nix-data/nixpkgs':
+    follows 'nixpkgs'
+• Added input 'nix-data/xinux-lib':
+    'github:xinux-org/lib/e3fbe264263d9a356124bd1aa76a7de5aa81b441?narHash=sha256-sc/e5XZo4OKgYgtw0xPnlOo8kMvqpC0Cey/5%2BBepft8%3D' (2025-11-28)
+• Added input 'nix-data/xinux-lib/flake-compat':
+    'github:edolstra/flake-compat/f387cd2afec9419c8ee37694406ca490c3f34ee5?narHash=sha256-XKUZz9zewJNUj46b4AJdiRZJAvSZ0Dqj2BNfXvFlJC4%3D' (2025-10-27)
+• Added input 'nix-data/xinux-lib/flake-utils-plus':
+    'github:gytis-ivaskevicius/flake-utils-plus/3542fe9126dc492e53ddd252bb0260fe035f2c0f?narHash=sha256-fT4ppWeCJ0uR300EH3i7kmgRZnAVxrH%2BXtK09jQWihk%3D' (2024-05-12)
+• Added input 'nix-data/xinux-lib/flake-utils-plus/flake-utils':
+    'github:numtide/flake-utils/ff7b65b44d01cf9ba6a71320833626af21126384?narHash=sha256-zsNZZGTGnMOf9YpHKJqMSsa0dXbfmxeoJ7xHlrt%2BxmY%3D' (2023-09-12)
+• Added input 'nix-data/xinux-lib/flake-utils-plus/flake-utils/systems':
+    'github:nix-systems/default/da67096a3b9bf56a91d16901293e51ba5b49a27e?narHash=sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768%3D' (2023-04-09)
+• Added input 'nix-data/xinux-lib/nixpkgs':
+    follows 'nix-data/nixpkgs'
+• Added input 'nixpkgs':
+    'github:xinux-org/nixpkgs/a320ce8e6e2cc6b4397eef214d202a50a4583829?narHash=sha256-6zddwDs2n%2Bn01l%2B1TG6PlyokDdXzu/oBmEejcH5L5%2BA%3D' (2025-11-24)
+• Added input 'xinux-lib':
+    'github:xinux-org/lib/e3fbe264263d9a356124bd1aa76a7de5aa81b441?narHash=sha256-sc/e5XZo4OKgYgtw0xPnlOo8kMvqpC0Cey/5%2BBepft8%3D' (2025-11-28)
+• Added input 'xinux-lib/flake-compat':
+    'github:edolstra/flake-compat/f387cd2afec9419c8ee37694406ca490c3f34ee5?narHash=sha256-XKUZz9zewJNUj46b4AJdiRZJAvSZ0Dqj2BNfXvFlJC4%3D' (2025-10-27)
+• Added input 'xinux-lib/flake-utils-plus':
+    'github:gytis-ivaskevicius/flake-utils-plus/3542fe9126dc492e53ddd252bb0260fe035f2c0f?narHash=sha256-fT4ppWeCJ0uR300EH3i7kmgRZnAVxrH%2BXtK09jQWihk%3D' (2024-05-12)
+• Added input 'xinux-lib/flake-utils-plus/flake-utils':
+    'github:numtide/flake-utils/ff7b65b44d01cf9ba6a71320833626af21126384?narHash=sha256-zsNZZGTGnMOf9YpHKJqMSsa0dXbfmxeoJ7xHlrt%2BxmY%3D' (2023-09-12)
+• Added input 'xinux-lib/flake-utils-plus/flake-utils/systems':
+    'github:nix-systems/default/da67096a3b9bf56a91d16901293e51ba5b49a27e?narHash=sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768%3D' (2023-04-09)
+• Added input 'xinux-lib/nixpkgs':
+    follows 'nixpkgs'
+• Added input 'xinux-modules':
+    'github:xinux-org/modules/dc36cdb970433fd5ceed154e8a5f4afb2f689a02?narHash=sha256-kQk/uqNsW2MRkM/rwk7/D8MPISzZDQnMPJYrWgA6xTE%3D' (2025-11-29)
+• Added input 'xinux-modules/e-imzo-manager':
+    'github:xinux-org/e-imzo-manager/77abce4ac5cec23fc603a46f37bdbc479e96520c?narHash=sha256-3HvcH77CP7BU37pAw3FTVcGu8KNwEHKKDUqY/ECnzv0%3D' (2025-11-29)
+• Added input 'xinux-modules/e-imzo-manager/flake-utils':
+    'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b?narHash=sha256-l0KFg5HjrsfsO/JpG%2Br7fRrqm12kzFHyUHqHCVpMMbI%3D' (2024-11-13)
+• Added input 'xinux-modules/e-imzo-manager/flake-utils/systems':
+    'github:nix-systems/default/da67096a3b9bf56a91d16901293e51ba5b49a27e?narHash=sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768%3D' (2023-04-09)
+• Added input 'xinux-modules/e-imzo-manager/nixpkgs':
+    follows 'xinux-modules/nixpkgs'
+• Added input 'xinux-modules/mac-style-plymouth':
+    'github:xinux-org/xinux-plymouth-theme/6c0b648e35ba6394c8aff1421be296e331c3e8d4?narHash=sha256-7p2OYlhPiHXNYHcBvBkvz9cxyku1C0uTe6p0Wtiwl1k%3D' (2025-11-21)
+• Added input 'xinux-modules/mac-style-plymouth/flake-utils':
+    'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b?narHash=sha256-l0KFg5HjrsfsO/JpG%2Br7fRrqm12kzFHyUHqHCVpMMbI%3D' (2024-11-13)
+• Added input 'xinux-modules/mac-style-plymouth/flake-utils/systems':
+    'github:nix-systems/default/da67096a3b9bf56a91d16901293e51ba5b49a27e?narHash=sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768%3D' (2023-04-09)
+• Added input 'xinux-modules/mac-style-plymouth/nixpkgs':
+    follows 'xinux-modules/nixpkgs'
+• Added input 'xinux-modules/nix-software-center':
+    'github:xinux-org/software-center/29237fbc99902dfcd1e80930ff79d9660568dfae?narHash=sha256-IOn80Op4OyOBZAJC0ff4bQzLIgop9Fb3sgjZi%2BktgU0%3D' (2025-11-28)
+• Added input 'xinux-modules/nix-software-center/nixos-appstream-data':
+    'github:korfuri/nixos-appstream-data/0465d42a4433faa63b7a5eb0b8d397937c9fc13a?narHash=sha256-XE7gr%2BzU3N4SHPAhsgk8cVAFp1iBg%2BLxxp3y4dUF1vE%3D' (2024-04-11)
+• Added input 'xinux-modules/nix-software-center/nixos-appstream-data/flake-utils':
+    follows 'xinux-modules/nix-software-center/utils'
+• Added input 'xinux-modules/nix-software-center/nixos-appstream-data/nixpkgs':
+    follows 'xinux-modules/nix-software-center/nixpkgs'
+• Added input 'xinux-modules/nix-software-center/nixpkgs':
+    follows 'xinux-modules/nixpkgs'
+• Added input 'xinux-modules/nix-software-center/utils':
+    'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b?narHash=sha256-l0KFg5HjrsfsO/JpG%2Br7fRrqm12kzFHyUHqHCVpMMbI%3D' (2024-11-13)
+• Added input 'xinux-modules/nix-software-center/utils/systems':
+    'github:nix-systems/default/da67096a3b9bf56a91d16901293e51ba5b49a27e?narHash=sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768%3D' (2023-04-09)
+• Added input 'xinux-modules/nix-software-center/xinux-lib':
+    'github:xinux-org/lib/e3fbe264263d9a356124bd1aa76a7de5aa81b441?narHash=sha256-sc/e5XZo4OKgYgtw0xPnlOo8kMvqpC0Cey/5%2BBepft8%3D' (2025-11-28)
+• Added input 'xinux-modules/nix-software-center/xinux-lib/flake-compat':
+    'github:edolstra/flake-compat/f387cd2afec9419c8ee37694406ca490c3f34ee5?narHash=sha256-XKUZz9zewJNUj46b4AJdiRZJAvSZ0Dqj2BNfXvFlJC4%3D' (2025-10-27)
+• Added input 'xinux-modules/nix-software-center/xinux-lib/flake-utils-plus':
+    'github:gytis-ivaskevicius/flake-utils-plus/3542fe9126dc492e53ddd252bb0260fe035f2c0f?narHash=sha256-fT4ppWeCJ0uR300EH3i7kmgRZnAVxrH%2BXtK09jQWihk%3D' (2024-05-12)
+• Added input 'xinux-modules/nix-software-center/xinux-lib/flake-utils-plus/flake-utils':
+    'github:numtide/flake-utils/ff7b65b44d01cf9ba6a71320833626af21126384?narHash=sha256-zsNZZGTGnMOf9YpHKJqMSsa0dXbfmxeoJ7xHlrt%2BxmY%3D' (2023-09-12)
+• Added input 'xinux-modules/nix-software-center/xinux-lib/flake-utils-plus/flake-utils/systems':
+    'github:nix-systems/default/da67096a3b9bf56a91d16901293e51ba5b49a27e?narHash=sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768%3D' (2023-04-09)
+• Added input 'xinux-modules/nix-software-center/xinux-lib/nixpkgs':
+    follows 'xinux-modules/nix-software-center/nixpkgs'
+• Added input 'xinux-modules/nixos-conf-editor':
+    'github:xinux-org/conf-editor/413e0996667ae292ca82077d96bb3d8071f28a11?narHash=sha256-zlr%2B1GwE5w50Ri/VKOebUapWVnjxEuwn0vMayXT6/UE%3D' (2025-11-28)
+• Added input 'xinux-modules/nixos-conf-editor/flake-compat':
+    'https://api.flakehub.com/f/pinned/edolstra/flake-compat/1.1.0/01948eb7-9cba-704f-bbf3-3fa956735b52/source.tar.gz?narHash=sha256-NeCCThCEP3eCl2l/%2B27kNNK7QrwZB1IJCrXfrbv5oqU%3D' (2024-12-04)
+• Added input 'xinux-modules/nixos-conf-editor/nixpkgs':
+    follows 'xinux-modules/nixpkgs'
+• Added input 'xinux-modules/nixos-conf-editor/xinux-lib':
+    'github:xinux-org/lib/e3fbe264263d9a356124bd1aa76a7de5aa81b441?narHash=sha256-sc/e5XZo4OKgYgtw0xPnlOo8kMvqpC0Cey/5%2BBepft8%3D' (2025-11-28)
+• Added input 'xinux-modules/nixos-conf-editor/xinux-lib/flake-compat':
+    'github:edolstra/flake-compat/f387cd2afec9419c8ee37694406ca490c3f34ee5?narHash=sha256-XKUZz9zewJNUj46b4AJdiRZJAvSZ0Dqj2BNfXvFlJC4%3D' (2025-10-27)
+• Added input 'xinux-modules/nixos-conf-editor/xinux-lib/flake-utils-plus':
+    'github:gytis-ivaskevicius/flake-utils-plus/3542fe9126dc492e53ddd252bb0260fe035f2c0f?narHash=sha256-fT4ppWeCJ0uR300EH3i7kmgRZnAVxrH%2BXtK09jQWihk%3D' (2024-05-12)
+• Added input 'xinux-modules/nixos-conf-editor/xinux-lib/flake-utils-plus/flake-utils':
+    'github:numtide/flake-utils/ff7b65b44d01cf9ba6a71320833626af21126384?narHash=sha256-zsNZZGTGnMOf9YpHKJqMSsa0dXbfmxeoJ7xHlrt%2BxmY%3D' (2023-09-12)
+• Added input 'xinux-modules/nixos-conf-editor/xinux-lib/flake-utils-plus/flake-utils/systems':
+    'github:nix-systems/default/da67096a3b9bf56a91d16901293e51ba5b49a27e?narHash=sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768%3D' (2023-04-09)
+• Added input 'xinux-modules/nixos-conf-editor/xinux-lib/nixpkgs':
+    follows 'xinux-modules/nixos-conf-editor/nixpkgs'
+• Added input 'xinux-modules/nixpkgs':
+    'github:xinux-org/nixpkgs/a320ce8e6e2cc6b4397eef214d202a50a4583829?narHash=sha256-6zddwDs2n%2Bn01l%2B1TG6PlyokDdXzu/oBmEejcH5L5%2BA%3D' (2025-11-24)
+• Added input 'xinux-modules/xin':
+    'github:xinux-org/xin/5a15bbab345b0312c18e238122d693cbc181e54e?narHash=sha256-vWpD1t3LRu38Ecpjm7pkhaYR/mIhCcTxpyzHhimOvfc%3D' (2025-11-28)
+• Added input 'xinux-modules/xin/libxinux':
+    'github:xinux-org/libxinux/2504e3ca01f291a6090d03735df679c080bfcaae?narHash=sha256-VKOakUluWr/N/ln8E6XhkTAXNvH4yTAipBhYdckWk%2BU%3D' (2025-11-28)
+• Added input 'xinux-modules/xin/libxinux/nixpkgs':
+    follows 'xinux-modules/xin/nixpkgs'
+• Added input 'xinux-modules/xin/libxinux/xinux-lib':
+    'github:xinux-org/lib/e3fbe264263d9a356124bd1aa76a7de5aa81b441?narHash=sha256-sc/e5XZo4OKgYgtw0xPnlOo8kMvqpC0Cey/5%2BBepft8%3D' (2025-11-28)
+• Added input 'xinux-modules/xin/libxinux/xinux-lib/flake-compat':
+    'github:edolstra/flake-compat/f387cd2afec9419c8ee37694406ca490c3f34ee5?narHash=sha256-XKUZz9zewJNUj46b4AJdiRZJAvSZ0Dqj2BNfXvFlJC4%3D' (2025-10-27)
+• Added input 'xinux-modules/xin/libxinux/xinux-lib/flake-utils-plus':
+    'github:gytis-ivaskevicius/flake-utils-plus/3542fe9126dc492e53ddd252bb0260fe035f2c0f?narHash=sha256-fT4ppWeCJ0uR300EH3i7kmgRZnAVxrH%2BXtK09jQWihk%3D' (2024-05-12)
+• Added input 'xinux-modules/xin/libxinux/xinux-lib/flake-utils-plus/flake-utils':
+    'github:numtide/flake-utils/ff7b65b44d01cf9ba6a71320833626af21126384?narHash=sha256-zsNZZGTGnMOf9YpHKJqMSsa0dXbfmxeoJ7xHlrt%2BxmY%3D' (2023-09-12)
+• Added input 'xinux-modules/xin/libxinux/xinux-lib/flake-utils-plus/flake-utils/systems':
+    'github:nix-systems/default/da67096a3b9bf56a91d16901293e51ba5b49a27e?narHash=sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768%3D' (2023-04-09)
+• Added input 'xinux-modules/xin/libxinux/xinux-lib/nixpkgs':
+    follows 'xinux-modules/xin/libxinux/nixpkgs'
+• Added input 'xinux-modules/xin/nixpkgs':
+    follows 'xinux-modules/nixpkgs'
+• Added input 'xinux-modules/xin/xinux-lib':
+    'github:xinux-org/lib/e3fbe264263d9a356124bd1aa76a7de5aa81b441?narHash=sha256-sc/e5XZo4OKgYgtw0xPnlOo8kMvqpC0Cey/5%2BBepft8%3D' (2025-11-28)
+• Added input 'xinux-modules/xin/xinux-lib/flake-compat':
+    'github:edolstra/flake-compat/f387cd2afec9419c8ee37694406ca490c3f34ee5?narHash=sha256-XKUZz9zewJNUj46b4AJdiRZJAvSZ0Dqj2BNfXvFlJC4%3D' (2025-10-27)
+• Added input 'xinux-modules/xin/xinux-lib/flake-utils-plus':
+    'github:gytis-ivaskevicius/flake-utils-plus/3542fe9126dc492e53ddd252bb0260fe035f2c0f?narHash=sha256-fT4ppWeCJ0uR300EH3i7kmgRZnAVxrH%2BXtK09jQWihk%3D' (2024-05-12)
+• Added input 'xinux-modules/xin/xinux-lib/flake-utils-plus/flake-utils':
+    'github:numtide/flake-utils/ff7b65b44d01cf9ba6a71320833626af21126384?narHash=sha256-zsNZZGTGnMOf9YpHKJqMSsa0dXbfmxeoJ7xHlrt%2BxmY%3D' (2023-09-12)
+• Added input 'xinux-modules/xin/xinux-lib/flake-utils-plus/flake-utils/systems':
+    'github:nix-systems/default/da67096a3b9bf56a91d16901293e51ba5b49a27e?narHash=sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768%3D' (2023-04-09)
+• Added input 'xinux-modules/xin/xinux-lib/nixpkgs':
+    follows 'xinux-modules/xin/nixpkgs'
+• Added input 'xinux-modules/xinux-lib':
+    'github:xinux-org/lib/e3fbe264263d9a356124bd1aa76a7de5aa81b441?narHash=sha256-sc/e5XZo4OKgYgtw0xPnlOo8kMvqpC0Cey/5%2BBepft8%3D' (2025-11-28)
+• Added input 'xinux-modules/xinux-lib/flake-compat':
+    'github:edolstra/flake-compat/f387cd2afec9419c8ee37694406ca490c3f34ee5?narHash=sha256-XKUZz9zewJNUj46b4AJdiRZJAvSZ0Dqj2BNfXvFlJC4%3D' (2025-10-27)
+• Added input 'xinux-modules/xinux-lib/flake-utils-plus':
+    'github:gytis-ivaskevicius/flake-utils-plus/3542fe9126dc492e53ddd252bb0260fe035f2c0f?narHash=sha256-fT4ppWeCJ0uR300EH3i7kmgRZnAVxrH%2BXtK09jQWihk%3D' (2024-05-12)
+• Added input 'xinux-modules/xinux-lib/flake-utils-plus/flake-utils':
+    'github:numtide/flake-utils/ff7b65b44d01cf9ba6a71320833626af21126384?narHash=sha256-zsNZZGTGnMOf9YpHKJqMSsa0dXbfmxeoJ7xHlrt%2BxmY%3D' (2023-09-12)
+• Added input 'xinux-modules/xinux-lib/flake-utils-plus/flake-utils/systems':
+    'github:nix-systems/default/da67096a3b9bf56a91d16901293e51ba5b49a27e?narHash=sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768%3D' (2023-04-09)
+• Added input 'xinux-modules/xinux-lib/nixpkgs':
+    follows 'xinux-modules/nixpkgs'
+• Added input 'xinux-modules/xinux-module-manager':
+    'github:xinux-org/module-manager/b30abec5eebd29abc6cd007e5b9027d2d64e44ca?narHash=sha256-X6X1jeVTrhGatllrsFuEA5vISz/jGlBTfp6dzUllUkM%3D' (2025-11-28)
+• Added input 'xinux-modules/xinux-module-manager/nixpkgs':
+    follows 'xinux-modules/nixpkgs'
+• Added input 'xinux-modules/xinux-module-manager/xinux-lib':
+    'github:xinux-org/lib/e3fbe264263d9a356124bd1aa76a7de5aa81b441?narHash=sha256-sc/e5XZo4OKgYgtw0xPnlOo8kMvqpC0Cey/5%2BBepft8%3D' (2025-11-28)
+• Added input 'xinux-modules/xinux-module-manager/xinux-lib/flake-compat':
+    'github:edolstra/flake-compat/f387cd2afec9419c8ee37694406ca490c3f34ee5?narHash=sha256-XKUZz9zewJNUj46b4AJdiRZJAvSZ0Dqj2BNfXvFlJC4%3D' (2025-10-27)
+• Added input 'xinux-modules/xinux-module-manager/xinux-lib/flake-utils-plus':
+    'github:gytis-ivaskevicius/flake-utils-plus/3542fe9126dc492e53ddd252bb0260fe035f2c0f?narHash=sha256-fT4ppWeCJ0uR300EH3i7kmgRZnAVxrH%2BXtK09jQWihk%3D' (2024-05-12)
+• Added input 'xinux-modules/xinux-module-manager/xinux-lib/flake-utils-plus/flake-utils':
+    'github:numtide/flake-utils/ff7b65b44d01cf9ba6a71320833626af21126384?narHash=sha256-zsNZZGTGnMOf9YpHKJqMSsa0dXbfmxeoJ7xHlrt%2BxmY%3D' (2023-09-12)
+• Added input 'xinux-modules/xinux-module-manager/xinux-lib/flake-utils-plus/flake-utils/systems':
+    'github:nix-systems/default/da67096a3b9bf56a91d16901293e51ba5b49a27e?narHash=sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768%3D' (2023-04-09)
+• Added input 'xinux-modules/xinux-module-manager/xinux-lib/nixpkgs':
+    follows 'xinux-modules/xinux-module-manager/nixpkgs'
+building the flake in path:/tmp/xeonitte/etc/nixos?lastModified=1764408405&narHash=sha256-hsBWNM53euN8VRaB2NZSIRXIqEd1MvuWMfbwHUM8z4A%3D...
+nix: ../flake.cc:37: nix::StorePath nix::flake::copyInputToStore(nix::EvalState&, nix::fetchers::Input&, const nix::fetchers::Input&, nix::ref<nix::SourceAccessor>): Assertion `!originalInput.getNarHash() || storePath == originalInput.computeStorePath(*state.store)' failed.
+/run/current-system/sw/bin/nixos-install: line 226: 128904 Aborted                    (core dumped) nix "${flakeFlags[@]}" build "$flake#$flakeAttr.config.system.build.toplevel" --store "$mountPoint" --extra-substituters "$sub" "${verbosity[@]}" "${extraBuildFlags[@]}" "${lockFlags[@]}" --out-link "$outLink"
+=== End of nixos-install Log ===
+

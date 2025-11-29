@@ -23,6 +23,7 @@ pub struct InstallAsyncModel {
     username: Option<String>,
     password: Option<String>,
     rootpassword: Option<String>,
+    preinstall_commands: Vec<String>,
     postinstall_commands: Vec<String>,
 }
 
@@ -57,6 +58,7 @@ impl Worker for InstallAsyncModel {
             username: None,
             password: None,
             rootpassword: None,
+            preinstall_commands: vec![],
             postinstall_commands: vec![],
         }
     }
@@ -221,6 +223,15 @@ impl Worker for InstallAsyncModel {
                         .arg("/xeonitte")
                         .output()?;
 
+                    // Command::new("pkexec")
+                    //     .arg("nix")
+                    //     .arg("flake")
+                    //     .arg("update")
+                    //     .arg("--flake")
+                    //     .arg("/tmp/xeonitte/etc/nixos")
+                    //     .output()?;
+
+                    // Lastly we disable write access to safely run nixos-install
                     Command::new("pkexec")
                         .arg("chmod")
                         .arg("a-w")
@@ -234,7 +245,21 @@ impl Worker for InstallAsyncModel {
                     let _ = sender.output(AppMsg::Error);
                     return;
                 }
-
+                INSTALL_BROKER.send(InstallMsg::PreInstall(
+                    vec![
+                        "/usr/bin/env",
+                        "pkexec",
+                        "nix",
+                        "flake",
+                        "update",
+                        "--flake",
+                        "/tmp/xeonitte/etc/nixos",
+                    ]
+                    .into_iter()
+                    .map(|s| s.to_string().to_string())
+                    .collect(),
+                ));
+                
                 // Step 4: Install NixOS
                 info!("Step 4: Install NixOS");
                 if let Some(hostname) = user.as_ref().as_ref().map(|u| u.hostname.clone()) {
