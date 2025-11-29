@@ -4,7 +4,7 @@ use gettextrs::gettext;
 use gtk::gio;
 use log::{debug, error};
 use relm4::{factory::*, *};
-use std::{fs::File, process::Command};
+use std::fs::File;
 use vte::{self, TerminalExt, TerminalExtManual};
 
 pub struct InstallModel {
@@ -209,7 +209,9 @@ impl SimpleComponent for InstallModel {
                     || (),
                     5,
                     gio::Cancellable::NONE,
-                    |err| (debug!("VTE preinstall: {:?}", err)),
+                    |err| {
+                        debug!("VTE preinstall: {:?}", err);
+                    },
                 );
             }
             InstallMsg::PostInstall(cmds) => {
