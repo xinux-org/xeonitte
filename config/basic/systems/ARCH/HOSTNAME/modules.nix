@@ -3,4 +3,5 @@
 
 @BOOTLOADER@
 
+@LOCALE@
 }
