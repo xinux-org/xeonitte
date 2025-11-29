@@ -5,7 +5,6 @@ use crate::{
         pages::{
             install::{InstallMsg, INSTALL_BROKER},
             partitions::PartitionSchema,
-            user,
         },
         window::{AppMsg, UserConfig},
     },
