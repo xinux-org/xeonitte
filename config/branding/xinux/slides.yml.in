@@ -9,3 +9,18 @@ slides:
 - title: _("Over 80,000 packages available")
   subtitle: _("Easily find and install all the packages you need on your Xinux system")
   image: apps.svg
+- title: _("E-imzo Manager")
+  subtitle: _("A graphical e-imzo keys manager for NixOS based distributions.")
+  image: e-imzo.png
+- title: _("Software Center")
+  subtitle: _("A graphical app store for Nix built with libadwaita, GTK4, and Relm4.")
+  image: software-center.png
+- title: _("Module Manager")
+  subtitle: _("The goal of this project is to provide a simple graphical tool for modifying and managing desktop NixOS configurations.")
+  image: module-manager.png
+- title: _("Conf-Editor")
+  subtitle: _("This project is to provide a simple graphical tool for modifying and managing desktop NixOS configurations.")
+  image: configuration-editor.png
+- title: _("Uzbek Keyboard Layout")
+  subtitle: _("Easily find and install all the packages you need on your Xinux system")
+  image: keyboard.png
