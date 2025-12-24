@@ -149,15 +149,15 @@ impl Worker for InstallAsyncModel {
                         ))
                         .output()
                         .unwrap();
-                    Command::new("pkexec")
-                        .arg("mv")
-                        .arg("/tmp/xeonitte/etc/nixos/hardware-configuration.nix")
-                        .arg(format!(
-                            "/tmp/xeonitte/etc/nixos/systems/{}-linux/{}/hardware.nix",
-                            arch, hostname
-                        ))
-                        .output()
-                        .unwrap();
+                    // Command::new("pkexec")
+                    //     .arg("mv")
+                    //     .arg("/tmp/xeonitte/etc/nixos/hardware-configuration.nix")
+                    //     .arg(format!(
+                    //         "/tmp/xeonitte/etc/nixos/systems/{}-linux/{}/hardware.nix",
+                    //         arch, hostname
+                    //     ))
+                    //     .output()
+                    //     .unwrap();
                     // Remove /tmp/xeonitte/etc/nixos/configuration.nix
                     Command::new("pkexec")
                         .arg("rm")
@@ -258,7 +258,7 @@ impl Worker for InstallAsyncModel {
                 //     .map(|s| s.to_string().to_string())
                 //     .collect(),
                 // ));
-                
+
                 // Step 4: Install NixOS
                 info!("Step 4: Install NixOS");
                 if let Some(hostname) = user.as_ref().as_ref().map(|u| u.hostname.clone()) {
