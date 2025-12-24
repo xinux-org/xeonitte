@@ -193,7 +193,7 @@ impl SimpleComponent for InstallModel {
                     || (),
                     -1,
                     gio::Cancellable::NONE,
-                    |err| (debug!("VTE Install: {:?}", err)),
+                    |err| debug!("VTE Install: {:?}", err),
                 );
             }
             InstallMsg::PreInstall(cmds) => {
@@ -227,7 +227,7 @@ impl SimpleComponent for InstallModel {
                     || (),
                     -1,
                     gio::Cancellable::NONE,
-                    |err| (debug!("VTE postinstall: {:?}", err)),
+                    |err| debug!("VTE postinstall: {:?}", err),
                 );
             }
             InstallMsg::VTEOutput(status) => {
