@@ -44,6 +44,7 @@ yaml_build = custom_target(
 )
 
 install_data('config.yml', install_dir : pkgconfdir / 'xeonitte')
+install_data('disko-generator.nix', install_dir : pkgconfdir / 'xeonitte')
 
 install_subdir('basic', install_dir : pkgconfdir / 'xeonitte')
 install_subdir('advanced', install_dir : pkgconfdir / 'xeonitte')
