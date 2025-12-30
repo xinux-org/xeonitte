@@ -149,22 +149,28 @@ impl Worker for InstallAsyncModel {
                         ))
                         .output()
                         .unwrap();
-                    // Command::new("pkexec")
-                    //     .arg("mv")
-                    //     .arg("/tmp/xeonitte/etc/nixos/hardware-configuration.nix")
-                    //     .arg(format!(
-                    //         "/tmp/xeonitte/etc/nixos/systems/{}-linux/{}/hardware.nix",
-                    //         arch, hostname
-                    //     ))
-                    //     .output()
-                    //     .unwrap();
+                    Command::new("pkexec")
+                        .arg("mv")
+                        .arg("/tmp/xeonitte/etc/nixos/hardware-configuration.nix")
+                        .arg(format!(
+                            "/tmp/xeonitte/etc/nixos/systems/{}-linux/{}/hardware.nix",
+                            arch, hostname
+                        ))
+                        .output()
+                        .unwrap();
                     // Remove /tmp/xeonitte/etc/nixos/configuration.nix
                     Command::new("pkexec")
                         .arg("rm")
                         .arg("/tmp/xeonitte/etc/nixos/configuration.nix")
                         .output()
                         .unwrap();
+
+                    // THERE SHOULD BE ADDED GENERATED DISKO
+
                 }
+
+                // TODO: Add there disko.nix generator with take partitions from
+                //       hardware-configuration.nix and delete filesystems in it.
 
                 // Step 3: Make configuration base on language, timezone, keyboard, and user
                 info!("Step 3: Make configuration");
