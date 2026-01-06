@@ -207,20 +207,20 @@ impl Worker for InstallAsyncModel {
                     return;
                 }
                 // to do: prevent running async with Installa and PreInstall at the theme time
-                INSTALL_BROKER.send(InstallMsg::PreInstall(
-                    vec![
-                        "/usr/bin/env",
-                        "pkexec",
-                        "nix",
-                        "flake",
-                        "update",
-                        "--flake",
-                        "/tmp/xeonitte/etc/nixos",
-                    ]
-                    .into_iter()
-                    .map(|s| s.to_string().to_string())
-                    .collect(),
-                ));
+                // INSTALL_BROKER.send(InstallMsg::PreInstall(
+                //     vec![
+                //         "/usr/bin/env",
+                //         "pkexec",
+                //         "nix",
+                //         "flake",
+                //         "update",
+                //         "--flake",
+                //         "/tmp/xeonitte/etc/nixos",
+                //     ]
+                //     .into_iter()
+                //     .map(|s| s.to_string().to_string())
+                //     .collect(),
+                // ));
 
                 // Step 4: Install NixOS
                 info!("Step 4: Install NixOS");
@@ -623,7 +623,7 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
                 );
 
                 let mut cmd = Command::new("pkexec")
-                    .arg(&format!("{}/xeonitte-helper", LIBEXECDIR))
+                    .arg(format!("{}/xeonitte-helper", LIBEXECDIR))
                     .arg("write-file")
                     .arg("--path")
                     .arg(if path.is_empty() {
@@ -775,13 +775,13 @@ fn backup_and_update_flake() -> Result<()> {
         .arg("/xeonitte")
         .output()?;
 
-    // Command::new("pkexec")
-    //     .arg("nix")
-    //     .arg("flake")
-    //     .arg("update")
-    //     .arg("--flake")
-    //     .arg("/tmp/xeonitte/etc/nixos")
-    //     .output()?;
+    Command::new("pkexec")
+        .arg("nix")
+        .arg("flake")
+        .arg("update")
+        .arg("--flake")
+        .arg("/tmp/xeonitte/etc/nixos")
+        .output()?;
 
     // Lastly we disable write access to safely run nixos-install
     Command::new("pkexec")
@@ -791,17 +791,17 @@ fn backup_and_update_flake() -> Result<()> {
         .output()?;
 
     // allow log write permission
-    Command::new("pkexec")
-        .arg("chmod")
-        .arg("+w")
-        .arg("/tmp/xeonitte.log")
-        .output()?;
+    // Command::new("pkexec")
+    //     .arg("chmod")
+    //     .arg("+w")
+    //     .arg("/tmp/xeonitte.log")
+    //     .output()?;
 
-    Command::new("pkexec")
-        .arg("chmod")
-        .arg("+w")
-        .arg("/tmp/xeonitte-term.log")
-        .output()?;
+    // Command::new("pkexec")
+    //     .arg("chmod")
+    //     .arg("+w")
+    //     .arg("/tmp/xeonitte-term.log")
+    //     .output()?;
 
     Ok(())
 }
