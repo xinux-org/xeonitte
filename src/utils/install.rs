@@ -775,19 +775,19 @@ fn backup_and_update_flake() -> Result<()> {
         .arg("/xeonitte")
         .output()?;
 
-    Command::new("pkexec")
-        .arg("nix")
-        .arg("flake")
-        .arg("update")
-        .arg("--flake")
-        .arg("/tmp/xeonitte/etc/nixos")
-        .output()?;
+    // Command::new("pkexec")
+    //     .arg("nix")
+    //     .arg("flake")
+    //     .arg("update")
+    //     .arg("--flake")
+    //     .arg("/tmp/xeonitte/etc/nixos")
+    //     .output()?;
 
     // Lastly we disable write access to safely run nixos-install
     Command::new("pkexec")
         .arg("chmod")
         .arg("755")
-        .arg("/tmp/xeonitte/etc/")
+        .arg("/tmp/xeonitte/")
         .output()?;
 
     // allow log write permission
