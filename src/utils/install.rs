@@ -704,8 +704,6 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
 }
 
 fn init_libreoffice_config(username: String) -> Result<()> {
-    Command::new("pwd");
-
     Command::new("pkexec")
         .arg("mkdir")
         .arg("-p")
