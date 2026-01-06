@@ -207,20 +207,20 @@ impl Worker for InstallAsyncModel {
                     return;
                 }
                 // to do: prevent running async with Installa and PreInstall at the theme time
-                // INSTALL_BROKER.send(InstallMsg::PreInstall(
-                //     vec![
-                //         "/usr/bin/env",
-                //         "pkexec",
-                //         "nix",
-                //         "flake",
-                //         "update",
-                //         "--flake",
-                //         "/tmp/xeonitte/etc/nixos",
-                //     ]
-                //     .into_iter()
-                //     .map(|s| s.to_string().to_string())
-                //     .collect(),
-                // ));
+                INSTALL_BROKER.send(InstallMsg::PreInstall(
+                    vec![
+                        "/usr/bin/env",
+                        "pkexec",
+                        "nix",
+                        "flake",
+                        "update",
+                        "--flake",
+                        "/tmp/xeonitte/etc/nixos",
+                    ]
+                    .into_iter()
+                    .map(|s| s.to_string().to_string())
+                    .collect(),
+                ));
 
                 // Step 4: Install NixOS
                 info!("Step 4: Install NixOS");
