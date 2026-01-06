@@ -235,6 +235,21 @@ impl Worker for InstallAsyncModel {
                         .arg("a-w")
                         .arg("/tmp/")
                         .output()?;
+                    
+                    // allow log write permission
+                    Command::new("pkexec")
+                        .arg("chmod")
+                        .arg("+w")
+                        .arg("/tmp/xeonitte.log")
+                        .output()?;
+                    
+                    Command::new("pkexec")
+                        .arg("chmod")
+                        .arg("+w")
+                        .arg("/tmp/xeonitte-term.log")
+                        .output()?;
+                    
+                    
                     Ok(())
                 }
 
