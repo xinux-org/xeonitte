@@ -201,44 +201,7 @@ impl Worker for InstallAsyncModel {
                 }
 
                 info!("Step 3.1: Backup xeonitte");
-
-                fn backup() -> Result<()> {
-                    Command::new("pkexec")
-                        .arg("rm")
-                        .arg("-rf")
-                        .arg("/xeonitte")
-                        .output()?;
-
-                    Command::new("pkexec")
-                        .arg("mkdir")
-                        .arg("/xeonitte")
-                        .output()?;
-
-                    Command::new("pkexec")
-                        .arg("cp")
-                        .arg("-r")
-                        .arg("/tmp/xeonitte")
-                        .arg("/xeonitte")
-                        .output()?;
-
-                    Command::new("pkexec")
-                        .arg("nix")
-                        .arg("flake")
-                        .arg("update")
-                        .arg("--flake")
-                        .arg("/tmp/xeonitte/etc/nixos")
-                        .output()?;
-
-                    // Lastly we disable write access to safely run nixos-install
-                    Command::new("pkexec")
-                        .arg("chmod")
-                        .arg("a-w")
-                        .arg("/tmp/")
-                        .output()?;
-                    Ok(())
-                }
-
-                if let Err(e) = backup() {
+                if let Err(e) = backup_and_update_flake() {
                     error!("Failed to create backup /flakes: {}", e);
                     let _ = sender.output(AppMsg::Error);
                     return;
@@ -258,7 +221,7 @@ impl Worker for InstallAsyncModel {
                 //     .map(|s| s.to_string().to_string())
                 //     .collect(),
                 // ));
-                
+
                 // Step 4: Install NixOS
                 info!("Step 4: Install NixOS");
                 if let Some(hostname) = user.as_ref().as_ref().map(|u| u.hostname.clone()) {
@@ -353,58 +316,6 @@ impl Worker for InstallAsyncModel {
 
                 // Step 6.1: Set libreoffice config
                 info!("Step 6.1: Set libreoffice config");
-                fn init_libreoffice_config(username: String) -> Result<()> {
-                    Command::new("pwd");
-
-                    Command::new("pkexec")
-                        .arg("mkdir")
-                        .arg("-p")
-                        .arg(&format!(
-                            "/tmp/xeonitte/home/{}/.config/libreoffice/4/user/uno_packages/cache",
-                            username
-                        ))
-                        .output()?;
-
-                    Command::new("pkexec")
-                        .arg("mkdir")
-                        .arg("-p")
-                        .arg(&format!(
-                            "/tmp/xeonitte/home/{}/.config/libreoffice/4/user/",
-                            username
-                        ))
-                        .output()?;
-
-                    // for icons
-                    Command::new("pkexec")
-                        .arg("cp")
-                        .arg("-a")
-                        .arg(&format!("{}/xeonitte/configcopy/uno_packages", SYSCONFDIR))
-                        .arg(&format!(
-                            "/tmp/xeonitte/home/{}/.config/libreoffice/4/user/uno_packages/cache/",
-                            username
-                        ))
-                        .output()?;
-
-                    Command::new("pkexec")
-                        .arg("rm")
-                        .arg(&format!("/tmp/xeonitte/home/{}/.config/libreoffice/4/user/registrymodifications.xcu", username))
-                        .output()?;
-
-                    Command::new("pkexec")
-                        .arg("cp")
-                        .arg("-a")
-                        .arg(&format!(
-                            "{}/xeonitte/configcopy/registrymodifications.xcu",
-                            SYSCONFDIR
-                        ))
-                        .arg(&format!(
-                            "/tmp/xeonitte/home/{}/.config/libreoffice/4/user/",
-                            username
-                        ))
-                        .output()?;
-                    Ok(())
-                }
-
                 if let Err(e) = init_libreoffice_config(self.username.clone().unwrap()) {
                     error!("Failed to create libre office config: {}", e);
                     let _ = sender.output(AppMsg::Error);
@@ -442,7 +353,7 @@ fn partition(partitions: Option<PartitionSchema>) -> Result<()> {
     let partjson = serde_json::to_string(&partitions)?;
     debug!("Executing partition with json: {}", partjson);
     let mut out = Command::new("pkexec")
-        .arg(&format!("{}/xeonitte-helper", LIBEXECDIR))
+        .arg(format!("{}/xeonitte-helper", LIBEXECDIR))
         .arg("partition")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
@@ -517,7 +428,7 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
     fn iterwrite(makeconfig: &MakeConfig, path: &str, efi: bool, arch: &str) -> Result<()> {
         // Iterate through files in configs/
         for file in (fs::read_dir(
-            &format!("{}/xeonitte/{}/{}", SYSCONFDIR, makeconfig.id, path).replace("//", "/"),
+            format!("{}/xeonitte/{}/{}", SYSCONFDIR, makeconfig.id, path).replace("//", "/"),
         )?)
         .flatten()
         {
@@ -580,17 +491,16 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
 
                 if makeconfig.imperative_timezone {
                     config = config.replace("@TIMEZONE@", "");
-                } else {
-                    if let Some(tz) = &makeconfig.timezone {
-                        config = config.replace(
-                            "@TIMEZONE@",
-                            &format!(
-                                r#"  # Set your time zone.
+                } else if let Some(tz) = &makeconfig.timezone {
+                    config = config.replace(
+                        "@TIMEZONE@",
+                        format!(
+                            r#"  # Set your time zone.
   time.timeZone = "{}";"#,
-                                tz
-                            ),
-                        );
-                    }
+                            tz
+                        )
+                        .as_str(),
+                    );
                 }
 
                 if let Some(locale) = &makeconfig.language {
@@ -791,4 +701,107 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
     }
 
     iterwrite(&makeconfig, "", efi, &arch)
+}
+
+fn init_libreoffice_config(username: String) -> Result<()> {
+    Command::new("pkexec")
+        .arg("mkdir")
+        .arg("-p")
+        .arg(format!(
+            "/tmp/xeonitte/home/{}/.config/libreoffice/4/user/uno_packages/cache",
+            username
+        ))
+        .output()?;
+
+    Command::new("pkexec")
+        .arg("mkdir")
+        .arg("-p")
+        .arg(format!(
+            "/tmp/xeonitte/home/{}/.config/libreoffice/4/user/",
+            username
+        ))
+        .output()?;
+
+    // for icons
+    Command::new("pkexec")
+        .arg("cp")
+        .arg("-a")
+        .arg(format!("{}/xeonitte/configcopy/uno_packages", SYSCONFDIR))
+        .arg(format!(
+            "/tmp/xeonitte/home/{}/.config/libreoffice/4/user/uno_packages/cache/",
+            username
+        ))
+        .output()?;
+
+    Command::new("pkexec")
+        .arg("rm")
+        .arg(format!(
+            "/tmp/xeonitte/home/{}/.config/libreoffice/4/user/registrymodifications.xcu",
+            username
+        ))
+        .output()?;
+
+    Command::new("pkexec")
+        .arg("cp")
+        .arg("-a")
+        .arg(format!(
+            "{}/xeonitte/configcopy/registrymodifications.xcu",
+            SYSCONFDIR
+        ))
+        .arg(format!(
+            "/tmp/xeonitte/home/{}/.config/libreoffice/4/user/",
+            username
+        ))
+        .output()?;
+    Ok(())
+}
+
+fn backup_and_update_flake() -> Result<()> {
+    Command::new("pkexec")
+        .arg("rm")
+        .arg("-rf")
+        .arg("/xeonitte")
+        .output()?;
+
+    Command::new("pkexec")
+        .arg("mkdir")
+        .arg("/xeonitte")
+        .output()?;
+
+    Command::new("pkexec")
+        .arg("cp")
+        .arg("-r")
+        .arg("/tmp/xeonitte")
+        .arg("/xeonitte")
+        .output()?;
+
+    Command::new("pkexec")
+        .arg("nix")
+        .arg("flake")
+        .arg("update")
+        .arg("--flake")
+        .arg("/tmp/xeonitte/etc/nixos")
+        .output()?;
+
+    // Lastly we disable write access to safely run nixos-install
+    // Command::new("pkexec")
+    //     .arg("chmod")
+    //     .arg("a-w")
+    //     .arg("/tmp/xeonitte/etc/")
+    //     .output()?;
+
+    // allow log write permission
+    Command::new("pkexec")
+        .arg("chmod")
+        .arg("+w")
+        .arg("/tmp/xeonitte.log")
+        .output()?;
+
+    Command::new("pkexec")
+        .arg("chmod")
+        .arg("+w")
+        .arg("/tmp/xeonitte-term.log")
+        .output()?;
+
+    Ok(())
 }
