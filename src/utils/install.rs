@@ -225,17 +225,16 @@ impl Worker for InstallAsyncModel {
                 // Step 4: Install NixOS
                 info!("Step 4: Install NixOS");
                 if let Some(hostname) = user.as_ref().as_ref().map(|u| u.hostname.clone()) {
+                    let combined_commands = [
+                        "nix flake update --flake /tmp/xeonitte/etc/nixos",
+                        &format!("nixos-install --root /tmp/xeonitte --no-root-passwd --no-channel-copy --flake /tmp/xeonitte/etc/nixos#{}", hostname)
+                    ];
                     INSTALL_BROKER.send(InstallMsg::Install(
                         vec![
-                            "/usr/bin/env",
-                            "pkexec",
-                            "nixos-install",
-                            "--root",
-                            "/tmp/xeonitte",
-                            "--no-root-passwd",
-                            "--no-channel-copy",
-                            "--flake",
-                            &format!("/tmp/xeonitte/etc/nixos#{}", hostname),
+                            "pkexec".to_string(),
+                            "sh".to_string(),
+                            "-c".to_string(),
+                            combined_commands.join(" && "), // Run sequentially, only if previous succeeds
                         ]
                         .into_iter()
                         .map(|s| s.to_string())
@@ -775,33 +774,19 @@ fn backup_and_update_flake() -> Result<()> {
         .arg("/xeonitte")
         .output()?;
 
-    Command::new("pkexec")
-        .arg("nix")
-        .arg("flake")
-        .arg("update")
-        .arg("--flake")
-        .arg("/tmp/xeonitte/etc/nixos")
-        .output()?;
+    // Command::new("pkexec")
+    //     .arg("nix")
+    //     .arg("flake")
+    //     .arg("update")
+    //     .arg("--flake")
+    //     .arg("/tmp/xeonitte/etc/nixos")
+    //     .output()?;
 
     // Lastly we disable write access to safely run nixos-install
     Command::new("pkexec")
         .arg("chmod")
         .arg("755")
-        .arg("/tmp/xeonitte/")
+        .arg("/tmp/")
         .output()?;
-
-    // allow log write permission
-    // Command::new("pkexec")
-    //     .arg("chmod")
-    //     .arg("+w")
-    //     .arg("/tmp/xeonitte.log")
-    //     .output()?;
-
-    // Command::new("pkexec")
-    //     .arg("chmod")
-    //     .arg("+w")
-    //     .arg("/tmp/xeonitte-term.log")
-    //     .output()?;
-
     Ok(())
 }
