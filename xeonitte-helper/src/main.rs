@@ -26,8 +26,14 @@ struct Partition {
 }
 
 #[derive(Deserialize, Debug, Clone)]
+pub struct FullDiskOptions {
+    pub device: String,
+    pub encryption: bool,
+}
+
+#[derive(Deserialize, Debug, Clone)]
 pub enum PartitionSchema {
-    FullDisk(String),
+    FullDisk(FullDiskOptions),
     Custom(HashMap<String, CustomPartition>),
 }
 
@@ -133,13 +139,13 @@ fn partition() -> Result<()> {
     let schema: PartitionSchema = serde_json::from_str(&buf)?;
 
     match schema {
-        PartitionSchema::FullDisk(diskpath) => {
+        PartitionSchema::FullDisk(options) => {
             let start_sector = Sector::Start;
             let end_sector = Sector::End;
             let boot_sector = Sector::Unit(2_097_152);
 
             println!("Partition: Finding disk");
-            let mut dev = distinst_disks::Disk::from_name(&diskpath)
+            let mut dev = distinst_disks::Disk::from_name(&options.device)
                 .ok()
                 .ok_or_else(|| anyhow!("Failed to find disk"))?;
             let efi = distinst_disks::Bootloader::detect() == distinst_disks::Bootloader::Efi;
@@ -360,6 +366,39 @@ fn partition() -> Result<()> {
                 }
             }
         }
+    }
+    Ok(())
+}
+
+fn setup_luks (device: &str, name: &str) -> Result<()> {
+
+    let password = "xinux";
+
+    let mut child = Command::new("cryptsetup")
+        .args(["luksFormat", "--type", "luks2", "-q", device])
+        .stdin(Stdio::piped())
+        .spawn()
+        .context("Failed to start cryptsetup luksFormat")?;
+    child.stdin.as_mut().unwrap().write_all(password.as_bytes())?;
+
+    let status = child.wait()?;
+
+    if !status.success() {
+        return Err(anyhow!("cryptsetup luksFormat failed"));
+    }
+
+
+    let mut child = Command::new("cryptsetup")
+        .args(["open", device, name])
+        .stdin(Stdio::piped())
+        .spawn()
+        .context("Failed to start cryptsetup open")?;
+
+    child.stdin.as_mut().unwrap().write_all(password.as_bytes())?;
+
+    let status = child.wait()?;
+    if !status.success() {
+        return Err(anyhow!("cryptsetup open failed"));
     }
     Ok(())
 }
