@@ -789,5 +789,17 @@ fn backup_and_update_flake() -> Result<()> {
         .arg("755")
         .arg("/tmp/")
         .output()?;
+
+    Command::new("pkexec")
+        .arg("chmod")
+        .arg("777")
+        .arg("/tmp/xeonitte.log")
+        .output()?;
+
+    Command::new("pkexec")
+        .arg("chmod")
+        .arg("777")
+        .arg("/tmp/xeonitte-term.log")
+        .output()?;
     Ok(())
 }
