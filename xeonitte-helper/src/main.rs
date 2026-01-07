@@ -5,10 +5,7 @@ use distinst_disk_ops::FormatPartitions;
 use distinst_disks::{DiskExt, PartitionBuilder, PartitionFlag};
 use serde::{Deserialize, Serialize};
 use std::{
-    collections::HashMap,
-    fs::{self, File},
-    io::{self, Read, Write},
-    process::Command,
+    collections::HashMap, fs::{self, File}, io::{self, Read, Write}, process::{Command, Stdio}
 };
 
 #[derive(Serialize)]
@@ -42,6 +39,7 @@ pub struct CustomPartition {
     pub format: Option<String>,
     pub mountpoint: Option<String>,
     pub device: String,
+    pub encryption: Option<bool>,
 }
 
 #[derive(Subcommand, Debug)]
@@ -150,6 +148,20 @@ fn partition() -> Result<()> {
                 .ok_or_else(|| anyhow!("Failed to find disk"))?;
             let efi = distinst_disks::Bootloader::detect() == distinst_disks::Bootloader::Efi;
 
+            // Determine paths early
+            let (efi_partition, root_partition) = if efi {
+                (
+                    Some(format!("{}1", &options.device)),
+                    format!("{}2", &options.device),
+                )
+            } else {
+                (
+                    None,
+                    format!("{}1", &options.device),
+                )
+            };
+
+            // Create partition table and partitions
             if efi {
                 println!("Partition: Creating GPT partition table");
                 dev.mklabel(PartitionTable::Gpt)
@@ -198,13 +210,93 @@ fn partition() -> Result<()> {
                 .ok_or_else(|| anyhow!("Failed to commit changes"))?
                 .context("Failed to get partitions")?;
 
-            println!("Partition: Formatting partitions");
-            let formatparts = FormatPartitions(partitions.0);
-            formatparts
-                .format()
-                .ok()
-                .ok_or_else(|| anyhow!("Failed to format partitions"))?;
+            // Format EFI partition
+            if let Some(efi_part) = &efi_partition {
+                println!("Partition: Formatting EFI partition");
+                let output = Command::new("mkfs.vfat")
+                    .arg("-F32")
+                    .arg(efi_part)
+                    // .arg(format!("{}1", &options.device))
+                    .output()
+                    .context("Failed to format EFI partition")?;
+                if !output.status.success() {
+                    return Err(anyhow!("Failed to format EFI: {}", String::from_utf8_lossy(&output.stderr)));
+                }
+            }
 
+            // Root partition path
+            // let root_partition = if efi {
+            //     format!("{}2", &options.device)
+            // } else {
+            //     format!("{}1", &options.device)
+            // };
+
+            // Root device to mount (changes if encrypted)
+            let root_mount_device = if options.encryption {
+                println!("Partition: Setting up LUKS on root partition");
+                setup_luks(&root_partition, "cryptroot")?;
+
+                println!("Partition: Formatting LUKS container");
+                let output = Command::new("mkfs.ext4")
+                    .arg("-F")
+                    .arg("/dev/mapper/cryptroot")
+                    .output()
+                    .context("Failed to format LUKS container")?;
+                if !output.status.success() {
+                    return Err(anyhow!("Failed to format LUKS: {}", String::from_utf8_lossy(&output.stderr)));
+                }
+                "/dev/mapper/cryptroot".to_string()
+            } else {
+                println!("Partition: Formatting root partition");
+                let output = Command::new("mkfs.ext4")
+                    .arg("-F")
+                    .arg(&root_partition)
+                    .output()
+                    .context("Failed to format root partition")?;
+                if !output.status.success() {
+                    return Err(anyhow!("Failed to format root: {}", String::from_utf8_lossy(&output.stderr)));
+                }
+                root_partition
+            };
+
+            // Mount root
+            println!("Partition: Mounting root");
+            fs::create_dir_all("/tmp/xeonitte")?;
+            let output = Command::new("mount")
+                .arg(&root_mount_device)
+                .arg("/tmp/xeonitte")
+                .output()
+                .context("Failed to mount root")?;
+            if !output.status.success() {
+                return Err(anyhow!("Failed to mount root: {}", String::from_utf8_lossy(&output.stderr)));
+            }
+
+            // Mount EFI
+            if let Some(efi_part) = &efi_partition {
+                println!("Partition: Mounting EFI");
+                fs::create_dir_all("/tmp/xeonitte/boot")?;
+                let output = Command::new("mount")
+                    .arg("-o")
+                    .arg("umask=0077")
+                    .arg(efi_part)
+                    .arg("/tmp/xeonitte/boot")
+                    .output()
+                    .context("Failed to mount EFI")?;
+                if !output.status.success() {
+                    return Err(anyhow!("Failed to mount EFI: {}", String::from_utf8_lossy(&output.stderr)));
+                }
+            }
+
+            // TODO: Delete this `Formatting partitions` because this code writed twice.
+            // println!("Partition: Formatting partitions");
+            // let formatparts = FormatPartitions(partitions.0);
+            // formatparts
+            //     .format()
+            //     .ok()
+            //     .ok_or_else(|| anyhow!("Failed to format partitions"))?;
+            // ------
+
+            /*
             println!("Partition: Reloading disk");
             dev.reload()
                 .ok()
@@ -261,8 +353,16 @@ fn partition() -> Result<()> {
                     }
                 }
             }
+            */
         }
         PartitionSchema::Custom(partitions) => {
+
+            let root_entry = partitions.iter()
+                .find(|(_, p)| p.mountpoint.as_deref() == Some("/"));
+            let root_encrypted = root_entry
+                .map(|(_, p)| p.encryption.unwrap_or(false)).unwrap_or(false);
+            let root_partition_path = root_entry.map(|(path,_)| path.clone());
+
             let mut devices = HashMap::new();
             for (path, custom) in &partitions {
                 if !devices.contains_key(&custom.device) {
@@ -286,6 +386,12 @@ fn partition() -> Result<()> {
                         .find(|x| x.get_device_path().to_str() == Some(part))
                         .ok_or_else(|| anyhow!("Failed to find partition {}", part))?;
                     let num = &partition.number;
+
+                    let is_root = custom.mountpoint.as_deref() == Some("/");
+                    if is_root && root_encrypted {
+                        continue;
+                    }
+
                     if let Some(format) = &custom.format.as_ref().and_then(|x| match x.as_str() {
                         "btrfs" => Some(FileSystem::Btrfs),
                         "ext4" => Some(FileSystem::Ext4),
@@ -329,6 +435,33 @@ fn partition() -> Result<()> {
                     .ok_or_else(|| anyhow!("Failed to reload disk {}", device))?;
             }
 
+            if root_encrypted {
+                if let Some(root_path) = &root_partition_path {
+                    println!("Partitions: Setting up LUKS on root partition");
+                    setup_luks(root_path, "cryptroot")?;
+
+                    let root_format = partitions.get(root_path)
+                    .and_then(|p| p.format.as_deref())
+                    .unwrap_or("ext4");
+
+                    println!("Partitions: Formatting LUKS container as {}", root_format);
+                    let mkfs_cmd = match root_format {
+                        "btrfs" => "mkfs.btrfs",
+                        "ext3" => "mkfs.ext3",
+                        "xfs" => "mkfs.xfs",
+                        _ => "mkfs.ext4",
+                    };
+                    let output = Command::new(mkfs_cmd)
+                        .arg("-f")
+                        .arg("/dev/mapper/cryptroot")
+                        .output()
+                        .context("Failed to format LUKS container")?;
+                    if !output.status.success() {
+                        return Err(anyhow!("Failed to format LUKS: {}", String::from_utf8_lossy(&output.stderr)));
+                    }
+                }
+            }
+
             println!("Partitions: Mounting partitions");
             let mut mountvec = partitions.into_iter().collect::<Vec<_>>();
             mountvec.sort_by(|a, b| {
@@ -348,21 +481,48 @@ fn partition() -> Result<()> {
                 if let Some(target) = custom.mountpoint {
                     fs::create_dir_all(format!("/tmp/xeonitte{}", target))
                         .context("Failed to create mountpoint")?;
-                    let _output = if target == "/boot" {
+
+                    let mount_device = if target == "/" && root_encrypted {
+                        "/dev/mapper/cryptroot".to_string()
+                    } else {
+                        part
+                    };
+
+                    let output = if target == "/boot" {
                         Command::new("mount")
                             .arg("-o")
                             .arg("umask=0077")
-                            .arg(&part)
+                            .arg(&mount_device)
                             .arg(format!("/tmp/xeonitte{}", target))
                             .output()
                             .context("Failed to mount partition")?
                     } else {
                         Command::new("mount")
-                            .arg(&part)
+                            .arg(&mount_device)
                             .arg(format!("/tmp/xeonitte{}", target))
                             .output()
                             .context("Failed to mount partition")?
                     };
+
+                    if !output.status.success() {
+                        return Err(anyhow!("Failed to mount {}: {}", target, String::from_utf8_lossy(&output.stderr)))
+                    }
+
+                    // let _output = if target == "/boot" {
+                    //     Command::new("mount")
+                    //         .arg("-o")
+                    //         .arg("umask=0077")
+                    //         .arg(&part)
+                    //         .arg(format!("/tmp/xeonitte{}", target))
+                    //         .output()
+                    //         .context("Failed to mount partition")?
+                    // } else {
+                    //     Command::new("mount")
+                    //         .arg(&part)
+                    //         .arg(format!("/tmp/xeonitte{}", target))
+                    //         .output()
+                    //         .context("Failed to mount partition")?
+                    // };
                 }
             }
         }
