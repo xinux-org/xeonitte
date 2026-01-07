@@ -178,7 +178,8 @@ fn partition() -> Result<()> {
                     )
                     .partition_type(PartitionType::Primary)
                     .flag(PartitionFlag::PED_PARTITION_ESP)
-                    .mount("/boot".into()),
+                    // TODO: check this one more time
+                    // .mount("/boot".into()),
                 )
                 .ok()
                 .ok_or_else(|| anyhow!("Failed to create EFI partition"))?;
@@ -198,14 +199,14 @@ fn partition() -> Result<()> {
                     FileSystem::Ext4,
                 )
                 .partition_type(PartitionType::Primary)
-                .mount("/".into()),
+                // TODO: check this one more time
+                // .mount("/".into()),
             )
             .ok()
             .ok_or_else(|| anyhow!("Failed to create root partition"))?;
 
             println!("Partition: Committing changes");
-            let partitions = dev
-                .commit()
+            dev.commit()
                 .ok()
                 .ok_or_else(|| anyhow!("Failed to commit changes"))?
                 .context("Failed to get partitions")?;
