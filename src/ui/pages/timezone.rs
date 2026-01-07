@@ -1,7 +1,7 @@
 use crate::ui::window::AppMsg;
 use adw::prelude::*;
 use gettextrs::gettext;
-use glib::TimeZone;
+use relm4::gtk::glib::{self, TimeZone};
 use gnome_desktop::{self, WallClockExt};
 use log::{debug, trace};
 use relm4::*;

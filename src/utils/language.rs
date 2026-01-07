@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use gtk::glib::GString;
+use relm4::gtk::glib::GString;
 use std::collections::HashMap;
 
 pub fn get_languages() -> HashMap<String, HashMap<String, String>> {

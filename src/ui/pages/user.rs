@@ -1,5 +1,5 @@
 use crate::ui::window::{AppMsg, UserConfig};
-use adw::prelude::*;
+use relm4::adw::{self, prelude::*};
 use gettextrs::gettext;
 use log::{debug, trace};
 use relm4::*;
@@ -132,7 +132,7 @@ impl SimpleComponent for UserModel {
                                 set_valign: gtk::Align::Center,
                                 connect_state_set[sender] => move |_, state| {
                                     sender.input(UserMsg::SetAutoLogin(state));
-                                    glib::Propagation::Proceed
+                                    relm4::gtk::glib::Propagation::Proceed
                                 }
                             }
                         }

@@ -42,7 +42,7 @@ impl SimpleComponent for QuitDialogModel {
             set_response_label: ("quit", &gettext("Quit")),
             set_response_appearance: ("quit", adw::ResponseAppearance::Destructive),
             connect_close_request => move |_| {
-                glib::Propagation::Stop
+                relm4::gtk::glib::Propagation::Stop
             },
         }
     }

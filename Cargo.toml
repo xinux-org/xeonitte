@@ -1,7 +1,7 @@
 [package]
 name = "xeonitte"
 version = "0.0.2"
-edition = "2021"
+edition = "2024"
 default-run = "xeonitte"
 authors = [
   "Sokhibjon Orzikulov <sakhib@orzklv.uz>",
@@ -9,31 +9,27 @@ authors = [
 ]
 
 [dependencies]
-relm4 = { version = "0.9", features = ["libadwaita", "macros"] }
-relm4-components = { package = "relm4-components", version = "0.9" }
-adw = { package = "libadwaita", version = "0.7.1", features = [
-  "v1_2",
-  "gtk_v4_6",
-] }
-gtk = { package = "gtk4", version = "0.9.6", features = ["v4_6"] }
-glib = { package = "glib", version = "0.20", features = ["v2_68"] }
-tokio = { version = "1.32", features = ["full"] }
+# GNOME
+relm4 = { version = "0.9.1", features = ["libadwaita", "macros", "gnome_47" ] }
+relm4-components = { package = "relm4-components", version = "0.9.1" }
+libgweather = "=4.5.0"
+vte = { package = "vte4", version = "0.8.0"}
+
+tokio = { version = "1.49.0", features = ["full"] }
 tracker = "0.2"
-serde_json = "1.0"
+serde_json = "1.0.149"
 serde = { version = "1.0", features = ["derive"] }
-serde_yaml = "0.9"
-log = "0.4"
+serde_yaml = "0.9.34"
+log = "0.4.29"
 simplelog = "0.12"
-anyhow = "1.0"
+anyhow = "1.0.100"
 isolang = "2.3.0"
 gnome-desktop = { package = "gnome-desktop-xinux", version = "0.4.3" }
-libgweather = "4.5"
-size = "0.4"
-vte = { package = "vte4", git = "https://github.com/xinux-org/vte4" }
+size = "0.5.0"
 distinst-disks = { git = "https://github.com/xinux-org/distinst" }
-reqwest = { version = "0.11", features = ["blocking"] }
-gettext-rs = { version = "0.7", features = ["gettext-system"] }
-regex = "1.9"
+reqwest = { version = "0.13.1", features = ["blocking"] }
+gettext-rs = { version = "0.7.7", features = ["gettext-system"] }
+regex = "1.12.2"
 
 [workspace]
 members = [".", "xeonitte-helper"]
