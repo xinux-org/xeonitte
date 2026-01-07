@@ -1,5 +1,5 @@
 use super::partitions::{CustomPartition, PartitionSchema};
-use crate::ui::window::{AppMsg, UserConfig};
+use crate::ui::{pages::partitions::FullDiskOptions, window::{AppMsg, UserConfig}};
 use adw::prelude::*;
 use gettextrs::gettext;
 use gnome_desktop::{self, XkbInfo, XkbInfoExt};
@@ -91,7 +91,7 @@ impl SimpleComponent for SummaryModel {
                     },
 
                     match &model.partitionconfig {
-                        Some(PartitionSchema::FullDisk(disk)) => {
+                        Some(PartitionSchema::FullDisk(FullDiskOptions{device: disk, encryption: _})) => {
                             adw::PreferencesGroup {
                                 #[watch]
                                 set_title: &gettext("Partitions"),

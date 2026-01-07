@@ -3,8 +3,8 @@ use crate::{
     config::{LIBEXECDIR, SYSCONFDIR},
     ui::{
         pages::{
-            install::{InstallMsg, INSTALL_BROKER},
-            partitions::PartitionSchema,
+            install::{INSTALL_BROKER, InstallMsg},
+            partitions::{FullDiskOptions, PartitionSchema},
         },
         window::{AppMsg, UserConfig},
     },
@@ -164,13 +164,7 @@ impl Worker for InstallAsyncModel {
                         .arg("/tmp/xeonitte/etc/nixos/configuration.nix")
                         .output()
                         .unwrap();
-
-                    // THERE SHOULD BE ADDED GENERATED DISKO
-
                 }
-
-                // TODO: Add there disko.nix generator with take partitions from
-                //       hardware-configuration.nix and delete filesystems in it.
 
                 // Step 3: Make configuration base on language, timezone, keyboard, and user
                 info!("Step 3: Make configuration");
@@ -178,7 +172,7 @@ impl Worker for InstallAsyncModel {
                 let mut mbrdisk = None;
                 if let Some(partitions) = partitions.as_ref() {
                     match partitions {
-                        PartitionSchema::FullDisk(disk) => {
+                        PartitionSchema::FullDisk(FullDiskOptions{device: disk,encryption: _}) => {
                             mbrdisk = Some(disk.to_string());
                         }
                         PartitionSchema::Custom(partitions) => {

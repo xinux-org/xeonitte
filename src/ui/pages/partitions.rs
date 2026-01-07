@@ -35,10 +35,15 @@ pub enum PartitionMethod {
     Basic,
     Advanced,
 }
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct FullDiskOptions {
+    pub device: String,
+    pub encryption: bool,
+}
 
 #[derive(Serialize, Debug, Clone)]
 pub enum PartitionSchema {
-    FullDisk(String),
+    FullDisk(FullDiskOptions),
     Custom(HashMap<String, CustomPartition>),
 }
 
@@ -47,6 +52,7 @@ pub struct CustomPartition {
     pub format: Option<String>,
     pub mountpoint: Option<String>,
     pub device: String,
+    pub encryption: Option<bool>,
 }
 
 #[relm4::component(pub)]
@@ -375,6 +381,7 @@ impl SimpleComponent for PartitionModel {
                                 format: Some(format),
                                 mountpoint: None,
                                 device,
+                                encryption: None
                             },
                         );
                     }
@@ -386,6 +393,7 @@ impl SimpleComponent for PartitionModel {
                             format: Some(format),
                             mountpoint: None,
                             device,
+                            encryption: None
                         },
                     );
                     self.schema = Some(PartitionSchema::Custom(schema));
@@ -431,6 +439,7 @@ impl SimpleComponent for PartitionModel {
                                 format: None,
                                 mountpoint: Some(mount),
                                 device,
+                                encryption: None
                             },
                         );
                     }
@@ -442,6 +451,7 @@ impl SimpleComponent for PartitionModel {
                             format: None,
                             mountpoint: Some(mount),
                             device,
+                            encryption: None
                         },
                     );
                     self.schema = Some(PartitionSchema::Custom(schema));
@@ -550,13 +560,13 @@ impl FactoryComponent for WholeDisk {
                 set_group: Some(&self.group),
                 connect_toggled[name = self.name.to_string()] => move |btn| {
                     if btn.is_active() {
-                        PARTITION_BROKER.send(PartitionMsg::SetFullDisk(PartitionSchema::FullDisk(name.to_string())));
+                        PARTITION_BROKER.send(PartitionMsg::SetFullDisk(PartitionSchema::FullDisk(FullDiskOptions { device: name.to_string(), encryption: true })));
                     }
                 }
             },
             connect_activated[checkbtn, name = self.name.to_string()] => move |_| {
                 checkbtn.set_active(true);
-                PARTITION_BROKER.send(PartitionMsg::SetFullDisk(PartitionSchema::FullDisk(name.to_string())));
+                PARTITION_BROKER.send(PartitionMsg::SetFullDisk(PartitionSchema::FullDisk(FullDiskOptions { device: name.to_string(), encryption: true })));
             }
         }
     }
