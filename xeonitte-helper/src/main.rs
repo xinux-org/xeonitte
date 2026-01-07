@@ -225,13 +225,6 @@ fn partition() -> Result<()> {
                 }
             }
 
-            // Root partition path
-            // let root_partition = if efi {
-            //     format!("{}2", &options.device)
-            // } else {
-            //     format!("{}1", &options.device)
-            // };
-
             // Root device to mount (changes if encrypted)
             let root_mount_device = if options.encryption {
                 println!("Partition: Setting up LUKS on root partition");
@@ -360,8 +353,10 @@ fn partition() -> Result<()> {
 
             let root_entry = partitions.iter()
                 .find(|(_, p)| p.mountpoint.as_deref() == Some("/"));
+
+            // Change true to false if you want to encryption when it need, not always
             let root_encrypted = root_entry
-                .map(|(_, p)| p.encryption.unwrap_or(false)).unwrap_or(false);
+                .map(|(_, p)| p.encryption.unwrap_or(true)).unwrap_or(false);
             let root_partition_path = root_entry.map(|(path,_)| path.clone());
 
             let mut devices = HashMap::new();
