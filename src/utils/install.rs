@@ -623,7 +623,7 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
                 );
 
                 let mut cmd = Command::new("pkexec")
-                    .arg(&format!("{}/xeonitte-helper", LIBEXECDIR))
+                    .arg(format!("{}/xeonitte-helper", LIBEXECDIR))
                     .arg("write-file")
                     .arg("--path")
                     .arg(if path.is_empty() {
@@ -784,24 +784,10 @@ fn backup_and_update_flake() -> Result<()> {
         .output()?;
 
     // Lastly we disable write access to safely run nixos-install
-    // Command::new("pkexec")
-    //     .arg("chmod")
-    //     .arg("a-w")
-    //     .arg("/tmp/xeonitte/etc/")
-    //     .output()?;
-
-    // allow log write permission
     Command::new("pkexec")
         .arg("chmod")
-        .arg("+w")
-        .arg("/tmp/xeonitte.log")
+        .arg("755")
+        .arg("/tmp/")
         .output()?;
-
-    Command::new("pkexec")
-        .arg("chmod")
-        .arg("+w")
-        .arg("/tmp/xeonitte-term.log")
-        .output()?;
-
     Ok(())
 }

@@ -207,7 +207,7 @@ impl SimpleComponent for InstallModel {
                     &[],
                     adw::glib::SpawnFlags::DEFAULT,
                     || (),
-                    5,
+                    -1,
                     gio::Cancellable::NONE,
                     |err| {
                         debug!("VTE preinstall: {:?}", err);
