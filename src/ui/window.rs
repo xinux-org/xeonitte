@@ -148,10 +148,10 @@ impl Component for AppModel {
                 debug!("Caught close request: {}", model.page == StackPage::Install);
                 if model.page == StackPage::Install {
                     let _ = quitdialog.send(QuitDialogMsg::Show);
-                    glib::Propagation::Stop
+                    relm4::gtk::glib::Propagation::Stop
                 } else {
                     relm4::main_application().quit();
-                    glib::Propagation::Proceed
+                    relm4::gtk::glib::Propagation::Proceed
                 }
             },
             gtk::Box {

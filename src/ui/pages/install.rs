@@ -196,6 +196,8 @@ impl SimpleComponent for InstallModel {
                     |err| debug!("VTE Install: {:?}", err),
                 );
             }
+
+            // not implemented yet!
             InstallMsg::PreInstall(cmds) => {
                 debug!("PreInstall command: {:?}", cmds);
                 self.installing = false;
@@ -207,7 +209,7 @@ impl SimpleComponent for InstallModel {
                     &[],
                     adw::glib::SpawnFlags::DEFAULT,
                     || (),
-                    5,
+                    -1,
                     gio::Cancellable::NONE,
                     |err| {
                         debug!("VTE preinstall: {:?}", err);

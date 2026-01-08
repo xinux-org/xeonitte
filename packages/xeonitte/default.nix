@@ -31,7 +31,7 @@
 in
   stdenv.mkDerivation rec {
     pname = "xeonitte";
-    version = "0.0.2";
+    version = "0.0.3";
 
     src = [../..];
 
@@ -39,7 +39,6 @@ in
       lockFile = ../../Cargo.lock;
       outputHashes = {
         "disk-types-0.1.5" = "sha256-QV5VoXnDJ6nU3co/hg5+luZvIuFEip6PoiSkbwSke8w=";
-        "vte4-0.7.0" = "sha256-LLZGnHypJz6PoiY6Mb1t0qAPKsx6klUBP3QeVqQfc2k=";
       };
     };
 
