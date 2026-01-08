@@ -152,12 +152,12 @@ fn partition() -> Result<()> {
             let (efi_partition, root_partition) = if efi {
                 (
                     Some(format!("{}", &options.device)),
-                    format!("{}2", &options.device),
+                    format!("{}", &options.device),
                 )
             } else {
                 (
                     None,
-                    format!("{}1", &options.device),
+                    format!("{}", &options.device),
                 )
             };
 
