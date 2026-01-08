@@ -148,16 +148,22 @@ fn partition() -> Result<()> {
                 .ok_or_else(|| anyhow!("Failed to find disk"))?;
             let efi = distinst_disks::Bootloader::detect() == distinst_disks::Bootloader::Efi;
 
+            let partition_val = if options.device.contains("nmve") || options.device.contains("mmcblk") {
+                "p"
+            } else {
+                ""
+            };
+
             // Determine paths early
             let (efi_partition, root_partition) = if efi {
                 (
-                    Some(format!("{}", &options.device)),
-                    format!("{}", &options.device),
+                    Some(format!("{}{}1", &options.device, partition_val)),
+                    format!("{}{}2", &options.device, partition_val),
                 )
             } else {
                 (
                     None,
-                    format!("{}", &options.device),
+                    format!("{}{}1", &options.device, partition_val),
                 )
             };
 
