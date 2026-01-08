@@ -148,7 +148,9 @@ fn partition() -> Result<()> {
                 .ok_or_else(|| anyhow!("Failed to find disk"))?;
             let efi = distinst_disks::Bootloader::detect() == distinst_disks::Bootloader::Efi;
 
-            let partition_val = if options.device.contains("nmve") || options.device.contains("mmcblk") {
+            println!("{}", &options.device);
+            println!("{}", &options.device.contains("nvme"));
+            let partition_val = if options.device.contains("nvme") || options.device.contains("mmcblk") {
                 "p"
             } else {
                 ""
