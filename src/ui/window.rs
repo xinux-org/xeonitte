@@ -20,7 +20,7 @@ use crate::{
             user::UserMsg,
             welcome::WelcomeModel,
         },
-        quitdialog::{QuitDialogModel, QuitDialogMsg},
+        quitdialog::{QuitDialogModel},
     },
     utils::{
         i18n::i18n_f,
@@ -95,6 +95,7 @@ pub struct UserConfig {
 
 #[derive(Debug)]
 pub enum AppMsg {
+    Quit,
     ChangePage(u32),
     SetCanGoBack(bool),
     SetCanGoForward(bool),
@@ -144,12 +145,13 @@ impl Component for AppModel {
         adw::ApplicationWindow {
             set_default_width: 900,
             set_default_height: 800,
-            connect_close_request[quitdialog = model.quitdialog.sender().clone()] => move |_| {
-                debug!("Caught close request: {}", model.page == StackPage::Install);
-                if model.page == StackPage::Install {
-                    let _ = quitdialog.send(QuitDialogMsg::Show);
+            connect_close_request[sender] => move |_| {
+                debug!("Caught close request");
+                if model.page == StackPage::FrontPage || model.page == StackPage::Install {
+                    let _ = sender.input(AppMsg::Quit);
                     relm4::gtk::glib::Propagation::Stop
                 } else {
+                    debug!("Quit dialog not showed");
                     relm4::main_application().quit();
                     relm4::gtk::glib::Propagation::Proceed
                 }
@@ -540,6 +542,11 @@ impl Component for AppModel {
     fn update(&mut self, msg: Self::Input, sender: ComponentSender<Self>, _root: &Self::Root) {
         self.reset();
         match msg {
+            AppMsg::Quit => {
+                self.quitdialog
+                .widget()
+                .present(relm4::main_application().active_window().as_ref());
+            }
             AppMsg::ChangePage(page) => {
                 trace!("AppMsg::ChangePage: {}", page);
                 if self.current_page > page {
