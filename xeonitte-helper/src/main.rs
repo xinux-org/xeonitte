@@ -151,7 +151,7 @@ fn partition() -> Result<()> {
             // Determine paths early
             let (efi_partition, root_partition) = if efi {
                 (
-                    Some(format!("{}1", &options.device)),
+                    Some(format!("{}", &options.device)),
                     format!("{}2", &options.device),
                 )
             } else {
