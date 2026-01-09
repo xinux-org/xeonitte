@@ -242,7 +242,7 @@ impl SimpleComponent for InstallModel {
                         vte::WriteFlags::Default,
                         gio::Cancellable::NONE,
                     ) {
-                        error!("{:?}", e);
+                        error!("Create /tmp/xeonitte-term.log file and write in to it: {:?}", e);
                     }
                     let _ = output.flush(gio::Cancellable::NONE);
                 }

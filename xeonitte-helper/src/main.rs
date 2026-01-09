@@ -116,6 +116,12 @@ fn main() {
             file.write_all(contents.as_bytes()).unwrap();
         }
         SubCommands::Unmount {} => {
+            if let Err(e) = Command::new("cryptsetup")
+                .args(["close", "cryptroot"])
+                .output()
+            {
+                eprint!("{}", e);
+            }
             if let Err(e) = Command::new("umount")
                 .arg("-R")
                 .arg("-f")
@@ -219,13 +225,23 @@ fn partition() -> Result<()> {
                 .ok_or_else(|| anyhow!("Failed to commit changes"))?
                 .context("Failed to get partitions")?;
 
+            // Updating ketnel tabel
+            println!("Partition: Updating kernel partition table");
+            let partprobe = Command::new("partprobe")
+                .arg(&options.device)
+                .output();
+            let udevadm = Command::new("udevadm")
+                .args(["settle", "--timeout=10"])
+                .output();
+            println!("Partprobe: {:?} -- Udevadm: {:?}", partprobe, udevadm);
+
             // Format EFI partition
             if let Some(efi_part) = &efi_partition {
-                println!("Partition: Formatting EFI partition");
+                println!("Partition: Formatting EFI partition: {}", efi_part);
                 let output = Command::new("mkfs.vfat")
                     .arg("-F32")
+                    .arg("-I")
                     .arg(efi_part)
-                    // .arg(format!("{}1", &options.device))
                     .output()
                     .context("Failed to format EFI partition")?;
                 if !output.status.success() {
@@ -534,31 +550,49 @@ fn partition() -> Result<()> {
     Ok(())
 }
 
+// TODO: take passphrase from user
 fn setup_luks (device: &str, name: &str) -> Result<()> {
+    let passphrase = "xinux";
 
-    let password = "xinux";
+    println!("LUKS: Checking {} exists", device);
+    if !std::path::Path::new(device).exists() {
+        return Err(anyhow!("Device {} does not exist!", device));
+    }
 
+    let check = Command::new("which")
+        .arg("cryptsetup")
+        .output();
+    println!("LUKS: which cryptsetup = {:?}", check);
+
+    println!("LUKS: Formatting {} as LUKS2", device);
     let mut child = Command::new("cryptsetup")
         .args(["luksFormat", "--type", "luks2", "-q", device])
         .stdin(Stdio::piped())
         .spawn()
         .context("Failed to start cryptsetup luksFormat")?;
-    child.stdin.as_mut().unwrap().write_all(password.as_bytes())?;
+    // child.stdin.as_mut().unwrap().write_all(passphrase.as_bytes())?;
 
-    let status = child.wait()?;
-
-    if !status.success() {
-        return Err(anyhow!("cryptsetup luksFormat failed"));
+    if let Some(mut stdin) = child.stdin.take() {
+        stdin.write_all(passphrase.as_bytes())?;
     }
 
+    let status = child.wait()?;
+    if !status.success() {
+        return Err(anyhow!("cryptsetup luksFormat failed with {} status: {:?}", status, child));
+    }
 
+    println!("LUKS: Opening {} as {}", device, name);
     let mut child = Command::new("cryptsetup")
         .args(["open", device, name])
         .stdin(Stdio::piped())
         .spawn()
         .context("Failed to start cryptsetup open")?;
 
-    child.stdin.as_mut().unwrap().write_all(password.as_bytes())?;
+    // child.stdin.as_mut().unwrap().write_all(passphrase.as_bytes())?;
+
+    if let Some(mut stdin) = child.stdin.take() {
+        stdin.write_all(passphrase.as_bytes())?;
+    }
 
     let status = child.wait()?;
     if !status.success() {
