@@ -600,3 +600,27 @@ fn setup_luks (device: &str, name: &str) -> Result<()> {
     }
     Ok(())
 }
+
+// TODO: take passphrase from user
+fn open_luks (device: &str, name: &str) -> Result<()> {
+    let passphrase = "xinux";
+    let mut child = Command::new("cryptsetup")
+        .arg("luksOpen")
+        .arg(device)
+        .arg(name)
+        .stdin(Stdio::piped())
+        .spawn()?;
+
+    if let Some(mut stdin) = child.stdin.take() {
+        stdin.write_all(passphrase.as_bytes())?;
+    }
+
+    let status = child.wait()?;
+    if !status.success() {
+        return Err(anyhow!("LUKS: Failed open luks"));
+    }
+
+    // TODO: Should be mount root and
+
+    Ok(())
+}
