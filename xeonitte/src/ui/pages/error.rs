@@ -128,7 +128,7 @@ impl SimpleComponent for ErrorModel {
         match msg {
             ErrorMsg::Show => {
                 if let Err(e) = Command::new("pkexec")
-                    .arg(&format!("{}/xeonitte-helper", LIBEXECDIR))
+                    .arg("xeonitte-helper")
                     .arg("unmount")
                     .output()
                 {

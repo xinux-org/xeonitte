@@ -559,10 +559,16 @@ fn setup_luks (device: &str, name: &str) -> Result<()> {
         return Err(anyhow!("Device {} does not exist!", device));
     }
 
+     let check = Command::new("env")
+        .output()
+        .unwrap();
+    println!("LUKS: env = {:?} ------- {:?} ------- {:?}", String::from_utf8_lossy(&check.stderr), check.status, check.status.success());
+
     let check = Command::new("which")
         .arg("cryptsetup")
-        .output();
-    println!("LUKS: which cryptsetup = {:?}", check);
+        .output()
+        .unwrap();
+    println!("LUKS: which cryptsetup = {:?} ------- {:?} ------- {:?}", String::from_utf8_lossy(&check.stderr), check.status, check.status.success());
 
     println!("LUKS: Formatting {} as LUKS2", device);
     let mut child = Command::new("cryptsetup")
@@ -571,7 +577,7 @@ fn setup_luks (device: &str, name: &str) -> Result<()> {
         .spawn()
         .context("Failed to start cryptsetup luksFormat")?;
     // child.stdin.as_mut().unwrap().write_all(passphrase.as_bytes())?;
-
+    println!("THERE IS CHILD FROM setup_luks fn: {:?}", child);
     if let Some(mut stdin) = child.stdin.take() {
         stdin.write_all(passphrase.as_bytes())?;
     }

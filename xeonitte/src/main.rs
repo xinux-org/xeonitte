@@ -4,11 +4,24 @@ use gtk::{glib, prelude::ApplicationExt};
 use log::{error, info};
 use relm4::*;
 use simplelog::*;
+use tokio::process::Command;
 use std::fs::File;
 use xeonitte::{
     config::{GETTEXT_PACKAGE, LOCALEDIR, RESOURCES_FILE},
     ui::window::AppModel,
 };
+
+#[tokio::main]
+async fn main0() {
+    let check = Command::new("pkexec")
+        .args(["cryptsetup", "-h"])
+        .output()
+        .await
+        .unwrap();
+    println!("LUKS: which cryptsetup = {:?} ------- {:?} ------- {:?}", String::from_utf8_lossy(&check.stderr), check.status, check.status.success());
+}
+
+
 
 fn main() {
     CombinedLogger::init(vec![
@@ -28,12 +41,12 @@ fn main() {
     gtk::init().unwrap();
     setup_gettext();
     glib::set_application_name(&gettext("Xeonitte Installer"));
-    if let Ok(res) = gio::Resource::load(RESOURCES_FILE) {
-        info!("Resource loaded: {}", RESOURCES_FILE);
-        gio::resources_register(&res);
-    } else {
-        error!("Failed to load resources");
-    }
+    // if let Ok(res) = gio::Resource::load(RESOURCES_FILE) {
+    //     info!("Resource loaded: {}", RESOURCES_FILE);
+    //     gio::resources_register(&res);
+    // } else {
+    //     error!("Failed to load resources");
+    // }
     gtk::Window::set_default_icon_name(xeonitte::config::APP_ID);
     let app = adw::Application::new(
         Some(xeonitte::config::APP_ID),

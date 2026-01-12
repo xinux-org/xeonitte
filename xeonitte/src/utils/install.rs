@@ -353,7 +353,7 @@ fn partition(partitions: Option<PartitionSchema>) -> Result<()> {
     let partjson = serde_json::to_string(&partitions)?;
     debug!("Executing partition with json: {}", partjson);
     let mut out = Command::new("pkexec")
-        .arg(format!("{}/xeonitte-helper", LIBEXECDIR))
+        .arg("xeonitte-helper")
         .arg("partition")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
@@ -623,7 +623,7 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
                 );
 
                 let mut cmd = Command::new("pkexec")
-                    .arg(format!("{}/xeonitte-helper", LIBEXECDIR))
+                    .arg("xeonitte-helper")
                     .arg("write-file")
                     .arg("--path")
                     .arg(if path.is_empty() {

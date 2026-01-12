@@ -1,18 +1,40 @@
 {
   inputs = {
     nixpkgs.url = "github:xinux-org/nixpkgs/nixos-unstable";
-    xinux-lib = {
-      url = "github:xinux-org/lib";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    crane.url = "github:ipetkov/crane";
   };
 
-  outputs = inputs:
-    inputs.xinux-lib.mkFlake {
-      inherit inputs;
-      alias.packages.default = "xeonitte";
-      alias.shells.default = "xeonitte";
-      src = ./.;
-      hydraJobs = inputs.self.packages.x86_64-linux;
-    };
+  outputs = inputs: let
+    supportedSystems = [
+      "x86_64-linux" # 64-bit Intel/AMD Linux
+      "aarch64-linux" # 64-bit ARM Linux
+    ];
+
+    forEachSupportedSystem = f:
+      inputs.nixpkgs.lib.genAttrs supportedSystems (
+        system:
+          f {
+            inherit system;
+            pkgs = import inputs.nixpkgs {
+              inherit system;
+              config.allowUnfree = true;
+            };
+          }
+      );
+  in {
+    devShells = forEachSupportedSystem ({pkgs, ...}: {
+      default =
+        pkgs.mkShellNoCC {
+        };
+    });
+    packages = forEachSupportedSystem ({pkgs, ...}: let
+      craneLib = inputs.crane.mkLib pkgs;
+      convertyml = pkgs.callPackage ./packages/convertyml {};
+      xeonitte-helper = pkgs.callPackage ./xeonitte-helper {inherit craneLib;};
+      xeonitte = pkgs.callPackage ./xeonitte {inherit craneLib convertyml xeonitte-helper;};
+    in {
+      default = xeonitte;
+      inherit xeonitte xeonitte-helper;
+    });
+  };
 }

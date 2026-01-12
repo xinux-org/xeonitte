@@ -1,10 +1,7 @@
-{
-  stdenv,
-}:
-
+{stdenv}:
 stdenv.mkDerivation {
   name = "convertyml";
-  src = [ ./. ];
+  src = [./.];
   installPhase = ''
     mkdir -p $out/bin
     cp $src/convertyml.sh $out/bin/convertyml

@@ -1,0 +1,9 @@
+pub const APP_ID: &str = "org.xinux.Xeonitte";
+pub const GETTEXT_PACKAGE: &str = "xeonitte";
+pub const LOCALEDIR: &str = "/usr/local/share/locale";
+pub const PKGDATADIR: &str = "/usr/local/share/xeonitte";
+pub const SYSCONFDIR: &str = "/etc";
+pub const LIBEXECDIR: &str = "/usr/local/libexec";
+pub const PROFILE: &str = "";
+pub const RESOURCES_FILE: &str = concat!("/usr/local/share/xeonitte", "/resources.gresource");
+pub const VERSION: &str = "0.0.1";

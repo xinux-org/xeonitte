@@ -284,7 +284,7 @@ impl SimpleComponent for PartitionModel {
                 partition_groups_guard.clear();
 
                 let out = Command::new("pkexec")
-                    .arg(&format!("{}/xeonitte-helper", LIBEXECDIR))
+                    .arg("xeonitte-helper")
                     .arg("get-partitions")
                     .output();
 

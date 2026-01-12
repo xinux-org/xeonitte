@@ -27,6 +27,7 @@
   rustPlatform,
   vte-gtk4,
   wrapGAppsHook4,
+  cryptsetup,
   ...
 }:
 mkShell {
@@ -57,6 +58,7 @@ mkShell {
     rustPlatform.bindgenHook
     vte-gtk4
     wrapGAppsHook4
+    cryptsetup
   ];
 
   # Set Environment Variables

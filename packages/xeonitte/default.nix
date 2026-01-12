@@ -26,6 +26,7 @@
   rustPlatform,
   vte-gtk4,
   wrapGAppsHook4,
+  cryptsetup,
 }: let
   convertyml = internal.convertyml;
 in
@@ -61,6 +62,7 @@ in
     ];
 
     buildInputs = [
+      cryptsetup
       desktop-file-utils
       gdk-pixbuf
       glib
