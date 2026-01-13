@@ -35,6 +35,9 @@
     in {
       default = xeonitte;
       inherit xeonitte xeonitte-helper;
+
     });
+  } // {
+     nixosModules = import ./modules/nixos/xeonitte;
   };
 }
