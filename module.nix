@@ -1,9 +1,10 @@
-{ options, config, lib, pkgs, ... }:
+flake: { options, config, lib, pkgs, ... }:
 
 with lib;
 let
   cfg = config.xeonitte;
-  xeonitte-autostart = pkgs.makeAutostartItem { name = "org.xinux.Xeonitte"; package = pkgs.internal.xeonitte; };
+  xeonitte = flake.self.packages.${pkgs.stdenv.hostPlatform.system}.xeonitte;
+  xeonitte-autostart = pkgs.makeAutostartItem { name = "org.xinux.Xeonitte"; package = xeonitte; };
 in
 {
   options.xeonitte = with types; {
@@ -11,14 +12,14 @@ in
       mkEnableOption "Enable Xeonitte Installer";
     config = mkOption {
       type = path;
-      default = "${pkgs.internal.xeonitte}/etc/xeonitte";
+      default = "${xeonitte}/etc/xeonitte";
       description = "Xeonitte configuration location";
     };
   };
 
   config = mkIf cfg.enable {
-    environment.systemPackages = with pkgs; [
-      internal.xeonitte
+    environment.systemPackages = [
+      xeonitte
       xeonitte-autostart
     ];
     environment.etc."xeonitte".source = cfg.config;

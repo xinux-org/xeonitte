@@ -38,6 +38,6 @@
 
     });
   } // {
-     nixosModules = import ./modules/nixos/xeonitte;
+     nixosModules.default = import ./module.nix inputs;
   };
 }

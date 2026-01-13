@@ -1,3 +1,0 @@
-{
-  xeonitte = import ./xeonitte.nix;
-}
