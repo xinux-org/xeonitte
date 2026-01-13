@@ -88,12 +88,14 @@ in
         export RESULT_PATH="$(echo $out)"
       '';
 
+      postInstall = ''
+        wrapProgram  $out/bin/xeonitte \
+            --prefix PATH : ${lib.makeBinPath [
+          xeonitte-helper
+        ]}
+      '';
+
       postFixup = ''
         cp -rf ${data}/. $out
-
-        # wrapProgram  $out/bin/xeonitte \
-        #     --prefix PATH : $ {lib.makeBinPath [
-        #   xeonitte-helper
-        # ]}
       '';
     })
