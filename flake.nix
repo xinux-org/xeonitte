@@ -21,23 +21,28 @@
             };
           }
       );
-  in {
-    devShells = forEachSupportedSystem ({pkgs, ...}: {
-      default =
-        pkgs.mkShellNoCC {
+  in
+    {
+      formatter = forEachSupportedSystem ({pkgs, ...}: pkgs.alejandra);
+      devShells = forEachSupportedSystem ({pkgs, ...}: {
+        default =
+          pkgs.mkShellNoCC {
+          };
+      });
+      packages = forEachSupportedSystem ({pkgs, ...}: let
+        craneLib = inputs.crane.mkLib pkgs;
+        convertyml = pkgs.callPackage ./convertyml {};
+        xeonitte-helper = pkgs.callPackage ./xeonitte-helper {inherit craneLib;};
+        data = pkgs.callPackage ./data { inherit convertyml; };
+        xeonitte = pkgs.callPackage ./xeonitte {
+          inherit craneLib convertyml xeonitte-helper data;
         };
-    });
-    packages = forEachSupportedSystem ({pkgs, ...}: let
-      craneLib = inputs.crane.mkLib pkgs;
-      convertyml = pkgs.callPackage ./packages/convertyml {};
-      xeonitte-helper = pkgs.callPackage ./xeonitte-helper {inherit craneLib;};
-      xeonitte = pkgs.callPackage ./xeonitte {inherit craneLib convertyml xeonitte-helper;};
-    in {
-      default = xeonitte;
-      inherit xeonitte xeonitte-helper;
-
-    });
-  } // {
-     nixosModules.default = import ./module.nix inputs;
-  };
+      in {
+        default = xeonitte;
+        inherit xeonitte xeonitte-helper;
+      });
+    }
+    // {
+      nixosModules.default = import ./module.nix inputs;
+    };
 }

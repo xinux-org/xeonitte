@@ -1,94 +1,54 @@
-subdir('icons')
-subdir('resources')
-# Desktop file
-desktop_conf = configuration_data()
-desktop_conf.set('icon', application_id)
-desktop_file = i18n.merge_file(
-  type: 'desktop',
-  input: configure_file(
-    input: '@0@.desktop.in.in'.format(base_id),
-    output: '@BASENAME@',
-    configuration: desktop_conf
-  ),
-  output: '@0@.desktop'.format(application_id),
-  po_dir: podir,
-  install: true,
-  install_dir: datadir / 'applications'
-)
-# Validate Desktop file
-if desktop_file_validate.found()
-  test(
-    'validate-desktop',
-    desktop_file_validate,
-    args: [
-      desktop_file.full_path()
-    ],
-    depends: desktop_file,
-  )
-endif
-
-# Appdata
-appdata_conf = configuration_data()
-appdata_conf.set('app-id', application_id)
-appdata_conf.set('gettext-package', gettext_package)
-appdata_file = i18n.merge_file(
-  input: configure_file(
-    input: '@0@.metainfo.xml.in.in'.format(base_id),
-    output: '@BASENAME@',
-    configuration: appdata_conf
-  ),
-  output: '@0@.metainfo.xml'.format(application_id),
-  po_dir: podir,
-  install: true,
-  install_dir: datadir / 'metainfo'
+project(
+  'xeonitte',
+  version: '0.0.3',
+  meson_version: '>= 0.59',
+  license: 'GPL-3.0',
 )
 
-# Validate Appdata
-if appstream_util.found()
-  test(
-    'validate-appdata', appstream_util,
-    args: [
-      'validate', '--nonet', appdata_file.full_path()
-    ],
-    depends: appdata_file,
-  )
-endif
+i18n = import('i18n')
+gnome = import('gnome')
 
-# Policy file
-dataconf = configuration_data()
-dataconf.set('pkglibexecdir',
-  libexecdir
-)
-i18n.merge_file(
-  input : configure_file(
-    configuration: dataconf,
-    input : '@0@.policy.in.in'.format(base_id),
-    output: '@BASENAME@'
-  ),
-  output: '@0@.policy'.format(base_id),
-  po_dir: podir,
-  install: true,
-  install_dir: datadir / 'polkit-1' / 'actions'
-)
+base_id = 'org.xinux.Xeonitte'
 
-# GSchema
-gschema_conf = configuration_data()
-gschema_conf.set('app-id', application_id)
-gschema_conf.set('gettext-package', gettext_package)
-configure_file(
-  input: '@0@.gschema.xml.in'.format(base_id),
-  output: '@0@.gschema.xml'.format(application_id),
-  configuration: gschema_conf,
-  install: true,
-  install_dir: datadir / 'glib-2.0' / 'schemas'
-)
+dependency('openssl', version: '>= 1.0')
+dependency('glib-2.0', version: '>= 2.66')
+dependency('gio-2.0', version: '>= 2.66')
+dependency('gtk4', version: '>= 4.6.0')
+dependency('libadwaita-1', version: '>=1.2.0')
+dependency('polkit-gobject-1', version: '>= 0.103')
 
-# Validata GSchema
-if glib_compile_schemas.found()
-  test(
-    'validate-gschema', glib_compile_schemas,
-    args: [
-      '--strict', '--dry-run', meson.current_build_dir()
-    ],
-  )
-endif
+glib_compile_resources = find_program('glib-compile-resources', required: true)
+glib_compile_schemas = find_program('glib-compile-schemas', required: true)
+desktop_file_validate = find_program('desktop-file-validate', required: false)
+appstream_util = find_program('appstream-util', required: false)
+
+version = meson.project_version()
+
+prefix = get_option('prefix')
+bindir = prefix / get_option('bindir')
+libexecdir = prefix / get_option('libexecdir')
+localedir = prefix / get_option('localedir')
+sysconfdir = '/' / get_option('sysconfdir')
+pkgconfdir = prefix / get_option('sysconfdir')
+
+datadir = prefix / get_option('datadir')
+pkgdatadir = datadir / meson.project_name()
+iconsdir = datadir / 'icons'
+podir = meson.project_source_root() / 'po'
+gettext_package = meson.project_name()
+
+profile = ''
+version_suffix = ''
+application_id = base_id
+
+ymlconvert = find_program('convertyml', required : true)
+
+subdir('data')
+subdir('po')
+subdir('config')
+
+gnome.post_install(
+  gtk_update_icon_cache: true,
+  glib_compile_schemas: true,
+  update_desktop_database: true,
+)

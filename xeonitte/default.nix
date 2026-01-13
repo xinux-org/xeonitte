@@ -32,6 +32,7 @@
   #
   xeonitte-helper,
   makeWrapper,
+  data,
 }: let
   src = craneLib.cleanCargoSource ./.;
   commonArgs = {
@@ -83,10 +84,16 @@ in
           makeWrapper
         ];
 
-      postInstall = ''
-        wrapProgram  $out/bin/xeonitte \
-            --prefix PATH : ${lib.makeBinPath [
-          xeonitte-helper
-        ]}
+      preBuild = ''
+        export RESULT_PATH="$(echo $out)"
+      '';
+
+      postFixup = ''
+        cp -rf ${data}/. $out
+
+        # wrapProgram  $out/bin/xeonitte \
+        #     --prefix PATH : $ {lib.makeBinPath [
+        #   xeonitte-helper
+        # ]}
       '';
     })
