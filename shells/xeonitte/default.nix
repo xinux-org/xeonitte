@@ -19,7 +19,7 @@
   pango,
   parted,
   pkg-config,
-  polkit,
+  # polkit,
   rust-analyzer,
   rustc,
   rustup,
@@ -53,7 +53,7 @@ mkShell {
     pango
     parted
     pkg-config
-    polkit
+    # polkit
     rust-analyzer
     rustc
     rustup

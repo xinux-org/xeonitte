@@ -60,11 +60,12 @@ in
       meson
       ninja
       pkg-config
-      polkit
+      polkit.dev
       rustc
       rustPlatform.cargoSetupHook
       wrapGAppsHook4
       makeWrapper
+      cryptsetup
     ];
 
     buildInputs = [
@@ -80,6 +81,7 @@ in
       parted
       rustPlatform.bindgenHook
       vte-gtk4
+      cryptsetup
     ];
 
     postFixup = ''
