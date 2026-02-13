@@ -181,7 +181,8 @@ impl Worker for InstallAsyncModel {
                         };
 
                         if encryption_enabled && !root_device.is_empty() {
-                            info!("Adding LUKS configuration for {}", root_device);
+                            info!("Adding LUKS configuration for: {}", root_device);
+                            println!("This is for TEST arch:{:?} -- hostname:{:?} -- root_device:{:?}", &arch, &hostname, &root_device);
                             if let Err(e) = add_luks_config(&arch, &hostname, &root_device) {
                                 error!("Failed to add LUKS config: {}", e);
                             }
@@ -379,8 +380,6 @@ impl Worker for InstallAsyncModel {
 }
 
 fn add_luks_config(arch: &str, hostname: &str, root_device: &str) -> Result<()> {
-    use std::fs;
-
     // Get UUID of the encrypted partition
     let output = Command::new("blkid")
         .arg("-s")
@@ -390,6 +389,8 @@ fn add_luks_config(arch: &str, hostname: &str, root_device: &str) -> Result<()> 
         .arg(root_device)
         .output()
         .context("Failed to get UUID")?;
+
+    println!("This is UUID of encryption device: {:?}", &output.stdout);
 
     if !output.status.success() {
         return Err(anyhow!(

@@ -60,7 +60,7 @@ in
       meson
       ninja
       pkg-config
-      polkit.dev
+      polkit
       rustc
       rustPlatform.cargoSetupHook
       wrapGAppsHook4
