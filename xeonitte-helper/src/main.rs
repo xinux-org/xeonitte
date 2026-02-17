@@ -129,6 +129,7 @@ fn main() {
         }
         SubCommands::Unmount {} => {
             // Close LUKS container if it exists
+            // when you close the installation GUI or if the installation fails
             let _ = Command::new("cryptsetup")
                 .args(["close", "cryptroot"])
                 .output();
@@ -139,7 +140,7 @@ fn main() {
                 .arg("/tmp/xeonitte")
                 .output()
             {
-                eprintln!("{}", e);
+                eprintln!("Failed to unmount: {}", e);
                 std::process::exit(1);
             }
         }
@@ -487,6 +488,36 @@ fn partition() -> Result<()> {
 }
 
 fn setup_luks(device: &str, name: &str, passphrase: &str) -> Result<()> {
+    // Checking if device already have LUKS container
+    println!("LUKS: Checking if {} has existing LUKS container", device);
+    let check_output = Command::new("cryptsetup")
+        .args(["isLuks", device])
+        .output()
+        .context("Failed to check for LUKS container")?;
+
+    // Wipe LUKS container if it exists
+    if check_output.status.success() {
+        println!("LUKS: Found existing LUKS container on {}", device);
+        let _ = Command::new("cryptsetup")
+            .args(["close", name])
+            .output();
+
+        println!("LUKS: Wiping signatures from {}", device);
+        let wipe_output = Command::new("wipefs")
+            .args(["-a", device])
+            .output()
+            .context("Failed to wipe device signatures")?;
+
+        if !wipe_output.status.success() {
+            return Err(anyhow!(
+                "Failed to wipe device {}: {}",
+                device,
+                String::from_utf8_lossy(&wipe_output.stderr)
+            ));
+        }
+        println!("LUKS: Device {} cleaned successfully", device);
+    }
+
     println!("LUKS: Formatting {} as LUKS2", device);
     let mut child = Command::new("cryptsetup")
         .args(["luksFormat", "--type", "luks2", "-q", device])

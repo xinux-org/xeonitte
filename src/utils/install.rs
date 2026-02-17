@@ -159,36 +159,6 @@ impl Worker for InstallAsyncModel {
                         .output()
                         .unwrap();
 
-                    // Add LUKS configuration if encryption is enabled
-                    if let Some(partitions) = partitions.as_ref() {
-                        let (encryption_enabled, root_device) = match partitions {
-                            PartitionSchema::FullDisk(options) => {
-                                let partition_val = if options.device.contains("nvme") || options.device.contains("mmcblk") {
-                                    "p"
-                                } else {
-                                    ""
-                                };
-                                let root_part = format!("{}{}2", options.device, partition_val);
-                                (options.encryption, root_part)
-                            }
-                            PartitionSchema::Custom(options) => {
-                                let root_part = options.partitions.iter()
-                                    .find(|(_, p)| p.mountpoint.as_deref() == Some("/"))
-                                    .map(|(path, _)| path.clone())
-                                    .unwrap_or_default();
-                                (options.encryption, root_part)
-                            }
-                        };
-
-                        if encryption_enabled && !root_device.is_empty() {
-                            info!("Adding LUKS configuration for: {}", root_device);
-                            println!("This is for TEST arch:{:?} -- hostname:{:?} -- root_device:{:?}", &arch, &hostname, &root_device);
-                            if let Err(e) = add_luks_config(&arch, &hostname, &root_device) {
-                                error!("Failed to add LUKS config: {}", e);
-                            }
-                        }
-                    }
-
                     // Remove /tmp/xeonitte/etc/nixos/configuration.nix
                     Command::new("pkexec")
                         .arg("rm")
@@ -377,91 +347,6 @@ impl Worker for InstallAsyncModel {
             }
         }
     }
-}
-
-fn add_luks_config(arch: &str, hostname: &str, root_device: &str) -> Result<()> {
-    // Get UUID of the encrypted partition
-    let output = Command::new("blkid")
-        .arg("-s")
-        .arg("UUID")
-        .arg("-o")
-        .arg("value")
-        .arg(root_device)
-        .output()
-        .context("Failed to get UUID")?;
-
-    println!("This is UUID of encryption device: {:?}", &output.stdout);
-
-    if !output.status.success() {
-        return Err(anyhow!(
-            "Failed to get UUID for {}: {}",
-            root_device,
-            String::from_utf8_lossy(&output.stderr)
-        ));
-    }
-
-    let uuid = String::from_utf8_lossy(&output.stdout).trim().to_string();
-    if uuid.is_empty() {
-        return Err(anyhow!("UUID is empty for {}", root_device));
-    }
-
-    let hardware_nix_path = format!(
-        "/tmp/xeonitte/etc/nixos/systems/{}-linux/{}/hardware.nix",
-        arch, hostname
-    );
-
-    // Read existing hardware.nix
-    let content = fs::read_to_string(&hardware_nix_path)
-        .context("Failed to read hardware.nix")?;
-
-    // Check if LUKS config already exists
-    if content.contains("boot.initrd.luks.devices") {
-        info!("LUKS configuration already exists in hardware.nix");
-        return Ok(());
-    }
-
-    // Find the closing brace of the file
-    let lines: Vec<&str> = content.lines().collect();
-    let mut insert_pos = lines.len();
-
-    // Find the last closing brace
-    for (i, line) in lines.iter().enumerate().rev() {
-        if line.trim() == "}" {
-            insert_pos = i;
-            break;
-        }
-    }
-
-    // Prepare LUKS configuration
-    let luks_config = format!(
-        r#"
-  # LUKS encryption configuration
-  boot.initrd.luks.devices."cryptroot" = {{
-    device = "/dev/disk/by-uuid/{}";
-  }};
-"#,
-        uuid
-    );
-
-    // Insert LUKS config before the last closing brace
-    let mut new_lines = lines[..insert_pos].to_vec();
-    new_lines.push(&luks_config);
-    new_lines.extend_from_slice(&lines[insert_pos..]);
-    let new_content = new_lines.join("\n");
-
-    // Write the modified content using pkexec
-    Command::new("pkexec")
-        .arg(format!("{}/xeonitte-helper", LIBEXECDIR))
-        .arg("write-file")
-        .arg("--path")
-        .arg(&hardware_nix_path)
-        .arg("--contents")
-        .arg(&new_content)
-        .output()
-        .context("Failed to write hardware.nix")?;
-
-    info!("LUKS configuration added to hardware.nix with UUID: {}", uuid);
-    Ok(())
 }
 
 fn partition(partitions: Option<PartitionSchema>) -> Result<()> {
