@@ -98,7 +98,7 @@ impl SimpleComponent for SummaryModel {
                                 adw::ActionRow {
                                     set_activatable: false,
                                     #[watch]
-                                    set_title: disk,
+                                    set_title: &disk.device,
                                     #[watch]
                                     set_subtitle: &gettext("Full Disk"),
                                     add_suffix = &gtk::Label {
@@ -255,10 +255,10 @@ impl SimpleComponent for SummaryModel {
                     self.prettykeyboard = layout;
                 }
 
-                if let Some(PartitionSchema::Custom(partitions)) = &self.partitionconfig {
+                if let Some(PartitionSchema::Custom(options)) = &self.partitionconfig {
                     let mut partitions_guard = self.partitions.guard();
                     partitions_guard.clear();
-                    for (name, partition) in partitions {
+                    for (name, partition) in &options.partitions {
                         partitions_guard.push_back((name.to_string(), partition.clone()));
                     }
                     partitions_guard.drop();

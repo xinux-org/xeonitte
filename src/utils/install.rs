@@ -158,6 +158,7 @@ impl Worker for InstallAsyncModel {
                         ))
                         .output()
                         .unwrap();
+
                     // Remove /tmp/xeonitte/etc/nixos/configuration.nix
                     Command::new("pkexec")
                         .arg("rm")
@@ -173,10 +174,10 @@ impl Worker for InstallAsyncModel {
                 if let Some(partitions) = partitions.as_ref() {
                     match partitions {
                         PartitionSchema::FullDisk(disk) => {
-                            mbrdisk = Some(disk.to_string());
+                            mbrdisk = Some(disk.device.clone());
                         }
-                        PartitionSchema::Custom(partitions) => {
-                            for part in partitions.values() {
+                        PartitionSchema::Custom(options) => {
+                            for part in options.partitions.values() {
                                 if part.mountpoint == Some("/".to_string()) {
                                     mbrdisk = Some(part.device.to_string());
                                 }

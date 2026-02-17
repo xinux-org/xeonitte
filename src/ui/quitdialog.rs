@@ -2,6 +2,9 @@ use super::window::AppMsg;
 use adw::prelude::*;
 use gettextrs::gettext;
 use relm4::*;
+use crate::config::LIBEXECDIR;
+use log::error;
+use std::process::Command;
 
 pub struct QuitDialogModel;
 
@@ -29,6 +32,16 @@ impl SimpleComponent for QuitDialogModel {
             connect_response: (None, move |dialog, response| {
                 if response == "quit" {
                     let _ = dialog.clone();
+
+                    // This for unmount partitions and close LUKS mappings before quitting
+                    if let Err(e) = Command::new("pkexec")
+                        .arg(&format!("{}/xeonitte-helper", LIBEXECDIR))
+                        .arg("unmount")
+                        .output()
+                    {
+                        error!("Failed to unmount partitions on quit: {}", e);
+                    }
+
                     relm4::main_application().quit();
                 };
             }),

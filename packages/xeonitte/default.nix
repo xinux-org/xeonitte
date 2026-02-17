@@ -7,6 +7,7 @@
   gettext,
   git,
   glib,
+  lib,
   gnome,
   gnome-desktop,
   adwaita-icon-theme,
@@ -26,6 +27,11 @@
   rustPlatform,
   vte-gtk4,
   wrapGAppsHook4,
+  makeWrapper,
+  cryptsetup,
+  util-linux,
+  dosfstools,
+  e2fsprogs,
 }: let
   convertyml = internal.convertyml;
 in
@@ -58,6 +64,8 @@ in
       rustc
       rustPlatform.cargoSetupHook
       wrapGAppsHook4
+      makeWrapper
+      cryptsetup
     ];
 
     buildInputs = [
@@ -73,5 +81,17 @@ in
       parted
       rustPlatform.bindgenHook
       vte-gtk4
+      cryptsetup
     ];
+
+    postFixup = ''
+      wrapProgram $out/libexec/xeonitte-helper \
+        --prefix PATH : ${lib.makeBinPath [
+          cryptsetup
+          dosfstools
+          e2fsprogs
+          parted
+          util-linux
+        ]}
+    '';
   }

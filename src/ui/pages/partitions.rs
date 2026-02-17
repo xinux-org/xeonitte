@@ -13,17 +13,23 @@ pub struct PartitionModel {
     diskgroupbtn: gtk::CheckButton,
     schema: Option<PartitionSchema>,
     efi: bool,
+    encryption_enabled: bool,
+    passphrase: String,
+    passphrase_confirm: String,
 }
 
 #[derive(Debug)]
 pub enum PartitionMsg {
     SetMethod(PartitionMethod),
-    SetFullDisk(PartitionSchema),
+    SetFullDisk(String),
     AddFormatPartition(String, String, String),
     AddMountPartition(String, String, String),
     RemoveFormatPartition(String),
     RemoveMountPartition(String),
     AddPartition(String, CustomPartition),
+    SetEncryption(bool),
+    SetPassphrase(String),
+    SetPassphraseConfirm(String),
     CheckSelected,
     Refresh,
 }
@@ -37,9 +43,23 @@ pub enum PartitionMethod {
 }
 
 #[derive(Serialize, Debug, Clone)]
+pub struct FullDiskOptions {
+    pub device: String,
+    pub encryption: bool,
+    pub passphrase: Option<String>,
+}
+
+#[derive(Serialize, Debug, Clone)]
+pub struct CustomOptions {
+    pub partitions: HashMap<String, CustomPartition>,
+    pub encryption: bool,
+    pub passphrase: Option<String>,
+}
+
+#[derive(Serialize, Debug, Clone)]
 pub enum PartitionSchema {
-    FullDisk(String),
-    Custom(HashMap<String, CustomPartition>),
+    FullDisk(FullDiskOptions),
+    Custom(CustomOptions),
 }
 
 #[derive(Serialize, Debug, Clone)]
@@ -92,6 +112,56 @@ impl SimpleComponent for PartitionModel {
                                 set_hexpand: true,
                                 set_selection_mode: gtk::SelectionMode::None,
                             },
+                            // Encryption settings group for Basic mode
+                            adw::PreferencesGroup {
+                                #[watch]
+                                set_title: &gettext("Encryption"),
+                                adw::SwitchRow {
+                                    #[watch]
+                                    set_title: &gettext("Enable Disk Encryption"),
+                                    #[watch]
+                                    set_subtitle: &gettext("Encrypt your disk with LUKS"),
+                                    #[watch]
+                                    set_active: model.encryption_enabled,
+                                    connect_active_notify[sender] => move |switch| {
+                                        sender.input(PartitionMsg::SetEncryption(switch.is_active()));
+                                    }
+                                },
+                                #[name(passphrase_row)]
+                                adw::PasswordEntryRow {
+                                    #[watch]
+                                    set_title: &gettext("Encryption Password"),
+                                    #[watch]
+                                    set_visible: model.encryption_enabled,
+                                    connect_changed[sender] => move |entry| {
+                                        sender.input(PartitionMsg::SetPassphrase(entry.text().to_string()));
+                                    }
+                                },
+                                #[name(passphrase_confirm_row)]
+                                adw::PasswordEntryRow {
+                                    #[watch]
+                                    set_title: &gettext("Confirm Password"),
+                                    #[watch]
+                                    set_visible: model.encryption_enabled,
+                                    connect_changed[sender] => move |entry| {
+                                        sender.input(PartitionMsg::SetPassphraseConfirm(entry.text().to_string()));
+                                    }
+                                },
+                                gtk::Label {
+                                    #[watch]
+                                    set_visible: model.encryption_enabled && !model.passphrase.is_empty() && model.passphrase != model.passphrase_confirm,
+                                    #[watch]
+                                    set_label: &gettext("Passwords do not match"),
+                                    add_css_class: "error",
+                                },
+                                gtk::Label {
+                                    #[watch]
+                                    set_visible: model.encryption_enabled && model.passphrase.is_empty(),
+                                    #[watch]
+                                    set_label: &gettext("Password is required"),
+                                    add_css_class: "warning",
+                                },
+                            },
                             gtk::Box {
                                 set_orientation: gtk::Orientation::Horizontal,
                                 set_spacing: 20,
@@ -130,7 +200,8 @@ impl SimpleComponent for PartitionModel {
 
                             gtk::Button {
                                 #[watch]
-                                set_css_classes: if let Some(PartitionSchema::Custom(schema)) = &model.schema {
+                                set_css_classes: if let Some(PartitionSchema::Custom(opts)) = &model.schema {
+                                    let schema = &opts.partitions;
                                     let mut root = false;
                                     let mut bootefi = !model.efi;
                                     for v in schema.values() {
@@ -155,7 +226,8 @@ impl SimpleComponent for PartitionModel {
                                 set_can_target: false,
                                 gtk::Label {
                                     #[watch]
-                                    set_markup: &if let Some(PartitionSchema::Custom(schema)) = &model.schema {
+                                    set_markup: &if let Some(PartitionSchema::Custom(opts)) = &model.schema {
+                                        let schema = &opts.partitions;
                                         let mut root = false;
                                         let mut bootefi = !model.efi;
                                         for v in schema.values() {
@@ -192,6 +264,56 @@ impl SimpleComponent for PartitionModel {
                                 set_orientation: gtk::Orientation::Vertical,
                                 set_spacing: 20,
                             },
+
+                            // Encryption settings for Advanced mode
+                            adw::PreferencesGroup {
+                                #[watch]
+                                set_title: &gettext("Encryption"),
+                                adw::SwitchRow {
+                                    #[watch]
+                                    set_title: &gettext("Enable Root Encryption"),
+                                    #[watch]
+                                    set_subtitle: &gettext("Encrypt root partition with LUKS"),
+                                    #[watch]
+                                    set_active: model.encryption_enabled,
+                                    connect_active_notify[sender] => move |switch| {
+                                        sender.input(PartitionMsg::SetEncryption(switch.is_active()));
+                                    }
+                                },
+                                adw::PasswordEntryRow {
+                                    #[watch]
+                                    set_title: &gettext("Encryption Password"),
+                                    #[watch]
+                                    set_visible: model.encryption_enabled,
+                                    connect_changed[sender] => move |entry| {
+                                        sender.input(PartitionMsg::SetPassphrase(entry.text().to_string()));
+                                    }
+                                },
+                                adw::PasswordEntryRow {
+                                    #[watch]
+                                    set_title: &gettext("Confirm Password"),
+                                    #[watch]
+                                    set_visible: model.encryption_enabled,
+                                    connect_changed[sender] => move |entry| {
+                                        sender.input(PartitionMsg::SetPassphraseConfirm(entry.text().to_string()));
+                                    }
+                                },
+                                gtk::Label {
+                                    #[watch]
+                                    set_visible: model.encryption_enabled && !model.passphrase.is_empty() && model.passphrase != model.passphrase_confirm,
+                                    #[watch]
+                                    set_label: &gettext("Passwords do not match"),
+                                    add_css_class: "error",
+                                },
+                                gtk::Label {
+                                    #[watch]
+                                    set_visible: model.encryption_enabled && model.passphrase.is_empty(),
+                                    #[watch]
+                                    set_label: &gettext("Password is required"),
+                                    add_css_class: "warning",
+                                },
+                            },
+
                             gtk::Button {
                                 add_css_class: "pill",
                                 adw::ButtonContent {
@@ -255,6 +377,9 @@ impl SimpleComponent for PartitionModel {
             diskgroupbtn: gtk::CheckButton::new(),
             schema: None,
             efi: distinst_disks::Bootloader::detect() == distinst_disks::Bootloader::Efi,
+            encryption_enabled: false,
+            passphrase: String::new(),
+            passphrase_confirm: String::new(),
         };
 
         sender.input(PartitionMsg::Refresh);
@@ -284,8 +409,8 @@ impl SimpleComponent for PartitionModel {
 
                 match out {
                     Ok(out) => {
-                        let output = String::from_utf8(out.stdout).unwrap();
-                        let stderr = String::from_utf8(out.stderr).unwrap();
+                        let output = String::from_utf8_lossy(&out.stdout).to_string();
+                        let stderr = String::from_utf8_lossy(&out.stderr).to_string();
                         #[derive(Deserialize, Debug)]
                         struct InputDisk {
                             name: String,
@@ -357,19 +482,78 @@ impl SimpleComponent for PartitionModel {
                 let _ = sender.output(AppMsg::SetCanGoForward(false));
                 sender.input(PartitionMsg::Refresh);
             }
-            PartitionMsg::SetFullDisk(schema) => {
-                trace!("SetFullDisk");
-                self.schema = Some(schema);
+            PartitionMsg::SetFullDisk(device) => {
+                trace!("SetFullDisk: {}", device);
+                self.schema = Some(PartitionSchema::FullDisk(FullDiskOptions {
+                    device,
+                    encryption: self.encryption_enabled,
+                    passphrase: if self.encryption_enabled && !self.passphrase.is_empty() {
+                        Some(self.passphrase.clone())
+                    } else {
+                        None
+                    },
+                }));
                 sender.input(PartitionMsg::CheckSelected);
                 trace!("Schema: {:?}", self.schema);
             }
+            PartitionMsg::SetEncryption(enabled) => {
+                trace!("SetEncryption: {}", enabled);
+                self.encryption_enabled = enabled;
+                match &mut self.schema {
+                    Some(PartitionSchema::FullDisk(opts)) => {
+                        opts.encryption = enabled;
+                        opts.passphrase = if enabled && !self.passphrase.is_empty() {
+                            Some(self.passphrase.clone())
+                        } else {
+                            None
+                        };
+                    }
+                    Some(PartitionSchema::Custom(opts)) => {
+                        opts.encryption = enabled;
+                        opts.passphrase = if enabled && !self.passphrase.is_empty() {
+                            Some(self.passphrase.clone())
+                        } else {
+                            None
+                        };
+                    }
+                    None => {}
+                }
+                sender.input(PartitionMsg::CheckSelected);
+            }
+            PartitionMsg::SetPassphrase(pass) => {
+                trace!("SetPassphrase");
+                self.passphrase = pass;
+                match &mut self.schema {
+                    Some(PartitionSchema::FullDisk(opts)) => {
+                        opts.passphrase = if self.encryption_enabled && !self.passphrase.is_empty() {
+                            Some(self.passphrase.clone())
+                        } else {
+                            None
+                        };
+                    }
+                    Some(PartitionSchema::Custom(opts)) => {
+                        opts.passphrase = if self.encryption_enabled && !self.passphrase.is_empty() {
+                            Some(self.passphrase.clone())
+                        } else {
+                            None
+                        };
+                    }
+                    None => {}
+                }
+                sender.input(PartitionMsg::CheckSelected);
+            }
+            PartitionMsg::SetPassphraseConfirm(pass) => {
+                trace!("SetPassphraseConfirm");
+                self.passphrase_confirm = pass;
+                sender.input(PartitionMsg::CheckSelected);
+            }
             PartitionMsg::AddFormatPartition(name, format, device) => {
                 trace!("AddFormatPartition");
-                if let Some(PartitionSchema::Custom(schema)) = &mut self.schema {
-                    if let Some(part) = &mut schema.get_mut(&name) {
+                if let Some(PartitionSchema::Custom(opts)) = &mut self.schema {
+                    if let Some(part) = opts.partitions.get_mut(&name) {
                         part.format = Some(format);
                     } else {
-                        schema.insert(
+                        opts.partitions.insert(
                             name,
                             CustomPartition {
                                 format: Some(format),
@@ -379,8 +563,8 @@ impl SimpleComponent for PartitionModel {
                         );
                     }
                 } else {
-                    let mut schema = HashMap::new();
-                    schema.insert(
+                    let mut partitions = HashMap::new();
+                    partitions.insert(
                         name,
                         CustomPartition {
                             format: Some(format),
@@ -388,31 +572,39 @@ impl SimpleComponent for PartitionModel {
                             device,
                         },
                     );
-                    self.schema = Some(PartitionSchema::Custom(schema));
+                    self.schema = Some(PartitionSchema::Custom(CustomOptions {
+                        partitions,
+                        encryption: self.encryption_enabled,
+                        passphrase: if self.encryption_enabled && !self.passphrase.is_empty() {
+                            Some(self.passphrase.clone())
+                        } else {
+                            None
+                        },
+                    }));
                 }
                 sender.input(PartitionMsg::CheckSelected);
                 trace!("Schema: {:?}", self.schema);
             }
             PartitionMsg::AddMountPartition(name, mount, device) => {
                 trace!("AddMountPartition");
-                if let Some(PartitionSchema::Custom(schema)) = &mut self.schema {
+                if let Some(PartitionSchema::Custom(opts)) = &mut self.schema {
                     // Check if the mountpoint is already in use
-                    for part in schema.values() {
+                    for part in opts.partitions.values() {
                         if let Some(partmount) = &part.mountpoint {
                             if partmount == &mount {
                                 let mut partition_group_guard = self.partition_groups.guard();
                                 for i in 0..partition_group_guard.len() {
                                     let partition_guard =
                                         partition_group_guard[i].partitions.guard();
-                                    for i in 0..partition_guard.len() {
-                                        if partition_guard[i].name != name {
+                                    for j in 0..partition_guard.len() {
+                                        if partition_guard[j].name != name {
                                             trace!(
                                                 "Deselecting {} {}",
-                                                partition_guard[i].name,
+                                                partition_guard[j].name,
                                                 mount
                                             );
                                             partition_guard.send(
-                                                i,
+                                                j,
                                                 PartitionRowMsg::Deselect(mount.to_string()),
                                             );
                                         }
@@ -422,10 +614,10 @@ impl SimpleComponent for PartitionModel {
                         }
                     }
 
-                    if let Some(part) = &mut schema.get_mut(&name) {
+                    if let Some(part) = opts.partitions.get_mut(&name) {
                         part.mountpoint = Some(mount);
                     } else {
-                        schema.insert(
+                        opts.partitions.insert(
                             name,
                             CustomPartition {
                                 format: None,
@@ -435,8 +627,8 @@ impl SimpleComponent for PartitionModel {
                         );
                     }
                 } else {
-                    let mut schema = HashMap::new();
-                    schema.insert(
+                    let mut partitions = HashMap::new();
+                    partitions.insert(
                         name,
                         CustomPartition {
                             format: None,
@@ -444,17 +636,25 @@ impl SimpleComponent for PartitionModel {
                             device,
                         },
                     );
-                    self.schema = Some(PartitionSchema::Custom(schema));
+                    self.schema = Some(PartitionSchema::Custom(CustomOptions {
+                        partitions,
+                        encryption: self.encryption_enabled,
+                        passphrase: if self.encryption_enabled && !self.passphrase.is_empty() {
+                            Some(self.passphrase.clone())
+                        } else {
+                            None
+                        },
+                    }));
                 }
                 sender.input(PartitionMsg::CheckSelected);
                 trace!("Schema: {:?}", self.schema);
             }
             PartitionMsg::RemoveFormatPartition(name) => {
                 trace!("RemoveFormatPartition");
-                if let Some(PartitionSchema::Custom(schema)) = &mut self.schema {
-                    if let Some(part) = &mut schema.get_mut(&name) {
+                if let Some(PartitionSchema::Custom(opts)) = &mut self.schema {
+                    if let Some(part) = opts.partitions.get_mut(&name) {
                         if part.mountpoint.is_none() {
-                            schema.remove(&name);
+                            opts.partitions.remove(&name);
                         } else {
                             part.format = None;
                         }
@@ -465,10 +665,10 @@ impl SimpleComponent for PartitionModel {
             }
             PartitionMsg::RemoveMountPartition(name) => {
                 trace!("RemoveMountPartition");
-                if let Some(PartitionSchema::Custom(schema)) = &mut self.schema {
-                    if let Some(part) = &mut schema.get_mut(&name) {
+                if let Some(PartitionSchema::Custom(opts)) = &mut self.schema {
+                    if let Some(part) = opts.partitions.get_mut(&name) {
                         if part.format.is_none() {
-                            schema.remove(&name);
+                            opts.partitions.remove(&name);
                         } else {
                             part.mountpoint = None;
                         }
@@ -477,26 +677,43 @@ impl SimpleComponent for PartitionModel {
                 sender.input(PartitionMsg::CheckSelected);
                 trace!("Schema: {:?}", self.schema);
             }
-            PartitionMsg::AddPartition(name, format) => {
+            PartitionMsg::AddPartition(name, part) => {
                 trace!("AddPartition");
-                if let Some(PartitionSchema::Custom(schema)) = &mut self.schema {
-                    schema.insert(name, format);
+                if let Some(PartitionSchema::Custom(opts)) = &mut self.schema {
+                    opts.partitions.insert(name, part);
                 } else {
-                    let mut schema = HashMap::new();
-                    schema.insert(name, format);
-                    self.schema = Some(PartitionSchema::Custom(schema));
+                    let mut partitions = HashMap::new();
+                    partitions.insert(name, part);
+                    self.schema = Some(PartitionSchema::Custom(CustomOptions {
+                        partitions,
+                        encryption: self.encryption_enabled,
+                        passphrase: if self.encryption_enabled && !self.passphrase.is_empty() {
+                            Some(self.passphrase.clone())
+                        } else {
+                            None
+                        },
+                    }));
                 }
                 sender.input(PartitionMsg::CheckSelected);
                 trace!("Schema: {:?}", self.schema);
             }
             PartitionMsg::CheckSelected => {
                 trace!("PartitionMsg::CheckSelected: {:?}", self.schema);
+
+                // Check password validity if encryption is enabled
+                let password_valid = !self.encryption_enabled ||
+                    (!self.passphrase.is_empty() && self.passphrase == self.passphrase_confirm);
+
                 match &self.schema {
-                    Some(PartitionSchema::FullDisk(_disk)) => {
-                        let _ = sender.output(AppMsg::SetCanGoForward(true));
-                        let _ = sender.output(AppMsg::SetPartitionConfig(self.schema.clone()));
+                    Some(PartitionSchema::FullDisk(_)) => {
+                        let can_proceed = password_valid;
+                        let _ = sender.output(AppMsg::SetCanGoForward(can_proceed));
+                        if can_proceed {
+                            let _ = sender.output(AppMsg::SetPartitionConfig(self.schema.clone()));
+                        }
                     }
-                    Some(PartitionSchema::Custom(schema)) => {
+                    Some(PartitionSchema::Custom(opts)) => {
+                        let schema = &opts.partitions;
                         let mut root = false;
                         let mut bootefi = false;
                         for part in schema.values() {
@@ -507,8 +724,12 @@ impl SimpleComponent for PartitionModel {
                                 bootefi = true;
                             }
                         }
-                        let _ = sender.output(AppMsg::SetCanGoForward(root && bootefi));
-                        if root && bootefi {
+
+                        let partitions_valid = root && bootefi;
+                        let can_proceed = partitions_valid && password_valid;
+
+                        let _ = sender.output(AppMsg::SetCanGoForward(can_proceed));
+                        if can_proceed {
                             let _ = sender.output(AppMsg::SetPartitionConfig(self.schema.clone()));
                         }
                     }
@@ -550,13 +771,13 @@ impl FactoryComponent for WholeDisk {
                 set_group: Some(&self.group),
                 connect_toggled[name = self.name.to_string()] => move |btn| {
                     if btn.is_active() {
-                        PARTITION_BROKER.send(PartitionMsg::SetFullDisk(PartitionSchema::FullDisk(name.to_string())));
+                        PARTITION_BROKER.send(PartitionMsg::SetFullDisk(name.to_string()));
                     }
                 }
             },
             connect_activated[checkbtn, name = self.name.to_string()] => move |_| {
                 checkbtn.set_active(true);
-                PARTITION_BROKER.send(PartitionMsg::SetFullDisk(PartitionSchema::FullDisk(name.to_string())));
+                PARTITION_BROKER.send(PartitionMsg::SetFullDisk(name.to_string()));
             }
         }
     }
