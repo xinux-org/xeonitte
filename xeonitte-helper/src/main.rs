@@ -316,31 +316,33 @@ fn partition() -> Result<()> {
         }
         PartitionSchema::Custom(options) => {
             let partitions = &options.partitions;
-
-            // Find root partition before formatting to handle LUKS
-            let root_entry = partitions.iter()
-                .find(|(_, p)| p.mountpoint.as_deref() == Some("/"));
-
             let root_encrypted = options.encryption;
-            let root_partition_path = root_entry.map(|(path, _)| path.clone());
 
             let mut devices = HashMap::new();
-            for (path, custom) in partitions {
-                if !devices.contains_key(&custom.device) {
-                    let dev = distinst_disks::Disk::from_name(&custom.device)
-                        .ok()
-                        .ok_or_else(|| anyhow!("Failed to find disk {}", custom.device))?;
-                    devices.insert(custom.device.to_string(), (dev, vec![]));
+            for (path, custom_partition) in partitions {
+                if !devices.contains_key(&custom_partition.device) {
+                    // let dev = distinst_disks::Disk::from_name(&custom_partition.device)
+                    //     .ok()
+                    //     .ok_or_else(|| anyhow!("Failed to find disk {}", custom_partition.device))?;
+
+                    let dev = distinst_disks::Disk::from_name(&custom_partition.device)
+                        .map_or_else(
+                          |disk_error| Err(anyhow!("Failed to find disk {disk_error:?} {}", custom_partition.device)),
+                          |disk| {
+                            Ok(disk)
+                        })?;
+
+                    devices.insert(custom_partition.device.to_string(), (dev, vec![]));
                 }
-                let partvec = &mut devices.get_mut(&custom.device).unwrap().1;
-                partvec.push((path, custom));
+                let partvec = &mut devices.get_mut(&custom_partition.device).unwrap().1;
+                partvec.push((path, custom_partition));
                 partvec.sort_by(|a, b| a.0.cmp(b.0));
             }
 
             // Loop through each modified disk
             for (device, (mut dev, disk_partitions)) in devices {
                 println!("Partitions: Partitioning disk {}", device);
-                for (part, custom) in &disk_partitions {
+                for (part, custom_partition) in &disk_partitions {
                     let partition = dev
                         .partitions
                         .iter()
@@ -349,12 +351,12 @@ fn partition() -> Result<()> {
                     let num = &partition.number;
 
                     // Skip formatting root if encryption is enabled (LUKS will handle it)
-                    let is_root = custom.mountpoint.as_deref() == Some("/");
-                    if is_root && root_encrypted {
+                    let is_root = custom_partition.mountpoint.as_deref() == Some("/");
+                    if is_root && options.encryption {
                         continue;
                     }
 
-                    if let Some(format) = &custom.format.as_ref().and_then(|x| match x.as_str() {
+                    if let Some(format) = &custom_partition.format.as_ref().and_then(|x| match x.as_str() {
                         "btrfs" => Some(FileSystem::Btrfs),
                         "ext4" => Some(FileSystem::Ext4),
                         "ext3" => Some(FileSystem::Ext3),
@@ -365,9 +367,10 @@ fn partition() -> Result<()> {
                         _ => None,
                     }) {
                         dev.format_partition(*num, *format)
-                            .ok()
-                            .ok_or_else(|| anyhow!("Failed to format partition {}", part))?;
-                        if let Some(mountpoint) = &custom.mountpoint {
+                            .map_or_else(
+                              |disk_error| Err(anyhow!("Failed to format partition {disk_error:?} - {}", part)),
+                              |_| Ok(()))?;
+                        if let Some(mountpoint) = &custom_partition.mountpoint {
                             if mountpoint == "/boot" {
                                 let partition = dev
                                     .partitions
@@ -382,26 +385,33 @@ fn partition() -> Result<()> {
 
                 println!("Partitions: Committing changes");
                 dev.commit()
-                    .ok()
-                    .ok_or_else(|| anyhow!("Failed to commit changes to disk {}", device))?
-                    .context("Failed to commit")?;
+                  .map_or_else(
+                    |disk_error| Err(anyhow!("Failed to commit changes to disk: {} - {disk_error:?}", device)),
+                    |_| Ok(()))?;
+                    // .context("Failed to commit")?;
 
                 println!("Partitions: Updating kernel partition table");
                 let _ = Command::new("partprobe")
                     .arg(&device)
-                    .output();
+                    .output()?;
 
                 let _ = Command::new("udevadm")
                     .args(["settle", "--timeout=10"])
-                    .output();
+                    .output()?;
 
                 dev.reload()
-                    .ok()
-                    .ok_or_else(|| anyhow!("Failed to reload disk {}", device))?;
+                    .map_or_else(
+                      |disk_error| Err(anyhow!("Failed to reload disk {} {disk_error:?}", device)),
+                      |_| Ok(()))?;
             }
 
+            // Find root partition before formatting to handle LUKS
+            let root_entry = partitions.iter()
+                .find(|(_, p)| p.mountpoint.as_deref() == Some("/"));
+            let root_partition_path = root_entry.map(|(path, _)| path.clone());
+
             // Setup LUKS on root partition if encryption is enabled
-            if root_encrypted {
+            if options.encryption {
                 if let Some(root_path) = &root_partition_path {
                     let passphrase = options.passphrase.as_deref().ok_or_else(|| anyhow!("Encryption enabled but no passphrase provided"))?;
                     println!("Partitions: Setting up LUKS on root partition: {}", root_path);
@@ -442,7 +452,7 @@ fn partition() -> Result<()> {
                 if custom.format == Some("swap".to_string()) {
                     println!("Partitions: Enabling swap: {}", part);
                     let _output = Command::new("swapon")
-                        .arg(&part)
+                        .arg(part)
                         .output()
                         .context("Failed to enable swap")?;
                     continue;
@@ -453,7 +463,7 @@ fn partition() -> Result<()> {
                         .context("Failed to create mountpoint")?;
 
                     // Use encrypted device for root if encryption is enabled
-                    let mount_device = if target == "/" && root_encrypted {
+                    let mount_device = if target == "/" && options.encryption {
                         "/dev/mapper/cryptroot".to_string()
                     } else {
                         part.clone()
