@@ -162,8 +162,12 @@ fn partition() -> Result<()> {
 
             println!("Partition: Finding disk");
             let mut dev = distinst_disks::Disk::from_name(&options.device)
-                .ok()
-                .ok_or_else(|| anyhow!("Failed to find disk"))?;
+                .map_or_else(
+                  |disk_error| Err(anyhow!("Failed to find disk {disk_error:?}")),
+                  |disk| {
+                    Ok(disk)
+                  }
+                )?;
             let efi = distinst_disks::Bootloader::detect() == distinst_disks::Bootloader::Efi;
 
             let partition_val = if options.device.contains("nvme") || options.device.contains("mmcblk") {
@@ -316,7 +320,6 @@ fn partition() -> Result<()> {
         }
         PartitionSchema::Custom(options) => {
             let partitions = &options.partitions;
-            let root_encrypted = options.encryption;
 
             let mut devices = HashMap::new();
             for (path, custom_partition) in partitions {
