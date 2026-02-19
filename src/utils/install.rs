@@ -3,13 +3,13 @@ use crate::{
     config::{LIBEXECDIR, SYSCONFDIR},
     ui::{
         pages::{
-            install::{InstallMsg, INSTALL_BROKER},
+            install::{INSTALL_BROKER, InstallMsg},
             partitions::PartitionSchema,
         },
         window::{AppMsg, UserConfig},
     },
 };
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use log::{debug, error, info};
 use relm4::*;
 use std::{

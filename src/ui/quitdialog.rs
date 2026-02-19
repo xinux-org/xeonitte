@@ -1,9 +1,9 @@
 use super::window::AppMsg;
+use crate::config::LIBEXECDIR;
 use adw::prelude::*;
 use gettextrs::gettext;
-use relm4::*;
-use crate::config::LIBEXECDIR;
 use log::error;
+use relm4::*;
 use std::process::Command;
 
 pub struct QuitDialogModel;

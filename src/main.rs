@@ -1,5 +1,5 @@
 use adw::gio;
-use gettextrs::{gettext, LocaleCategory};
+use gettextrs::{LocaleCategory, gettext};
 use gtk::{glib, prelude::ApplicationExt};
 use log::{error, info};
 use relm4::*;

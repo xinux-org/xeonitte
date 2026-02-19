@@ -1,7 +1,7 @@
 use crate::{config::LIBEXECDIR, ui::window::AppMsg, utils::i18n::i18n_f};
 use gettextrs::gettext;
 use log::{debug, error, info, trace};
-use relm4::{factory::*, adw::prelude::*, *};
+use relm4::{adw::prelude::*, factory::*, *};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, convert::identity, process::Command};
 
@@ -12,8 +12,7 @@ pub struct PartitionModel {
     diskgroupbtn: gtk::CheckButton,
     schema: Option<PartitionSchema>,
     efi: bool,
-    luks_password: Controller<LuksPasswordComponent>
-
+    luks_password: Controller<LuksPasswordComponent>,
 }
 
 #[derive(Debug)]
@@ -263,8 +262,8 @@ impl SimpleComponent for PartitionModel {
                             }
                         }
                     },
-                    
-                  
+
+
 
                 }
             }
@@ -276,7 +275,6 @@ impl SimpleComponent for PartitionModel {
         root: Self::Root,
         sender: ComponentSender<Self>,
     ) -> ComponentParts<Self> {
-
         let luks_model = LuksPasswordComponent::builder()
             .launch(())
             .forward(sender.input_sender(), identity);
@@ -290,7 +288,7 @@ impl SimpleComponent for PartitionModel {
             diskgroupbtn: gtk::CheckButton::new(),
             schema: None,
             efi: distinst_disks::Bootloader::detect() == distinst_disks::Bootloader::Efi,
-            luks_password: luks_model
+            luks_password: luks_model,
         };
 
         sender.input(PartitionMsg::Refresh);
@@ -398,7 +396,9 @@ impl SimpleComponent for PartitionModel {
                 self.schema = Some(PartitionSchema::FullDisk(FullDiskOptions {
                     device,
                     encryption: self.luks_password.model().encryption_enabled,
-                    passphrase: if self.luks_password.model().encryption_enabled && !self.luks_password.model().passphrase.is_empty() {
+                    passphrase: if self.luks_password.model().encryption_enabled
+                        && !self.luks_password.model().passphrase.is_empty()
+                    {
                         Some(self.luks_password.model().passphrase.clone())
                     } else {
                         None
@@ -413,7 +413,9 @@ impl SimpleComponent for PartitionModel {
                 match &mut self.schema {
                     Some(PartitionSchema::FullDisk(opts)) => {
                         opts.encryption = self.luks_password.model().encryption_enabled;
-                        opts.passphrase = if self.luks_password.model().encryption_enabled && !self.luks_password.model().passphrase.is_empty() {
+                        opts.passphrase = if self.luks_password.model().encryption_enabled
+                            && !self.luks_password.model().passphrase.is_empty()
+                        {
                             Some(self.luks_password.model().passphrase.clone())
                         } else {
                             None
@@ -421,7 +423,9 @@ impl SimpleComponent for PartitionModel {
                     }
                     Some(PartitionSchema::Custom(opts)) => {
                         opts.encryption = self.luks_password.model().encryption_enabled;
-                        opts.passphrase = if self.luks_password.model().encryption_enabled && !self.luks_password.model().passphrase.is_empty() {
+                        opts.passphrase = if self.luks_password.model().encryption_enabled
+                            && !self.luks_password.model().passphrase.is_empty()
+                        {
                             Some(self.luks_password.model().passphrase.clone())
                         } else {
                             None
@@ -436,14 +440,18 @@ impl SimpleComponent for PartitionModel {
                 // self.luks_password.model().passphrase = pass;
                 match &mut self.schema {
                     Some(PartitionSchema::FullDisk(opts)) => {
-                        opts.passphrase = if self.luks_password.model().encryption_enabled && !self.luks_password.model().passphrase.is_empty() {
+                        opts.passphrase = if self.luks_password.model().encryption_enabled
+                            && !self.luks_password.model().passphrase.is_empty()
+                        {
                             Some(self.luks_password.model().passphrase.clone())
                         } else {
                             None
                         };
                     }
                     Some(PartitionSchema::Custom(opts)) => {
-                        opts.passphrase = if self.luks_password.model().encryption_enabled && !self.luks_password.model().passphrase.is_empty() {
+                        opts.passphrase = if self.luks_password.model().encryption_enabled
+                            && !self.luks_password.model().passphrase.is_empty()
+                        {
                             Some(self.luks_password.model().passphrase.clone())
                         } else {
                             None
@@ -486,7 +494,9 @@ impl SimpleComponent for PartitionModel {
                     self.schema = Some(PartitionSchema::Custom(CustomOptions {
                         partitions,
                         encryption: self.luks_password.model().encryption_enabled,
-                        passphrase: if self.luks_password.model().encryption_enabled && !self.luks_password.model().passphrase.is_empty() {
+                        passphrase: if self.luks_password.model().encryption_enabled
+                            && !self.luks_password.model().passphrase.is_empty()
+                        {
                             Some(self.luks_password.model().passphrase.clone())
                         } else {
                             None
@@ -511,8 +521,7 @@ impl SimpleComponent for PartitionModel {
                                         if partition_guard[j].name != name {
                                             trace!(
                                                 "Deselecting {} {}",
-                                                partition_guard[j].name,
-                                                mount
+                                                partition_guard[j].name, mount
                                             );
                                             partition_guard.send(
                                                 j,
@@ -550,7 +559,9 @@ impl SimpleComponent for PartitionModel {
                     self.schema = Some(PartitionSchema::Custom(CustomOptions {
                         partitions,
                         encryption: self.luks_password.model().encryption_enabled,
-                        passphrase: if self.luks_password.model().encryption_enabled && !self.luks_password.model().passphrase.is_empty() {
+                        passphrase: if self.luks_password.model().encryption_enabled
+                            && !self.luks_password.model().passphrase.is_empty()
+                        {
                             Some(self.luks_password.model().passphrase.clone())
                         } else {
                             None
@@ -598,7 +609,9 @@ impl SimpleComponent for PartitionModel {
                     self.schema = Some(PartitionSchema::Custom(CustomOptions {
                         partitions,
                         encryption: self.luks_password.model().encryption_enabled,
-                        passphrase: if self.luks_password.model().encryption_enabled && !self.luks_password.model().passphrase.is_empty() {
+                        passphrase: if self.luks_password.model().encryption_enabled
+                            && !self.luks_password.model().passphrase.is_empty()
+                        {
                             Some(self.luks_password.model().passphrase.clone())
                         } else {
                             None
@@ -612,8 +625,10 @@ impl SimpleComponent for PartitionModel {
                 trace!("PartitionMsg::CheckSelected: {:?}", self.schema);
 
                 // Check password validity if encryption is enabled
-                let password_valid = !self.luks_password.model().encryption_enabled ||
-                    (!self.luks_password.model().passphrase.is_empty() && self.luks_password.model().passphrase == self.luks_password.model().passphrase_confirm);
+                let password_valid = !self.luks_password.model().encryption_enabled
+                    || (!self.luks_password.model().passphrase.is_empty()
+                        && self.luks_password.model().passphrase
+                            == self.luks_password.model().passphrase_confirm);
 
                 match &self.schema {
                     Some(PartitionSchema::FullDisk(_)) => {
@@ -868,7 +883,6 @@ impl FactoryComponent for PartitionGroup {
     }
 }
 
-
 struct LuksPasswordComponent {
     encryption_enabled: bool,
     passphrase: String,
@@ -879,7 +893,7 @@ struct LuksPasswordComponent {
 enum LuksPasswordMsg {
     SetEncryption(bool),
     SetPassphrase(String),
-    SetPassphraseConfirm(String)
+    SetPassphraseConfirm(String),
 }
 
 #[relm4::component(pub)]
@@ -887,7 +901,6 @@ impl SimpleComponent for LuksPasswordComponent {
     type Input = LuksPasswordMsg;
     type Output = PartitionMsg;
     type Init = ();
-
 
     view! {
         adw::PreferencesGroup {
@@ -943,13 +956,12 @@ impl SimpleComponent for LuksPasswordComponent {
         _init: Self::Init,
         root: Self::Root,
         sender: ComponentSender<Self>,
-        ) -> ComponentParts<Self> {
-        
-        let model = LuksPasswordComponent { 
+    ) -> ComponentParts<Self> {
+        let model = LuksPasswordComponent {
             encryption_enabled: false,
             passphrase: String::new(),
             passphrase_confirm: String::new(),
-         };
+        };
         let widgets = view_output!();
 
         ComponentParts { model, widgets }
@@ -959,17 +971,15 @@ impl SimpleComponent for LuksPasswordComponent {
             LuksPasswordMsg::SetEncryption(switch) => {
                 self.encryption_enabled = switch;
                 let _ = sender.output(PartitionMsg::SetEncryption);
-            },
+            }
             LuksPasswordMsg::SetPassphrase(entry) => {
                 self.passphrase = entry;
                 let _ = sender.output(PartitionMsg::SetPassphrase);
-            },
+            }
             LuksPasswordMsg::SetPassphraseConfirm(entry) => {
                 self.passphrase_confirm = entry;
                 let _ = sender.output(PartitionMsg::SetPassphraseConfirm);
             }
-            
         }
     }
-
 }

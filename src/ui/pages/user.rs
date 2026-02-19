@@ -1,7 +1,7 @@
 use crate::ui::window::{AppMsg, UserConfig};
-use relm4::adw::{self, prelude::*};
 use gettextrs::gettext;
 use log::{debug, trace};
+use relm4::adw::{self, prelude::*};
 use relm4::*;
 
 #[tracker::track]
