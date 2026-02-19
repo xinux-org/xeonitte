@@ -22,7 +22,6 @@
   polkit,
   rust-analyzer,
   rustc,
-  rustup,
   rustfmt,
   rustPlatform,
   vte-gtk4,
@@ -56,7 +55,6 @@ mkShell {
     polkit
     rust-analyzer
     rustc
-    rustup
     rustfmt
     rustPlatform.bindgenHook
     vte-gtk4
