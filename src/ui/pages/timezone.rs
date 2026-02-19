@@ -1,9 +1,9 @@
 use crate::ui::window::AppMsg;
 use adw::prelude::*;
 use gettextrs::gettext;
-use relm4::gtk::glib::{self, TimeZone};
 use gnome_desktop::{self, WallClockExt};
 use log::{debug, trace};
+use relm4::gtk::glib::{self, TimeZone};
 use relm4::*;
 use std::{collections::HashMap, process::Command};
 

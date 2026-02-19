@@ -157,7 +157,7 @@ impl SimpleComponent for KeyboardModel {
                         .first()
                         .unwrap()
                         .1
-                         .0
+                        .0
                         .split('(')
                         .collect::<Vec<_>>()
                         .first()
@@ -176,7 +176,7 @@ impl SimpleComponent for KeyboardModel {
                         .first()
                         .unwrap()
                         .1
-                         .0
+                        .0
                         .split('(')
                         .collect::<Vec<_>>()
                         .first()
@@ -197,7 +197,7 @@ impl SimpleComponent for KeyboardModel {
                 .first()
                 .unwrap()
                 .1
-                 .0
+                .0
                 .split('(')
                 .collect::<Vec<_>>()
                 .first()

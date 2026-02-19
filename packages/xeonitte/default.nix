@@ -5,10 +5,8 @@
   desktop-file-utils,
   gdk-pixbuf,
   gettext,
-  git,
   glib,
   lib,
-  gnome,
   gnome-desktop,
   adwaita-icon-theme,
   gtk4,
@@ -22,12 +20,9 @@
   pkg-config,
   polkit,
   rustc,
-  rust-analyzer,
-  clippy,
   rustPlatform,
   vte-gtk4,
   wrapGAppsHook4,
-  makeWrapper,
   cryptsetup,
   util-linux,
   dosfstools,
@@ -50,21 +45,17 @@ in
 
     nativeBuildInputs = [
       appstream-glib
-      cargo
-      rust-analyzer
-      clippy
-      convertyml
-      desktop-file-utils
-      gettext
-      git
       meson
       ninja
+      cargo
       pkg-config
+      gettext
+      convertyml
+      desktop-file-utils
       polkit
       rustc
       rustPlatform.cargoSetupHook
       wrapGAppsHook4
-      makeWrapper
       cryptsetup
     ];
 
@@ -87,11 +78,11 @@ in
     postFixup = ''
       wrapProgram $out/libexec/xeonitte-helper \
         --prefix PATH : ${lib.makeBinPath [
-          cryptsetup
-          dosfstools
-          e2fsprogs
-          parted
-          util-linux
-        ]}
+        cryptsetup
+        dosfstools
+        e2fsprogs
+        parted
+        util-linux
+      ]}
     '';
   }

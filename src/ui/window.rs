@@ -15,18 +15,18 @@ use crate::{
             error::ErrorMsg,
             install::INSTALL_BROKER,
             list::{ListInit, ListMsg},
-            partitions::{PartitionModel, PARTITION_BROKER},
+            partitions::{PARTITION_BROKER, PartitionModel},
             timezone::TimeZoneModel,
             user::UserMsg,
             welcome::WelcomeModel,
         },
-        quitdialog::{QuitDialogModel},
+        quitdialog::QuitDialogModel,
     },
     utils::{
         i18n::i18n_f,
         install::{InstallAsyncModel, InstallAsyncMsg},
         language::{get_country, get_lang},
-        parse::{parse_config, Choice, ChoiceEnum, InstallationConfig, StepType, XeonitteConfig},
+        parse::{Choice, ChoiceEnum, InstallationConfig, StepType, XeonitteConfig, parse_config},
     },
 };
 use adw::prelude::*;
@@ -544,8 +544,8 @@ impl Component for AppModel {
         match msg {
             AppMsg::Quit => {
                 self.quitdialog
-                .widget()
-                .present(relm4::main_application().active_window().as_ref());
+                    .widget()
+                    .present(relm4::main_application().active_window().as_ref());
             }
             AppMsg::ChangePage(page) => {
                 trace!("AppMsg::ChangePage: {}", page);
