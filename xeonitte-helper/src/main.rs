@@ -155,39 +155,17 @@ fn partition() -> Result<()> {
     let schema: PartitionSchema = serde_json::from_str(&buf)?;
 
     match schema {
-        PartitionSchema::FullDisk(options) => {
+        PartitionSchema::FullDisk(full_disk_options) => {
             let start_sector = Sector::Start;
             let end_sector = Sector::End;
             let boot_sector = Sector::Unit(2_097_152);
 
             println!("Partition: Finding disk");
-            let mut dev = distinst_disks::Disk::from_name(&options.device)
-                .map_or_else(
-                  |disk_error| Err(anyhow!("Failed to find disk {disk_error:?}")),
-                  |disk| {
-                    Ok(disk)
-                  }
-                )?;
+            let mut dev = distinst_disks::Disk::from_name(&full_disk_options.device).map_or_else(
+                |disk_error| Err(anyhow!("Failed to find disk {disk_error:?}")),
+                |disk| Ok(disk),
+            )?;
             let efi = distinst_disks::Bootloader::detect() == distinst_disks::Bootloader::Efi;
-
-            let partition_val = if options.device.contains("nvme") || options.device.contains("mmcblk") {
-                "p"
-            } else {
-                ""
-            };
-
-            // Determine partition paths early
-            let (efi_partition, root_partition) = if efi {
-                (
-                    Some(format!("{}{}1", &options.device, partition_val)),
-                    format!("{}{}2", &options.device, partition_val),
-                )
-            } else {
-                (
-                    None,
-                    format!("{}{}1", &options.device, partition_val),
-                )
-            };
 
             // Create partition table and partitions
             if efi {
@@ -237,12 +215,33 @@ fn partition() -> Result<()> {
             // Update kernel partition table
             println!("Partition: Updating kernel partition table");
             let _ = Command::new("partprobe")
-                .arg(&options.device)
+                .arg(&full_disk_options.device)
                 .output();
 
             let _ = Command::new("udevadm")
                 .args(["settle", "--timeout=10"])
                 .output();
+
+            // Determine partition paths early
+            let partition_val = if full_disk_options.device.contains("nvme")
+                || full_disk_options.device.contains("mmcblk")
+            {
+                "p"
+            } else {
+                ""
+            };
+
+            let (efi_partition, root_partition) = if efi {
+                (
+                    Some(format!("{}{}1", &full_disk_options.device, partition_val)),
+                    format!("{}{}2", &full_disk_options.device, partition_val),
+                )
+            } else {
+                (
+                    None,
+                    format!("{}{}1", &full_disk_options.device, partition_val),
+                )
+            };
 
             // Format EFI partition
             if let Some(efi_part) = &efi_partition {
@@ -261,10 +260,16 @@ fn partition() -> Result<()> {
                 }
             }
 
-            let root_mount_device = if options.encryption {
-                let passphrase = options.passphrase.as_deref().ok_or_else(|| anyhow!("Encryption enabled but no passphrase provided"))?;
-                println!("Partition: Setting up LUKS on root partition: {}", root_partition);
-                setup_luks(&root_partition, "cryptroot", passphrase)?;
+            let root_mount_device = if full_disk_options.encryption {
+                let passphrase = full_disk_options
+                    .passphrase
+                    .as_deref()
+                    .ok_or_else(|| anyhow!("Encryption enabled but no passphrase provided"))?;
+                println!(
+                    "Partition: Setting up LUKS on root partition: {}",
+                    root_partition
+                );
+                setup_luks(&root_partition, passphrase)?;
 
                 println!("Partition: Formatting LUKS container");
                 let output = Command::new("mkfs.ext4")
@@ -273,7 +278,10 @@ fn partition() -> Result<()> {
                     .output()
                     .context("Failed to format LUKS container")?;
                 if !output.status.success() {
-                    return Err(anyhow!("Failed to format LUKS: {}", String::from_utf8_lossy(&output.stderr)));
+                    return Err(anyhow!(
+                        "Failed to format LUKS: {}",
+                        String::from_utf8_lossy(&output.stderr)
+                    ));
                 }
 
                 "/dev/mapper/cryptroot".to_string()
@@ -285,7 +293,10 @@ fn partition() -> Result<()> {
                     .output()
                     .context("Failed to format root partition")?;
                 if !output.status.success() {
-                    return Err(anyhow!("Failed to format root: {}", String::from_utf8_lossy(&output.stderr)));
+                    return Err(anyhow!(
+                        "Failed to format root: {}",
+                        String::from_utf8_lossy(&output.stderr)
+                    ));
                 }
                 root_partition
             };
@@ -299,7 +310,10 @@ fn partition() -> Result<()> {
                 .output()
                 .context("Failed to mount root")?;
             if !output.status.success() {
-                return Err(anyhow!("Failed to mount root: {}", String::from_utf8_lossy(&output.stderr)));
+                return Err(anyhow!(
+                    "Failed to mount root: {}",
+                    String::from_utf8_lossy(&output.stderr)
+                ));
             }
 
             // Mount EFI
@@ -314,26 +328,29 @@ fn partition() -> Result<()> {
                     .output()
                     .context("Failed to mount EFI")?;
                 if !output.status.success() {
-                    return Err(anyhow!("Failed to mount EFI: {}", String::from_utf8_lossy(&output.stderr)));
+                    return Err(anyhow!(
+                        "Failed to mount EFI: {}",
+                        String::from_utf8_lossy(&output.stderr)
+                    ));
                 }
             }
         }
-        PartitionSchema::Custom(options) => {
-            let partitions = &options.partitions;
+        PartitionSchema::Custom(custom_disk_options) => {
+            let partitions = &custom_disk_options.partitions;
 
             let mut devices = HashMap::new();
             for (path, custom_partition) in partitions {
                 if !devices.contains_key(&custom_partition.device) {
-                    // let dev = distinst_disks::Disk::from_name(&custom_partition.device)
-                    //     .ok()
-                    //     .ok_or_else(|| anyhow!("Failed to find disk {}", custom_partition.device))?;
-
                     let dev = distinst_disks::Disk::from_name(&custom_partition.device)
                         .map_or_else(
-                          |disk_error| Err(anyhow!("Failed to find disk {disk_error:?} {}", custom_partition.device)),
-                          |disk| {
-                            Ok(disk)
-                        })?;
+                            |disk_error| {
+                                Err(anyhow!(
+                                    "Failed to find disk {} -> {disk_error:?}",
+                                    custom_partition.device
+                                ))
+                            },
+                            |disk| Ok(disk),
+                        )?;
 
                     devices.insert(custom_partition.device.to_string(), (dev, vec![]));
                 }
@@ -355,24 +372,34 @@ fn partition() -> Result<()> {
 
                     // Skip formatting root if encryption is enabled (LUKS will handle it)
                     let is_root = custom_partition.mountpoint.as_deref() == Some("/");
-                    if is_root && options.encryption {
+                    if is_root && custom_disk_options.encryption {
                         continue;
                     }
 
-                    if let Some(format) = &custom_partition.format.as_ref().and_then(|x| match x.as_str() {
-                        "btrfs" => Some(FileSystem::Btrfs),
-                        "ext4" => Some(FileSystem::Ext4),
-                        "ext3" => Some(FileSystem::Ext3),
-                        "fat32" => Some(FileSystem::Fat32),
-                        "ntfs" => Some(FileSystem::Ntfs),
-                        "xfs" => Some(FileSystem::Xfs),
-                        "swap" => Some(FileSystem::Swap),
-                        _ => None,
-                    }) {
-                        dev.format_partition(*num, *format)
-                            .map_or_else(
-                              |disk_error| Err(anyhow!("Failed to format partition {disk_error:?} - {}", part)),
-                              |_| Ok(()))?;
+                    if let Some(format) =
+                        &custom_partition
+                            .format
+                            .as_ref()
+                            .and_then(|x| match x.as_str() {
+                                "btrfs" => Some(FileSystem::Btrfs),
+                                "ext4" => Some(FileSystem::Ext4),
+                                "ext3" => Some(FileSystem::Ext3),
+                                "fat32" => Some(FileSystem::Fat32),
+                                "ntfs" => Some(FileSystem::Ntfs),
+                                "xfs" => Some(FileSystem::Xfs),
+                                "swap" => Some(FileSystem::Swap),
+                                _ => None,
+                            })
+                    {
+                        dev.format_partition(*num, *format).map_or_else(
+                            |disk_error| {
+                                Err(anyhow!(
+                                    "Failed to format partition {} -> {disk_error:?}",
+                                    part
+                                ))
+                            },
+                            |_| Ok(()),
+                        )?;
                         if let Some(mountpoint) = &custom_partition.mountpoint {
                             if mountpoint == "/boot" {
                                 let partition = dev
@@ -387,40 +414,51 @@ fn partition() -> Result<()> {
                 }
 
                 println!("Partitions: Committing changes");
-                dev.commit()
-                  .map_or_else(
-                    |disk_error| Err(anyhow!("Failed to commit changes to disk: {} - {disk_error:?}", device)),
-                    |_| Ok(()))?;
-                    // .context("Failed to commit")?;
+                dev.commit().map_or_else(
+                    |disk_error| {
+                        Err(anyhow!(
+                            "Failed to commit changes to disk: {} - {disk_error:?}",
+                            device
+                        ))
+                    },
+                    |_| Ok(()),
+                )?;
+                // .context("Failed to commit")?;
 
                 println!("Partitions: Updating kernel partition table");
-                let _ = Command::new("partprobe")
-                    .arg(&device)
-                    .output()?;
+                let _ = Command::new("partprobe").arg(&device).output()?;
 
                 let _ = Command::new("udevadm")
                     .args(["settle", "--timeout=10"])
                     .output()?;
 
-                dev.reload()
-                    .map_or_else(
-                      |disk_error| Err(anyhow!("Failed to reload disk {} {disk_error:?}", device)),
-                      |_| Ok(()))?;
+                dev.reload().map_or_else(
+                    |disk_error| Err(anyhow!("Failed to reload disk {} {disk_error:?}", device)),
+                    |_| Ok(()),
+                )?;
             }
 
             // Find root partition before formatting to handle LUKS
-            let root_entry = partitions.iter()
+            let root_entry = partitions
+                .iter()
                 .find(|(_, p)| p.mountpoint.as_deref() == Some("/"));
             let root_partition_path = root_entry.map(|(path, _)| path.clone());
 
             // Setup LUKS on root partition if encryption is enabled
-            if options.encryption {
+            if custom_disk_options.encryption {
                 if let Some(root_path) = &root_partition_path {
-                    let passphrase = options.passphrase.as_deref().ok_or_else(|| anyhow!("Encryption enabled but no passphrase provided"))?;
-                    println!("Partitions: Setting up LUKS on root partition: {}", root_path);
-                    setup_luks(root_path, "cryptroot", passphrase)?;
+                    let passphrase = custom_disk_options
+                        .passphrase
+                        .as_deref()
+                        .ok_or_else(|| anyhow!("Encryption enabled but no passphrase provided"))?;
+                    println!(
+                        "Partitions: Setting up LUKS on root partition: {}",
+                        root_path
+                    );
+                    setup_luks(root_path, passphrase)?;
 
-                    let root_format = partitions.get(root_path)
+                    let root_format = partitions
+                        .get(root_path)
                         .and_then(|p| p.format.as_deref())
                         .unwrap_or("ext4");
 
@@ -437,7 +475,10 @@ fn partition() -> Result<()> {
                         .output()
                         .context("Failed to format LUKS container")?;
                     if !output.status.success() {
-                        return Err(anyhow!("Failed to format LUKS: {}", String::from_utf8_lossy(&output.stderr)));
+                        return Err(anyhow!(
+                            "Failed to format LUKS: {}",
+                            String::from_utf8_lossy(&output.stderr)
+                        ));
                     }
                 }
             }
@@ -466,7 +507,7 @@ fn partition() -> Result<()> {
                         .context("Failed to create mountpoint")?;
 
                     // Use encrypted device for root if encryption is enabled
-                    let mount_device = if target == "/" && options.encryption {
+                    let mount_device = if target == "/" && custom_disk_options.encryption {
                         "/dev/mapper/cryptroot".to_string()
                     } else {
                         part.clone()
@@ -491,7 +532,11 @@ fn partition() -> Result<()> {
                     };
 
                     if !output.status.success() {
-                        return Err(anyhow!("Failed to mount {}: {}", target, String::from_utf8_lossy(&output.stderr)))
+                        return Err(anyhow!(
+                            "Failed to mount {}: {}",
+                            target,
+                            String::from_utf8_lossy(&output.stderr)
+                        ));
                     }
                 }
             }
@@ -500,20 +545,20 @@ fn partition() -> Result<()> {
     Ok(())
 }
 
-fn setup_luks(device: &str, name: &str, passphrase: &str) -> Result<()> {
+fn setup_luks(device: &str, passphrase: &str) -> Result<()> {
     // Checking if device already have LUKS container
     println!("LUKS: Checking if {} has existing LUKS container", device);
-    let check_output = Command::new("cryptsetup")
+    let is_luks = Command::new("cryptsetup")
         .args(["isLuks", device])
         .output()
         .context("Failed to check for LUKS container")?;
 
     // Wipe LUKS container if it exists
-    if check_output.status.success() {
+    if is_luks.status.success() {
         println!("LUKS: Found existing LUKS container on {}", device);
-        let _ = Command::new("cryptsetup")
-            .args(["close", name])
-            .output();
+        let _output = Command::new("cryptsetup")
+            .args(["close", "cryptroot"])
+            .output()?;
 
         println!("LUKS: Wiping signatures from {}", device);
         let wipe_output = Command::new("wipefs")
@@ -547,13 +592,14 @@ fn setup_luks(device: &str, name: &str, passphrase: &str) -> Result<()> {
         return Err(anyhow!("cryptsetup luksFormat failed"));
     }
 
-    println!("LUKS: Opening {} as {}", device, name);
+    println!("LUKS: Opening {} as {}", device, "cryptroot");
     let mut child = Command::new("cryptsetup")
-        .args(["open", device, name])
+        .args(["open", device, "cryptroot"])
         .stdin(Stdio::piped())
         .spawn()
         .context("Failed to start cryptsetup open")?;
 
+    // why this is the theme write action above line in 586 ?
     if let Some(mut stdin) = child.stdin.take() {
         stdin.write_all(passphrase.as_bytes())?;
     }
