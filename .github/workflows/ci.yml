@@ -8,7 +8,7 @@ jobs:
 
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Check flake x86_64-linux host
         run: nix flake check --system x86_64-linux --show-trace
@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Build project with Nix
         run: nix build . --show-trace
