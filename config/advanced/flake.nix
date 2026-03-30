@@ -1,16 +1,17 @@
 {
   inputs = {
-    nixpkgs.url = "github:xinux-org/nixpkgs/nixos-unstable";
-    nix-data = {
-      url = "github:xinux-org/nix-data";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    nixpkgs.url = "git+https://git.oss.uzinfocom.uz/xinux/nixpkgs?ref=nixos-unstable&shallow=1";
+
     xinux-lib = {
-      url = "github:xinux-org/lib";
+      url = "git+https://git.oss.uzinfocom.uz/xinux/lib?ref=main&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     xinux-modules = {
-      url = "github:xinux-org/modules";
+      url = "git+https://git.oss.uzinfocom.uz/xinux/modules?ref=main&shallow=1";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    nix-data = {
+      url = "git+https://git.oss.uzinfocom.uz/xinux/nix-data?ref=main&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     uz-xkb = {
