@@ -38,10 +38,10 @@ xgettext --directory=.. --files-from=POTFILES.in --from-code=UTF-8 -kgettext -o 
 ```
 New testing way
 ```bash
-meson setup build --reconfigure # on first time to init
-
+# on first time run this or dependencies changes usually .nix/flake.lock changed
 # to build & run. Remove buildtype, Dprofile to test in --release flag
 meson setup builddir --prefix=$PWD/install --reconfigure --buildtype=debug -Dprofile=development
+
 ninja -C builddir install && ./install/bin/xeonitte
 ```
 
