@@ -101,7 +101,7 @@ impl SimpleComponent for WelcomeModel {
         // List of 6 popular languages
         let shortlangs = vec!["uz_UZ.UTF-8", "en_US.UTF-8", "ru_RU.UTF-8"];
 
-        let defaultlang = "uz_UZ.UTF-8/UTF-8";
+        let defaultlang = "uz_UZ.UTF-8";
         model.selected = Some(defaultlang.to_string());
 
         let langbox = gtk::ListBox::new();
