@@ -20,7 +20,7 @@ A graphical installer for NixOS based distributions.
 This application has Linux-only dependencies.
 ```bash
 # download dependencies
-nix develop 
+nix develop
 
 # Initiate meson environment for the first time. This will generate ./src/config.rs
 meson setup build
@@ -40,8 +40,8 @@ New testing way
 ```bash
 meson setup build --reconfigure # on first time to init
 
-# to build & run
-meson setup builddir --prefix=$PWD/install
+# to build & run. Remove buildtype, Dprofile to test in --release flag
+meson setup builddir --prefix=$PWD/install --reconfigure --buildtype=debug -Dprofile=development
 ninja -C builddir install && ./install/bin/xeonitte
 ```
 
