@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>org.xinux.Xeonitte</id>
+  <id>@app-id@</id>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-or-later</project_license>
   <name>Xeonitte Installer</name>
@@ -24,5 +24,5 @@
   <translation type="gettext">@gettext-package@</translation>
   <translation type="gettext">xeonitte</translation>
   
-  <launchable type="desktop-id">org.xinux.Xeonitte.desktop</launchable>
+  <launchable type="desktop-id">@app-id@.desktop</launchable>
 </component>
