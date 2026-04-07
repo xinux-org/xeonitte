@@ -4,7 +4,7 @@
 <policyconfig>
     <vendor>Xinux</vendor>
     <vendor_url>https://xinux.uz</vendor_url>
-    <action id="org.xinux.Xeonitte">
+    <action id="@app-id@">
         <description>Give Xeonitte Installer root access</description>
         <message>Authentication is required to install operating system</message>
         <defaults>
