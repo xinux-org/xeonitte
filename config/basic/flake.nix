@@ -1,7 +1,7 @@
 {
   inputs = {
     nixpkgs.url = "git+https://git.oss.uzinfocom.uz/xinux/nixpkgs?ref=nixos-unstable&shallow=1";
-    
+
     xinux-lib = {
       url = "git+https://git.oss.uzinfocom.uz/xinux/lib?ref=main&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -29,6 +29,7 @@
       systems.modules.nixos = with inputs; [
         nix-data.nixosModules.nix-data
         @BOOTLOADER_MODULE@
+        xinux-modules.nixosModules.branding
         xinux-modules.nixosModules.gnome
         xinux-modules.nixosModules.kernel
         xinux-modules.nixosModules.networking
