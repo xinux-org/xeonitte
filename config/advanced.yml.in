@@ -34,7 +34,7 @@ steps:
     - AppImage:
         description: _("Enable AppImage support by installing the \"appimage-run\" package. For AppImages to work, you must run them with the \"appimage-run\" command.")
         config: |-
-          modules.packagemanagers.appimage = true;
+          modules.packagemanagers.appimage.enable = true;
 - !list
   multiple: false
   required: true
