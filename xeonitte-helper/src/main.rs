@@ -10,6 +10,8 @@ use std::{
     process::{Command, Stdio},
 };
 
+const TMPDIR: &str = "/nix/var/nix/builds/xeonitte";
+
 #[derive(Serialize)]
 struct Disk {
     name: String,
@@ -137,7 +139,7 @@ fn main() {
             if let Err(e) = Command::new("umount")
                 .arg("-R")
                 .arg("-f")
-                .arg("/tmp/xeonitte")
+                .arg(TMPDIR)
                 .output()
             {
                 eprintln!("Failed to unmount: {}", e);
@@ -303,10 +305,10 @@ fn partition() -> Result<()> {
 
             // Mount root
             println!("Partition: Mounting root: {}", root_mount_device);
-            fs::create_dir_all("/tmp/xeonitte")?;
+            fs::create_dir_all(TMPDIR)?;
             let output = Command::new("mount")
                 .arg(&root_mount_device)
-                .arg("/tmp/xeonitte")
+                .arg(TMPDIR)
                 .output()
                 .context("Failed to mount root")?;
             if !output.status.success() {
@@ -319,12 +321,12 @@ fn partition() -> Result<()> {
             // Mount EFI
             if let Some(efi_part) = &efi_partition {
                 println!("Partition: Mounting EFI: {}", efi_part);
-                fs::create_dir_all("/tmp/xeonitte/boot")?;
+                fs::create_dir_all(format!("{}/boot", TMPDIR))?;
                 let output = Command::new("mount")
                     .arg("-o")
                     .arg("umask=0077")
                     .arg(efi_part)
-                    .arg("/tmp/xeonitte/boot")
+                    .arg(format!("{}/boot", TMPDIR))
                     .output()
                     .context("Failed to mount EFI")?;
                 if !output.status.success() {
@@ -503,7 +505,7 @@ fn partition() -> Result<()> {
                 }
 
                 if let Some(target) = &custom.mountpoint {
-                    fs::create_dir_all(format!("/tmp/xeonitte{}", target))
+                    fs::create_dir_all(format!("{}{}", TMPDIR, target))
                         .context("Failed to create mountpoint")?;
 
                     // Use encrypted device for root if encryption is enabled
@@ -520,13 +522,13 @@ fn partition() -> Result<()> {
                             .arg("-o")
                             .arg("umask=0077")
                             .arg(&mount_device)
-                            .arg(format!("/tmp/xeonitte{}", target))
+                            .arg(format!("{}{}", TMPDIR, target))
                             .output()
                             .context("Failed to mount partition")?
                     } else {
                         Command::new("mount")
                             .arg(&mount_device)
-                            .arg(format!("/tmp/xeonitte{}", target))
+                            .arg(format!("{}{}", TMPDIR, target))
                             .output()
                             .context("Failed to mount partition")?
                     };
