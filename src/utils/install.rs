@@ -1,6 +1,6 @@
 use super::parse::{Choice, ConfigType};
 use crate::{
-    config::{LIBEXECDIR, SYSCONFDIR},
+    config::{LIBEXECDIR, SYSCONFDIR, TMPDIR},
     ui::{
         pages::{
             install::{INSTALL_BROKER, InstallMsg},
@@ -96,23 +96,23 @@ impl Worker for InstallAsyncModel {
                 };
                 let arch = String::from_utf8_lossy(&archout.stdout).trim().to_string();
 
-                // Step 0: Clear /tmp/xeonitte
-                info!("Step 0: Clear /tmp/xeonitte");
+                // Step 0: Clear TMPDIR
+                info!("Step 0: Clear {}", TMPDIR);
                 fn clear() -> Result<()> {
                     Command::new("pkexec")
                         .arg("umount")
                         .arg("-R")
-                        .arg("/tmp/xeonitte")
+                        .arg(TMPDIR)
                         .output()?;
                     Command::new("pkexec")
                         .arg("rm")
                         .arg("-rf")
-                        .arg("/tmp/xeonitte")
+                        .arg(TMPDIR)
                         .output()?;
                     Ok(())
                 }
                 if let Err(e) = clear() {
-                    error!("Failed to clear /tmp/xeonitte: {}", e);
+                    error!("Failed to clear {}: {}", TMPDIR, e);
                     let _ = sender.output(AppMsg::Error);
                     return;
                 }
@@ -130,7 +130,7 @@ impl Worker for InstallAsyncModel {
                 if let Err(e) = Command::new("pkexec")
                     .arg("nixos-generate-config")
                     .arg("--root")
-                    .arg("/tmp/xeonitte")
+                    .arg(TMPDIR)
                     .output()
                 {
                     error!("Failed to generate base config: {}", e);
@@ -144,17 +144,17 @@ impl Worker for InstallAsyncModel {
                         .arg("mkdir")
                         .arg("-p")
                         .arg(format!(
-                            "/tmp/xeonitte/etc/nixos/systems/{}-linux/{}",
-                            arch, hostname
+                            "{}/etc/nixos/systems/{}-linux/{}",
+                            TMPDIR, arch, hostname
                         ))
                         .output()
                         .unwrap();
                     Command::new("pkexec")
                         .arg("mv")
-                        .arg("/tmp/xeonitte/etc/nixos/hardware-configuration.nix")
-                        .arg(format!(
-                            "/tmp/xeonitte/etc/nixos/systems/{}-linux/{}/hardware.nix",
-                            arch, hostname
+                        .arg(&format!("{}/etc/nixos/hardware-configuration.nix", TMPDIR))
+                        .arg(&format!(
+                            "{}/etc/nixos/systems/{}-linux/{}/hardware.nix",
+                            TMPDIR, arch, hostname
                         ))
                         .output()
                         .unwrap();
@@ -162,7 +162,7 @@ impl Worker for InstallAsyncModel {
                     // Remove /tmp/xeonitte/etc/nixos/configuration.nix
                     Command::new("pkexec")
                         .arg("rm")
-                        .arg("/tmp/xeonitte/etc/nixos/configuration.nix")
+                        .arg(format!("{}/etc/nixos/configuration.nix", TMPDIR))
                         .output()
                         .unwrap();
                 }
@@ -232,11 +232,11 @@ impl Worker for InstallAsyncModel {
                             "pkexec",
                             "nixos-install",
                             "--root",
-                            "/tmp/xeonitte",
+                            TMPDIR,
                             "--no-root-passwd",
                             "--no-channel-copy",
                             "--flake",
-                            &format!("/tmp/xeonitte/etc/nixos#{}", hostname),
+                            &format!("{}/etc/nixos#{}", TMPDIR, hostname),
                         ]
                         .into_iter()
                         .map(|s| s.to_string())
@@ -254,7 +254,7 @@ impl Worker for InstallAsyncModel {
                     let mut passwdcmd = Command::new("pkexec")
                         .arg("nixos-enter")
                         .arg("--root")
-                        .arg("/tmp/xeonitte")
+                        .arg(TMPDIR)
                         .arg("-c")
                         .arg("chpasswd -c SHA512")
                         .stdin(Stdio::piped())
@@ -340,7 +340,7 @@ impl Worker for InstallAsyncModel {
                     "pkexec".to_string(),
                     "nixos-enter".to_string(),
                     "--root".to_string(),
-                    "/tmp/xeonitte".to_string(),
+                    TMPDIR.to_string(),
                     "-c".to_string(),
                     active,
                 ]));
@@ -629,12 +629,14 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
                     .arg("--path")
                     .arg(if path.is_empty() {
                         format!(
-                            "/tmp/xeonitte/etc/nixos/{}",
+                            "{}/etc/nixos/{}",
+                            TMPDIR,
                             file.file_name().to_string_lossy()
                         )
                     } else {
                         format!(
-                            "/tmp/xeonitte/etc/nixos/{}/{}",
+                            "{}/etc/nixos/{}/{}",
+                            TMPDIR,
                             path.replace("ARCH", &format!("{}-linux", arch)).replace(
                                 "HOSTNAME",
                                 makeconfig
@@ -655,10 +657,11 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
                     .arg("mkdir")
                     .arg("-p")
                     .arg(if path.is_empty() {
-                        "/tmp/xeonitte/etc/nixos/".to_string()
+                        format!("{}/etc/nixos/", TMPDIR).to_string()
                     } else {
                         format!(
-                            "/tmp/xeonitte/etc/nixos/{}/",
+                            "{}/etc/nixos/{}/",
+                            TMPDIR,
                             path.replace("ARCH", &format!("{}-linux", arch)).replace(
                                 "HOSTNAME",
                                 makeconfig
@@ -677,12 +680,14 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
                     .arg(file.path().to_string_lossy().to_string())
                     .arg(if path.is_empty() {
                         format!(
-                            "/tmp/xeonitte/etc/nixos/{}",
+                            "{}/etc/nixos/{}",
+                            TMPDIR,
                             file.file_name().to_string_lossy()
                         )
                     } else {
                         format!(
-                            "/tmp/xeonitte/etc/nixos/{}/{}",
+                            "{}/etc/nixos/{}/{}",
+                            TMPDIR,
                             path.replace("ARCH", &format!("{}-linux", arch)).replace(
                                 "HOSTNAME",
                                 makeconfig
@@ -709,8 +714,8 @@ fn init_libreoffice_config(username: String) -> Result<()> {
         .arg("mkdir")
         .arg("-p")
         .arg(format!(
-            "/tmp/xeonitte/home/{}/.config/libreoffice/4/user/uno_packages/cache",
-            username
+            "{}/home/{}/.config/libreoffice/4/user/uno_packages/cache",
+            TMPDIR, username
         ))
         .output()?;
 
@@ -718,8 +723,8 @@ fn init_libreoffice_config(username: String) -> Result<()> {
         .arg("mkdir")
         .arg("-p")
         .arg(format!(
-            "/tmp/xeonitte/home/{}/.config/libreoffice/4/user/",
-            username
+            "{}/home/{}/.config/libreoffice/4/user/",
+            TMPDIR, username
         ))
         .output()?;
 
@@ -729,16 +734,16 @@ fn init_libreoffice_config(username: String) -> Result<()> {
         .arg("-a")
         .arg(format!("{}/xeonitte/configcopy/uno_packages", SYSCONFDIR))
         .arg(format!(
-            "/tmp/xeonitte/home/{}/.config/libreoffice/4/user/uno_packages/cache/",
-            username
+            "{}/home/{}/.config/libreoffice/4/user/uno_packages/cache/",
+            TMPDIR, username
         ))
         .output()?;
 
     Command::new("pkexec")
         .arg("rm")
         .arg(format!(
-            "/tmp/xeonitte/home/{}/.config/libreoffice/4/user/registrymodifications.xcu",
-            username
+            "{}/home/{}/.config/libreoffice/4/user/registrymodifications.xcu",
+            TMPDIR, username
         ))
         .output()?;
 
@@ -750,8 +755,8 @@ fn init_libreoffice_config(username: String) -> Result<()> {
             SYSCONFDIR
         ))
         .arg(format!(
-            "/tmp/xeonitte/home/{}/.config/libreoffice/4/user/",
-            username
+            "{}/home/{}/.config/libreoffice/4/user/",
+            TMPDIR, username
         ))
         .output()?;
     Ok(())
@@ -772,7 +777,7 @@ fn backup_and_update_flake() -> Result<()> {
     Command::new("pkexec")
         .arg("cp")
         .arg("-r")
-        .arg("/tmp/xeonitte")
+        .arg(TMPDIR)
         .arg("/xeonitte")
         .output()?;
 
@@ -781,7 +786,7 @@ fn backup_and_update_flake() -> Result<()> {
         .arg("flake")
         .arg("update")
         .arg("--flake")
-        .arg("/tmp/xeonitte/etc/nixos")
+        .arg(format!("{}/etc/nixos", TMPDIR))
         .output()?;
 
     // Lastly we disable write access to safely run nixos-install
