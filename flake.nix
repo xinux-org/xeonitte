@@ -1,8 +1,8 @@
 {
   inputs = {
-    nixpkgs.url = "github:xinux-org/nixpkgs/nixos-unstable";
+    nixpkgs.url = "git+https://git.oss.uzinfocom.uz/xinux/nixpkgs?ref=nixos-25.11&shallow=1";
     xinux-lib = {
-      url = "github:xinux-org/lib";
+      url = "git+https://git.oss.uzinfocom.uz/xinux/lib?ref=release-25.11&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
