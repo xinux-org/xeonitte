@@ -31,6 +31,9 @@
         @BOOTLOADER_MODULE@
         xinux-modules.nixosModules.branding
         xinux-modules.nixosModules.gnome
+        xinux-modules.nixosModules.graphical
+        xinux-modules.nixosModules.shell
+        xinux-modules.nixosModules.gaming
         xinux-modules.nixosModules.kernel
         xinux-modules.nixosModules.networking
         xinux-modules.nixosModules.packagemanagers
