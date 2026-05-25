@@ -15,7 +15,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     uz-xkb = {
-      url = "github:itsbilolbek/uzbek-linux-keyboard";
+      url = "git+https://git.oss.uzinfocom.uz/mirrors/uzbek-linux-keyboard?shallow=1";
       flake = false;
     };
   };
@@ -29,18 +29,7 @@
       systems.modules.nixos = with inputs; [
         nix-data.nixosModules.nix-data
         @BOOTLOADER_MODULE@
-        xinux-modules.nixosModules.branding
-        xinux-modules.nixosModules.gnome
-        xinux-modules.nixosModules.graphical
-        xinux-modules.nixosModules.shell
-        xinux-modules.nixosModules.gaming
-        xinux-modules.nixosModules.kernel
-        xinux-modules.nixosModules.networking
-        xinux-modules.nixosModules.packagemanagers
-        xinux-modules.nixosModules.pipewire
-        xinux-modules.nixosModules.printing
-        xinux-modules.nixosModules.xinux
-        xinux-modules.nixosModules.metadata
+        xinux-modules.nixosModules.meta
       ];
     };
 }
