@@ -35,7 +35,7 @@ impl SimpleComponent for QuitDialogModel {
 
                     // This for unmount partitions and close LUKS mappings before quitting
                     if let Err(e) = Command::new("pkexec")
-                        .arg(&format!("{}/xeonitte-helper", LIBEXECDIR))
+                        .arg(format!("{}/xeonitte-helper", LIBEXECDIR))
                         .arg("unmount")
                         .output()
                     {

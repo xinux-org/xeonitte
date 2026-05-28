@@ -126,6 +126,13 @@ impl Worker for InstallAsyncModel {
                 }
 
                 // Step 2: Generate base config
+                Command::new("pkexec")
+                    .arg("mkdir")
+                    .arg("-p")
+                    .arg(format!("{}/etc/nixos", TMPDIR))
+                    .output()
+                    .expect("cannot create etc/nixos");
+
                 info!("Step 2: Generate base config");
                 if let Err(e) = Command::new("pkexec")
                     .arg("nixos-generate-config")
@@ -139,7 +146,7 @@ impl Worker for InstallAsyncModel {
                 }
 
                 if configtype == ConfigType::Xinux {
-                    // Move /tmp/xeonitte/etc/nixos/hardware-configuration.nix to /tmp/xeonitte/etc/nixos/systems/{ARCH}-linux/{HOSTNAME}/hardware.nix
+                    // Move /nix/var/nix/builds/xeonitte/etc/nixos/hardware-configuration.nix to /nix/var/nix/builds/xeonitte/etc/nixos/systems/{ARCH}-linux/{HOSTNAME}/hardware.nix
                     Command::new("pkexec")
                         .arg("mkdir")
                         .arg("-p")
@@ -151,8 +158,8 @@ impl Worker for InstallAsyncModel {
                         .unwrap();
                     Command::new("pkexec")
                         .arg("mv")
-                        .arg(&format!("{}/etc/nixos/hardware-configuration.nix", TMPDIR))
-                        .arg(&format!(
+                        .arg(format!("{}/etc/nixos/hardware-configuration.nix", TMPDIR))
+                        .arg(format!(
                             "{}/etc/nixos/systems/{}-linux/{}/hardware.nix",
                             TMPDIR, arch, hostname
                         ))
@@ -207,41 +214,47 @@ impl Worker for InstallAsyncModel {
                     let _ = sender.output(AppMsg::Error);
                     return;
                 }
-                // to do: prevent running async with Installa and PreInstall at the theme time
-                // INSTALL_BROKER.send(InstallMsg::PreInstall(
-                //     vec![
-                //         "/usr/bin/env",
-                //         "pkexec",
-                //         "nix",
-                //         "flake",
-                //         "update",
-                //         "--flake",
-                //         "/tmp/xeonitte/etc/nixos",
-                //     ]
-                //     .into_iter()
-                //     .map(|s| s.to_string().to_string())
-                //     .collect(),
-                // ));
-
                 // Step 4: Install NixOS
                 info!("Step 4: Install NixOS");
                 if let Some(hostname) = user.as_ref().as_ref().map(|u| u.hostname.clone()) {
-                    INSTALL_BROKER.send(InstallMsg::Install(
-                        vec![
-                            "/usr/bin/env",
-                            "pkexec",
-                            "nixos-install",
-                            "--root",
-                            TMPDIR,
-                            "--no-root-passwd",
-                            "--no-channel-copy",
-                            "--flake",
-                            &format!("{}/etc/nixos#{}", TMPDIR, hostname),
-                        ]
-                        .into_iter()
-                        .map(|s| s.to_string())
-                        .collect(),
-                    ));
+                    // INSTALL_BROKER.send(InstallMsg::Install(
+                    //     vec![
+                    //         "/usr/bin/env",
+                    //         "pkexec",
+                    //         "nixos-install",
+                    //         "--no-root-passwd",
+                    //         // "--no-channel-copy",
+                    //         "--root",
+                    //         "/nix/var/nix/builds/xeonitte",
+                    //         // Nix requires its build directory to have no
+                    //         // # world-writable parent directories. The chroot store that
+                    //         // # nixos-install uses will use the state dir in the chroot
+                    //         // # for the build-dir, but the chroot is under /tmp, which
+                    //         // # is writable. It doesn't have to be in the chroot though,
+                    //         // # so we can just realign it with the host state dir.
+                    //         "--option",
+                    //         "build-dir",
+                    //         "/nix/var/nix/builds/xeonitte",
+                    //         "--flake",
+                    //         &format!("{}/etc/nixos#{}", TMPDIR, hostname),
+                    //     ]
+                    //     .into_iter()
+                    //     .map(|s| s.to_string())
+                    //     .collect(),
+                    // ));
+                    let flake_dir = format!("{}/etc/nixos", TMPDIR);
+                    let flake_uri = format!("{}#{}", flake_dir, hostname);
+                    let cmd = format!(
+                        "nix flake lock {} && nixos-install --no-root-passwd --root /nix/var/nix/builds/xeonitte --option build-dir /nix/var/nix/builds/xeonitte --flake {}",
+                        flake_dir, flake_uri
+                    );
+                    INSTALL_BROKER.send(InstallMsg::Install(vec![
+                        "/usr/bin/env".to_string(),
+                        "pkexec".to_string(),
+                        "sh".to_string(),
+                        "-c".to_string(),
+                        cmd,
+                    ]));
                 } else {
                     error!("No hostname found");
                     let _ = sender.output(AppMsg::Error);
@@ -291,23 +304,20 @@ impl Worker for InstallAsyncModel {
 
                 // Step 6: Set root password
                 info!("Step 6: Set root password if specified");
-                if let Some(rootpasswd) = &self.rootpassword {
-                    if let Err(e) =
+                if let Some(rootpasswd) = &self.rootpassword
+                    && let Err(e) =
                         setuserpasswd(Some("root".to_string()), Some(rootpasswd.clone()))
-                    {
-                        error!("Failed to set root password: {}", e);
-                        let _ = sender.output(AppMsg::Error);
-                        return;
-                    }
+                {
+                    error!("Failed to set root password: {}", e);
+                    let _ = sender.output(AppMsg::Error);
+                    return;
                 }
 
-                if imperative_timezone {
-                    if let Some(timezone) = timezone {
-                        commands.insert(
-                            0,
-                            format!("ln -sf ../etc/zoneinfo/{} /etc/localtime", timezone),
-                        );
-                    }
+                if imperative_timezone && let Some(timezone) = timezone {
+                    commands.insert(
+                        0,
+                        format!("ln -sf ../etc/zoneinfo/{} /etc/localtime", timezone),
+                    );
                 }
                 commands.push(format!(
                     "chown -R {}:users /home/{}/.config", // path relative to chroot
@@ -782,18 +792,14 @@ fn backup_and_update_flake() -> Result<()> {
         .output()?;
 
     Command::new("pkexec")
-        .arg("nix")
-        .arg("flake")
-        .arg("update")
-        .arg("--flake")
-        .arg(format!("{}/etc/nixos", TMPDIR))
+        .arg("touch")
+        .arg(format!("{}/flake.lock", TMPDIR))
         .output()?;
 
-    // Lastly we disable write access to safely run nixos-install
     Command::new("pkexec")
         .arg("chmod")
-        .arg("755")
-        .arg("/tmp/")
+        .arg("777")
+        .arg(format!("{}/flake.lock", TMPDIR))
         .output()?;
 
     Command::new("pkexec")
