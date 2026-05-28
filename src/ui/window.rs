@@ -95,7 +95,7 @@ pub struct UserConfig {
 
 #[derive(Debug)]
 pub enum AppMsg {
-    Quit,
+    QuitDialog,
     ChangePage(u32),
     SetCanGoBack(bool),
     SetCanGoForward(bool),
@@ -148,7 +148,7 @@ impl Component for AppModel {
             connect_close_request[sender] => move |_| {
                 debug!("Caught close request");
                 if model.page == StackPage::FrontPage || model.page == StackPage::Install {
-                    let _ = sender.input(AppMsg::Quit);
+                    let _ = sender.input(AppMsg::QuitDialog);
                     relm4::gtk::glib::Propagation::Stop
                 } else {
                     debug!("Quit dialog not showed");
@@ -542,7 +542,7 @@ impl Component for AppModel {
     fn update(&mut self, msg: Self::Input, sender: ComponentSender<Self>, _root: &Self::Root) {
         self.reset();
         match msg {
-            AppMsg::Quit => {
+            AppMsg::QuitDialog => {
                 self.quitdialog
                     .widget()
                     .present(relm4::main_application().active_window().as_ref());
@@ -802,6 +802,7 @@ impl Component for AppModel {
             }
         }
     }
+    fn shutdown(&mut self, widgets: &mut Self::Widgets, output: Sender<Self::Output>) {}
 
     fn update_cmd(
         &mut self,
