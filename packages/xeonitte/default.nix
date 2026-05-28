@@ -39,7 +39,7 @@ in
     cargoDeps = rustPlatform.importCargoLock {
       lockFile = ../../Cargo.lock;
       outputHashes = {
-        "disk-types-0.1.5" = "sha256-QV5VoXnDJ6nU3co/hg5+luZvIuFEip6PoiSkbwSke8w=";
+        "disk-types-0.1.5" = "sha256-rm/sio10T3s+xC8dyJxN6buuSzRpHIw2SBkQLTlqMqs=";
       };
     };
 
