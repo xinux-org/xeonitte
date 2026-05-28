@@ -36,11 +36,9 @@ in
 
     src = [../..];
 
-    cargoDeps = rustPlatform.importCargoLock {
-      lockFile = ../../Cargo.lock;
-      outputHashes = {
-        "disk-types-0.1.5" = "sha256-rm/sio10T3s+xC8dyJxN6buuSzRpHIw2SBkQLTlqMqs=";
-      };
+    cargoDeps = rustPlatform.fetchCargoVendor {
+      src = ../..;
+	    hash = "sha256-RalsxCdLDyG6d61UjCOr9ek1y4T8X/8k+J9CDXd9Hek=";
     };
 
     nativeBuildInputs = [
