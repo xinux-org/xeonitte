@@ -53,11 +53,13 @@ impl SimpleComponent for ErrorModel {
                     gtk::Image {
                         add_css_class: "error",
                         set_icon_name: Some("process-stop-symbolic"),
-                        set_pixel_size: 128,
+                        set_pixel_size: 64,
                     },
                     gtk::Frame {
                         gtk::ScrolledWindow {
-                            set_height_request: 300,
+                            set_height_request: 800,
+                            set_width_request: 800,
+                            // set_default_height: 800,
                             gtk::TextView {
                                 set_editable: false,
                                 set_hexpand: true,
@@ -128,7 +130,7 @@ impl SimpleComponent for ErrorModel {
         match msg {
             ErrorMsg::Show => {
                 if let Err(e) = Command::new("pkexec")
-                    .arg(&format!("{}/xeonitte-helper", LIBEXECDIR))
+                    .arg(format!("{}/xeonitte-helper", LIBEXECDIR))
                     .arg("unmount")
                     .output()
                 {
