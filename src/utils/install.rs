@@ -244,6 +244,9 @@ impl Worker for InstallAsyncModel {
                     // ));
                     let flake_dir = format!("{}/etc/nixos", TMPDIR);
                     let flake_uri = format!("{}#{}", flake_dir, hostname);
+
+                    // TODO: Maybe we do not need nix flake lock/update.
+                    // nixos-install seems to generate itself??? not sure
                     let cmd = format!(
                         "nix flake lock {} && nixos-install --no-root-passwd --root /nix/var/nix/builds/xeonitte --option build-dir /nix/var/nix/builds/xeonitte --flake {}",
                         flake_dir, flake_uri

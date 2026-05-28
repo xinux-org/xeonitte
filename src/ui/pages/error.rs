@@ -46,14 +46,14 @@ impl SimpleComponent for ErrorModel {
                     set_spacing: 20,
                     set_margin_all: 20,
                     gtk::Label {
-                        add_css_class: "title-1",
+                        add_css_class: "title-2",
                         #[watch]
                         set_label: &gettext("Installation Failed!"),
                     },
                     gtk::Image {
                         add_css_class: "error",
                         set_icon_name: Some("process-stop-symbolic"),
-                        set_pixel_size: 64,
+                        set_pixel_size: 48,
                     },
                     gtk::Frame {
                         gtk::ScrolledWindow {
