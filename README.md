@@ -21,17 +21,16 @@ This application has Linux-only dependencies.
 ```bash
 # download dependencies
 nix develop
-
-# build the project
-nix build --show--trace
-
-# Development
 meson setup builddir --prefix=~/.local --reconfigure --buildtype=debug -Dprofile=development
-meson install -C builddir
 
+# Build and run
+meson install -C builddir
 # Avoid pkexec must be root error on devShell
 cd ..
  ~/.local/bin/xeonitte
+
+# Or one time build.
+nix build --show--trace
 
 # Optional. Generate translation words from /po/POTFILES.in if needed.
 cd ./po
