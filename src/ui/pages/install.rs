@@ -4,7 +4,7 @@ use gettextrs::gettext;
 use gtk::gio;
 use log::{debug, error};
 use relm4::{factory::*, *};
-use std::fs::File;
+use std::{fs::File, process::Command};
 use vte::{self, TerminalExt, TerminalExtManual};
 
 pub struct InstallModel {
@@ -235,6 +235,11 @@ impl SimpleComponent for InstallModel {
             InstallMsg::VTEOutput(status) => {
                 debug!("VTE command exited with status: {}", status);
 
+                Command::new("touch")
+                    .arg("/tmp/xeonitte-term.log")
+                    .output()
+                    .expect("Cannot create /tmp/xeonitte-term.log");
+
                 if let Ok(file) = File::create("/tmp/xeonitte-term.log") {
                     let output = gio::WriteOutputStream::new(file);
                     if let Err(e) = self.terminal.write_contents_sync(
@@ -242,7 +247,7 @@ impl SimpleComponent for InstallModel {
                         vte::WriteFlags::Default,
                         gio::Cancellable::NONE,
                     ) {
-                        error!("{:?}", e);
+                        error!("InstallMsg::VTEOutput_+| {:?}", e);
                     }
                     let _ = output.flush(gio::Cancellable::NONE);
                 }
