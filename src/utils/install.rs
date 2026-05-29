@@ -601,26 +601,6 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
                 }
 
                 config = config.replace(
-                    "@PACKAGES@",
-                    &if extrapkgs.is_empty() {
-                        r#"  # List packages installed in system profile.
-  environment.systemPackages = with pkgs; [
-    libreoffice
-  ];"#
-                        .to_string()
-                    } else {
-                        format!(
-                            r#"  # List packages installed in system profile.
-  environment.systemPackages = with pkgs; [
-    libreoffice
-    {}
-  ];"#,
-                            extrapkgs.join("\n    ")
-                        )
-                    },
-                );
-
-                config = config.replace(
                     "@STATEVERSION@",
                     &format!(
                         r#"  system.stateVersion = "{}"; # Did you read the comment?"#,
