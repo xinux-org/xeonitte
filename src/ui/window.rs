@@ -143,8 +143,8 @@ impl Component for AppModel {
     view! {
         #[name(main_window)]
         adw::ApplicationWindow {
-            set_default_width: 900,
-            set_default_height: 800,
+            set_default_width: 1000,
+            set_default_height: 900,
             connect_close_request[sender] => move |_| {
                 debug!("Caught close request");
                 if model.page == StackPage::FrontPage || model.page == StackPage::Install {
