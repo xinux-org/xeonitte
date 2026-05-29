@@ -223,7 +223,7 @@ impl Worker for InstallAsyncModel {
                     //         "pkexec",
                     //         "nixos-install",
                     //         "--no-root-passwd",
-                    //         // "--no-channel-copy",
+                    //         "--no-channel-copy",
                     //         "--root",
                     //         "/nix/var/nix/builds/xeonitte",
                     //         // Nix requires its build directory to have no
@@ -245,10 +245,9 @@ impl Worker for InstallAsyncModel {
                     let flake_dir = format!("{}/etc/nixos", TMPDIR);
                     let flake_uri = format!("{}#{}", flake_dir, hostname);
 
-                    // TODO: Maybe we do not need nix flake lock/update.
-                    // nixos-install seems to generate itself??? not sure
+                    // TODO: make better way to write this shell command
                     let cmd = format!(
-                        "nix flake lock {} && nixos-install --no-root-passwd --root /nix/var/nix/builds/xeonitte --option build-dir /nix/var/nix/builds/xeonitte --flake {}",
+                        "nix flake lock {} && nixos-install --no-root-passwd --no-channel-copy --root /nix/var/nix/builds/xeonitte --option build-dir /nix/var/nix/builds/xeonitte --flake {}",
                         flake_dir, flake_uri
                     );
                     INSTALL_BROKER.send(InstallMsg::Install(vec![
@@ -599,6 +598,26 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
                     }
                     config = config.replace(&format!("@{}@", id), &listcfg);
                 }
+
+                config = config.replace(
+                    "@PACKAGES@",
+                    &if extrapkgs.is_empty() {
+                        r#"  # List packages installed in system profile.
+  environment.systemPackages = with pkgs; [
+    libreoffice
+  ];"#
+                        .to_string()
+                    } else {
+                        format!(
+                            r#"  # List packages installed in system profile.
+  environment.systemPackages = with pkgs; [
+    libreoffice
+    {}
+  ];"#,
+                            extrapkgs.join("\n    ")
+                        )
+                    },
+                );
 
                 config = config.replace(
                     "@STATEVERSION@",
