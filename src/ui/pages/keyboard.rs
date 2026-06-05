@@ -146,6 +146,10 @@ impl SimpleComponent for KeyboardModel {
         countries.dedup();
         println!("Pre sort");
         countries.sort_by(|a, b| {
+            println!(
+                "A_NAME: {:?}",
+                gnome_desktop::country_from_code(&a.to_uppercase(), None)
+            );
             let aname = gnome_desktop::country_from_code(&a.to_uppercase(), None)
                 .map(|x| x.to_string())
                 .unwrap_or_else(|| {
@@ -165,6 +169,10 @@ impl SimpleComponent for KeyboardModel {
                         .trim()
                         .to_string()
                 });
+            println!(
+                "B_NAME: {:?}",
+                gnome_desktop::country_from_code(&b.to_uppercase(), None)
+            );
             let bname = gnome_desktop::country_from_code(&b.to_uppercase(), None)
                 .map(|x| x.to_string())
                 .unwrap_or_else(|| {
@@ -204,6 +212,7 @@ impl SimpleComponent for KeyboardModel {
                 .unwrap()
                 .trim()
                 .to_string();
+            println!("POSSSIBLEEE COUNTRY");
             view! {
                 expander = adw::ExpanderRow {
                     set_title: &gnome_desktop::country_from_code(&country.to_uppercase(), None).map(|x| x.to_string()).unwrap_or_else(|| possible_country),
@@ -336,6 +345,7 @@ impl SimpleComponent for KeyboardModel {
                     .iter()
                     .filter_map(|(layout, (_name, lang, _country, _variant))| {
                         if lang == &language.to_lowercase() {
+                            println!("THAT LAYYYOUUTTTT: {:?}", layout.to_string());
                             Some(layout.to_string())
                         } else {
                             None
@@ -350,7 +360,7 @@ impl SimpleComponent for KeyboardModel {
                         if let Some((Some(name), Some(lang), Some(country), Some(variant))) =
                             layoutinfo
                         {
-                            Some((
+                            let y = Some((
                                 x.to_string(),
                                 (
                                     name.to_string(),
@@ -358,7 +368,11 @@ impl SimpleComponent for KeyboardModel {
                                     country.to_string(),
                                     variant.to_string(),
                                 ),
-                            ))
+                            ));
+
+                            println!("AHAHAHAHA: {:?}", y);
+
+                            y
                         } else {
                             None
                         }
@@ -381,7 +395,16 @@ impl SimpleComponent for KeyboardModel {
                     };
                     a.0.cmp(&b.0)
                 });
-                self.selected = if shortvec.iter().any(|(k, _)| k == &country.to_lowercase()) {
+                self.selected = if let Some(y) = {
+                    shortvec
+                        .iter()
+                        .filter(|(x, _)| x.contains("latin"))
+                        .collect::<Vec<_>>()
+                        .first()
+                        .map(|(x, _)| x.clone())
+                } {
+                    Some(y)
+                } else if shortvec.iter().any(|(k, _)| k == &country.to_lowercase()) {
                     Some(country.to_lowercase())
                 } else {
                     shortvec.first().map(|(k, _)| k.to_string())
