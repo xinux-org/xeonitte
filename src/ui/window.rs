@@ -143,7 +143,7 @@ impl Component for AppModel {
     view! {
         #[name(main_window)]
         adw::ApplicationWindow {
-            set_default_width: 1000,
+            set_default_width: 1100,
             set_default_height: 900,
             connect_close_request[sender] => move |_| {
                 debug!("Caught close request");
