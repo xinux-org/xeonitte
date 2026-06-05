@@ -173,7 +173,7 @@ fn partition() -> Result<()> {
             let swap_sector = Sector::Megabyte(
                 if let Some(x) =
                     get_storage_size(&full_disk_options.device, dev.get_logical_block_size())
-                    && x < 128_000
+                    && x > 128_000
                 {
                     if x > 512_000 {
                         get_memory_size().unwrap() / 2
