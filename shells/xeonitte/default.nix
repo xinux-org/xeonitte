@@ -30,6 +30,10 @@
   util-linux,
   dosfstools,
   e2fsprogs,
+  nixd,
+  statix,
+  deadnix,
+  nixfmt,
   ...
 }:
 mkShell {
