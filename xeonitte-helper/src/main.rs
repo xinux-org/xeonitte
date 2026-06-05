@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use clap::{self, FromArgMatches, Subcommand};
 use disk_types::{BlockDeviceExt, FileSystem, PartitionTable, PartitionType, Sector, SectorExt};
 use distinst_disks::{DiskExt, PartitionBuilder, PartitionFlag};
@@ -8,6 +8,7 @@ use std::{
     fs::{self, File},
     io::{self, Read, Write},
     process::{Command, Stdio},
+    u64,
 };
 
 const TMPDIR: &str = "/nix/var/nix/builds/xeonitte";
@@ -169,6 +170,23 @@ fn partition() -> Result<()> {
             )?;
             let efi = distinst_disks::Bootloader::detect() == distinst_disks::Bootloader::Efi;
 
+            let swap_sector = Sector::Megabyte(
+                if let Some(x) =
+                    get_storage_size(&full_disk_options.device, dev.get_logical_block_size())
+                    && x < 128_000
+                {
+                    if x > 512_000 {
+                        get_memory_size().unwrap() / 2
+                    } else {
+                        8192
+                    }
+                } else {
+                    4096
+                },
+            );
+
+            println!("SWAP SECTOR: {swap_sector:?}");
+
             // Create partition table and partitions
             if efi {
                 println!("Partition: Creating GPT partition table");
@@ -195,11 +213,24 @@ fn partition() -> Result<()> {
                     .ok_or_else(|| anyhow!("Failed to create MBR partition table"))?;
             }
 
-            println!("Partition: Creating root partition");
-            // Add root partition
+            println!("Partition: Creating swap partition");
+            // Add swap partition
             dev.add_partition(
                 PartitionBuilder::new(
                     dev.get_sector(if efi { boot_sector } else { start_sector }),
+                    dev.get_sector(swap_sector),
+                    FileSystem::Swap,
+                )
+                .partition_type(PartitionType::Primary),
+            )
+            .ok()
+            .ok_or_else(|| anyhow!("Failed to create swap partition"))?;
+            println!("Partition: Creating swap partition");
+
+            // Add root partition
+            dev.add_partition(
+                PartitionBuilder::new(
+                    dev.get_sector(swap_sector),
                     dev.get_sector(end_sector),
                     FileSystem::Ext4,
                 )
@@ -233,15 +264,17 @@ fn partition() -> Result<()> {
                 ""
             };
 
-            let (efi_partition, root_partition) = if efi {
+            let (efi_partition, swap_partition, root_partition) = if efi {
                 (
                     Some(format!("{}{}1", &full_disk_options.device, partition_val)),
                     format!("{}{}2", &full_disk_options.device, partition_val),
+                    format!("{}{}3", &full_disk_options.device, partition_val),
                 )
             } else {
                 (
                     None,
                     format!("{}{}1", &full_disk_options.device, partition_val),
+                    format!("{}{}2", &full_disk_options.device, partition_val),
                 )
             };
 
@@ -262,6 +295,7 @@ fn partition() -> Result<()> {
                 }
             }
 
+            // Format Root partition
             let root_mount_device = if full_disk_options.encryption {
                 let passphrase = full_disk_options
                     .passphrase
@@ -303,6 +337,19 @@ fn partition() -> Result<()> {
                 root_partition
             };
 
+            // Format Swap partition
+            println!("Partition: Formatting swap partition: {}", swap_partition);
+            let output = Command::new("mkswap")
+                .arg(&swap_partition)
+                .output()
+                .context("Failed to format swap partition")?;
+            if !output.status.success() {
+                return Err(anyhow!(
+                    "Failed to format swap partition: {}",
+                    String::from_utf8_lossy(&output.stderr)
+                ));
+            }
+
             // Mount root
             println!("Partition: Mounting root: {}", root_mount_device);
             fs::create_dir_all(TMPDIR)?;
@@ -335,6 +382,18 @@ fn partition() -> Result<()> {
                         String::from_utf8_lossy(&output.stderr)
                     ));
                 }
+            }
+
+            // Swap on
+            let output = Command::new("swapon")
+                .arg(&swap_partition)
+                .output()
+                .context("Failed to activate swap")?;
+            if !output.status.success() {
+                return Err(anyhow!(
+                    "Failed to actiavate swap: {}",
+                    String::from_utf8_lossy(&output.stderr)
+                ));
             }
         }
         PartitionSchema::Custom(custom_disk_options) => {
@@ -612,4 +671,40 @@ fn setup_luks(device: &str, passphrase: &str) -> Result<()> {
     }
 
     Ok(())
+}
+
+fn get_memory_size() -> Option<u64> {
+    let contents = std::fs::read_to_string("/proc/meminfo").expect("Couldnʻt read the file.");
+
+    contents
+        .lines()
+        .filter(|line| line.contains("MemTotal"))
+        .map(|x| {
+            x.chars()
+                .filter(|c| c.is_digit(10))
+                .collect::<String>()
+                .parse::<u64>()
+                .ok()
+        })
+        .collect::<Vec<_>>()
+        .first()
+        .copied()
+        .flatten()
+}
+
+fn get_storage_size(device: &str, logical_block_size: u64) -> Option<u64> {
+    let device = if device.contains("/dev/") {
+        &device[5..]
+    } else {
+        &device
+    };
+    let contents = std::fs::read_to_string(format!("/sys/class/block/{}/size", device))
+        .expect("Couldnʻt read the file.")
+        .trim()
+        .to_string();
+
+    contents
+        .parse::<u64>()
+        .ok()
+        .map(|x| x * logical_block_size / 1_000_000)
 }
