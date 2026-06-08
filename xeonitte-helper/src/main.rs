@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use clap::{self, FromArgMatches, Subcommand};
 use disk_types::{BlockDeviceExt, FileSystem, PartitionTable, PartitionType, Sector, SectorExt};
 use distinst_disks::{DiskExt, PartitionBuilder, PartitionFlag};
@@ -416,16 +416,19 @@ fn partition() -> Result<()> {
                 }
 
                 println!("Partitions: Committing changes");
-                dev.commit().map_or_else(
-                    |disk_error| {
-                        Err(anyhow!(
-                            "Failed to commit changes to disk: {} - {disk_error:?}",
-                            device
-                        ))
-                    },
-                    |_| Ok(()),
-                )?;
-                // .context("Failed to commit")?;
+                let _ = dev
+                    .commit()
+                    .map_or_else(
+                        |disk_error| {
+                            Err(anyhow!(
+                                "Failed to commit changes to disk: {} - {disk_error:?}",
+                                device
+                            ))
+                        },
+                        |_| Ok(()),
+                    )
+                    .iter()
+                    .collect::<Vec<_>>();
 
                 println!("Partitions: Updating kernel partition table");
                 let _ = Command::new("partprobe").arg(&device).output()?;
