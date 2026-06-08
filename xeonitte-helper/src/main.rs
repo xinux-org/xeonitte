@@ -161,7 +161,7 @@ fn partition() -> Result<()> {
         PartitionSchema::FullDisk(full_disk_options) => {
             let start_sector = Sector::Start;
             let end_sector = Sector::End;
-            let boot_sector = Sector::Unit(2_097_152);
+            let boot_sector = Sector::Megabyte(300);
 
             println!("Partition: Finding disk");
             let mut dev = distinst_disks::Disk::from_name(&full_disk_options.device).map_or_else(
