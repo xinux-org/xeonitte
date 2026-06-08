@@ -176,7 +176,7 @@ fn partition() -> Result<()> {
                     && x > 128_000
                 {
                     if x > 512_000 {
-                        get_memory_size().unwrap() / 2
+                        get_memory_size().map_or(8192, |y| y / 2)
                     } else {
                         8192
                     }
