@@ -161,7 +161,7 @@ fn partition() -> Result<()> {
         PartitionSchema::FullDisk(full_disk_options) => {
             let start_sector = Sector::Start;
             let end_sector = Sector::End;
-            let boot_sector = Sector::Megabyte(2000);
+            let boot_sector = Sector::Megabyte(2048);
 
             println!("Partition: Finding disk");
             let mut dev = distinst_disks::Disk::from_name(&full_disk_options.device).map_or_else(
@@ -169,23 +169,6 @@ fn partition() -> Result<()> {
                 |disk| Ok(disk),
             )?;
             let efi = distinst_disks::Bootloader::detect() == distinst_disks::Bootloader::Efi;
-
-            let swap_sector = Sector::Megabyte(
-                if let Some(x) =
-                    get_storage_size(&full_disk_options.device, dev.get_logical_block_size())
-                    && x > 128_000
-                {
-                    if x > 512_000 {
-                        get_memory_size().map_or(8192, |y| y / 2)
-                    } else {
-                        8192
-                    }
-                } else {
-                    4096
-                },
-            );
-
-            println!("SWAP SECTOR: {swap_sector:?}");
 
             // Create partition table and partitions
             if efi {
@@ -214,30 +197,61 @@ fn partition() -> Result<()> {
             }
 
             println!("Partition: Creating swap partition");
-            // Add swap partition
-            dev.add_partition(
-                PartitionBuilder::new(
-                    dev.get_sector(if efi { boot_sector } else { start_sector }),
-                    dev.get_sector(swap_sector),
-                    FileSystem::Swap,
-                )
-                .partition_type(PartitionType::Primary),
-            )
-            .ok()
-            .ok_or_else(|| anyhow!("Failed to create swap partition"))?;
-            println!("Partition: Creating swap partition");
+            let storage_size: Option<u64> =
+                get_storage_size(&full_disk_options.device, dev.get_logical_block_size());
 
-            // Add root partition
-            dev.add_partition(
-                PartitionBuilder::new(
-                    dev.get_sector(swap_sector),
-                    dev.get_sector(end_sector),
-                    FileSystem::Ext4,
-                )
-                .partition_type(PartitionType::Primary),
-            )
-            .ok()
-            .ok_or_else(|| anyhow!("Failed to create root partition"))?;
+            let memory_size = get_memory_size();
+            // let swap_sector: Option<Sector> = match (storage_size, memory_size) {
+            //     (Some(512_000..), Some(memory_size)) => Some(Sector::Megabyte(memory_size / 2)),
+            //     (Some(128_000..512_000), _) => Some(Sector::Megabyte(8192)),
+            //     (Some(..128_000), _) => Some(Sector::Megabyte(4096)),
+            //     _ => None,
+            // };
+
+            let swap_sector: Option<Sector> = None;
+            println!("SWAP SECTOR: {swap_sector:?}");
+
+            match swap_sector {
+                Some(sector) => {
+                    // Add swap partition
+                    dev.add_partition(
+                        PartitionBuilder::new(
+                            dev.get_sector(if efi { boot_sector } else { start_sector }),
+                            dev.get_sector(sector),
+                            FileSystem::Swap,
+                        )
+                        .partition_type(PartitionType::Primary),
+                    )
+                    .ok()
+                    .ok_or_else(|| anyhow!("Failed to create swap partition"))?;
+
+                    // Add root partition
+                    dev.add_partition(
+                        PartitionBuilder::new(
+                            dev.get_sector(sector),
+                            dev.get_sector(end_sector),
+                            FileSystem::Ext4,
+                        )
+                        .partition_type(PartitionType::Primary),
+                    )
+                    .ok()
+                    .ok_or_else(|| anyhow!("Failed to create root partition"))?;
+                }
+                None => {
+                    println!("Swap will not be created");
+                    // Add without swap partition
+                    dev.add_partition(
+                        PartitionBuilder::new(
+                            dev.get_sector(if efi { boot_sector } else { start_sector }),
+                            dev.get_sector(end_sector),
+                            FileSystem::Ext4,
+                        )
+                        .partition_type(PartitionType::Primary),
+                    )
+                    .ok()
+                    .ok_or_else(|| anyhow!("Failed to create root partition"))?;
+                }
+            };
 
             println!("Partition: Committing changes");
             dev.commit()
@@ -264,18 +278,44 @@ fn partition() -> Result<()> {
                 ""
             };
 
-            let (efi_partition, swap_partition, root_partition) = if efi {
-                (
-                    Some(format!("{}{}1", &full_disk_options.device, partition_val)),
-                    format!("{}{}2", &full_disk_options.device, partition_val),
-                    format!("{}{}3", &full_disk_options.device, partition_val),
-                )
-            } else {
-                (
+            // let (efi_partition, root_partition, swap_partition) = if efi {
+            //     (
+            //         Some(format!("{}{}1", &full_disk_options.device, partition_val)),
+            //         format!("{}{}2", &full_disk_options.device, partition_val),
+            //         Some(format!("{}{}3", &full_disk_options.device, partition_val)), // swap on the middle
+            //     )
+            // } else {
+            //     (
+            //         None,
+            //         format!("{}{}1", &full_disk_options.device, partition_val),
+            //         Some(format!("{}{}2", &full_disk_options.device, partition_val)),
+            //     )
+            // };
+            let (efi_partition, root_partition, swap_partition) = match (efi, swap_sector) {
+                (true, Some(_)) => {
+                    (
+                        Some(format!("{}{}1", &full_disk_options.device, partition_val)),
+                        format!("{}{}2", &full_disk_options.device, partition_val),
+                        Some(format!("{}{}3", &full_disk_options.device, partition_val)), // swap
+                    )
+                }
+                (true, None) => {
+                    (
+                        Some(format!("{}{}1", &full_disk_options.device, partition_val)),
+                        format!("{}{}2", &full_disk_options.device, partition_val),
+                        None, // no swap
+                    )
+                }
+                (false, Some(_)) => (
                     None,
                     format!("{}{}1", &full_disk_options.device, partition_val),
-                    format!("{}{}2", &full_disk_options.device, partition_val),
-                )
+                    Some(format!("{}{}2", &full_disk_options.device, partition_val)),
+                ),
+                (false, None) => (
+                    None,
+                    format!("{}{}1", &full_disk_options.device, partition_val),
+                    None,
+                ),
             };
 
             // Format EFI partition
@@ -337,19 +377,6 @@ fn partition() -> Result<()> {
                 root_partition
             };
 
-            // Format Swap partition
-            println!("Partition: Formatting swap partition: {}", swap_partition);
-            let output = Command::new("mkswap")
-                .arg(&swap_partition)
-                .output()
-                .context("Failed to format swap partition")?;
-            if !output.status.success() {
-                return Err(anyhow!(
-                    "Failed to format swap partition: {}",
-                    String::from_utf8_lossy(&output.stderr)
-                ));
-            }
-
             // Mount root
             println!("Partition: Mounting root: {}", root_mount_device);
             fs::create_dir_all(TMPDIR)?;
@@ -384,16 +411,31 @@ fn partition() -> Result<()> {
                 }
             }
 
-            // Swap on
-            let output = Command::new("swapon")
-                .arg(&swap_partition)
-                .output()
-                .context("Failed to activate swap")?;
-            if !output.status.success() {
-                return Err(anyhow!(
-                    "Failed to actiavate swap: {}",
-                    String::from_utf8_lossy(&output.stderr)
-                ));
+            // Format Swap partition if available
+            if let Some(swap_partition) = swap_partition {
+                println!("Partition: Formatting swap partition: {}", swap_partition);
+                let output = Command::new("mkswap")
+                    .arg(&swap_partition)
+                    .output()
+                    .context("Failed to format swap partition")?;
+                if !output.status.success() {
+                    return Err(anyhow!(
+                        "Failed to format swap partition: {}",
+                        String::from_utf8_lossy(&output.stderr)
+                    ));
+                }
+
+                // Swap on
+                let output = Command::new("swapon")
+                    .arg(&swap_partition)
+                    .output()
+                    .context("Failed to activate swap")?;
+                if !output.status.success() {
+                    return Err(anyhow!(
+                        "Failed to actiavate swap: {}",
+                        String::from_utf8_lossy(&output.stderr)
+                    ));
+                }
             }
         }
         PartitionSchema::Custom(custom_disk_options) => {
@@ -412,7 +454,6 @@ fn partition() -> Result<()> {
                             },
                             |disk| Ok(disk),
                         )?;
-
                     devices.insert(custom_partition.device.to_string(), (dev, vec![]));
                 }
                 let partvec = &mut devices.get_mut(&custom_partition.device).unwrap().1;
@@ -461,15 +502,15 @@ fn partition() -> Result<()> {
                             },
                             |_| Ok(()),
                         )?;
-                        if let Some(mountpoint) = &custom_partition.mountpoint {
-                            if mountpoint == "/boot" {
-                                let partition = dev
-                                    .partitions
-                                    .iter_mut()
-                                    .find(|x| x.get_device_path().to_str() == Some(*part))
-                                    .ok_or_else(|| anyhow!("Failed to find partition {}", part))?;
-                                partition.flags.push(PartitionFlag::PED_PARTITION_ESP);
-                            }
+                        if let Some(mountpoint) = &custom_partition.mountpoint
+                            && mountpoint == "/boot"
+                        {
+                            let partition = dev
+                                .partitions
+                                .iter_mut()
+                                .find(|x| x.get_device_path().to_str() == Some(*part))
+                                .ok_or_else(|| anyhow!("Failed to find partition {}", part))?;
+                            partition.flags.push(PartitionFlag::PED_PARTITION_ESP);
                         }
                     }
                 }
@@ -506,41 +547,41 @@ fn partition() -> Result<()> {
             let root_partition_path = root_entry.map(|(path, _)| path.clone());
 
             // Setup LUKS on root partition if encryption is enabled
-            if custom_disk_options.encryption {
-                if let Some(root_path) = &root_partition_path {
-                    let passphrase = custom_disk_options
-                        .passphrase
-                        .as_deref()
-                        .ok_or_else(|| anyhow!("Encryption enabled but no passphrase provided"))?;
-                    println!(
-                        "Partitions: Setting up LUKS on root partition: {}",
-                        root_path
-                    );
-                    setup_luks(root_path, passphrase)?;
+            if custom_disk_options.encryption
+                && let Some(root_path) = &root_partition_path
+            {
+                let passphrase = custom_disk_options
+                    .passphrase
+                    .as_deref()
+                    .ok_or_else(|| anyhow!("Encryption enabled but no passphrase provided"))?;
+                println!(
+                    "Partitions: Setting up LUKS on root partition: {}",
+                    root_path
+                );
+                setup_luks(root_path, passphrase)?;
 
-                    let root_format = partitions
-                        .get(root_path)
-                        .and_then(|p| p.format.as_deref())
-                        .unwrap_or("ext4");
+                let root_format = partitions
+                    .get(root_path)
+                    .and_then(|p| p.format.as_deref())
+                    .unwrap_or("ext4");
 
-                    println!("Partitions: Formatting LUKS container as {}", root_format);
-                    let mkfs_cmd = match root_format {
-                        "btrfs" => "mkfs.btrfs",
-                        "ext3" => "mkfs.ext3",
-                        "xfs" => "mkfs.xfs",
-                        _ => "mkfs.ext4",
-                    };
-                    let output = Command::new(mkfs_cmd)
-                        .arg("-f")
-                        .arg("/dev/mapper/cryptroot")
-                        .output()
-                        .context("Failed to format LUKS container")?;
-                    if !output.status.success() {
-                        return Err(anyhow!(
-                            "Failed to format LUKS: {}",
-                            String::from_utf8_lossy(&output.stderr)
-                        ));
-                    }
+                println!("Partitions: Formatting LUKS container as {}", root_format);
+                let mkfs_cmd = match root_format {
+                    "btrfs" => "mkfs.btrfs",
+                    "ext3" => "mkfs.ext3",
+                    "xfs" => "mkfs.xfs",
+                    _ => "mkfs.ext4",
+                };
+                let output = Command::new(mkfs_cmd)
+                    .arg("-f")
+                    .arg("/dev/mapper/cryptroot")
+                    .output()
+                    .context("Failed to format LUKS container")?;
+                if !output.status.success() {
+                    return Err(anyhow!(
+                        "Failed to format LUKS: {}",
+                        String::from_utf8_lossy(&output.stderr)
+                    ));
                 }
             }
 
