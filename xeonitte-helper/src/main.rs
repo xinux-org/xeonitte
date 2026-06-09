@@ -2,6 +2,7 @@ use anyhow::{Context, Result, anyhow};
 use clap::{self, FromArgMatches, Subcommand};
 use disk_types::{BlockDeviceExt, FileSystem, PartitionTable, PartitionType, Sector, SectorExt};
 use distinst_disks::{DiskExt, PartitionBuilder, PartitionFlag};
+use log::error;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
@@ -393,15 +394,12 @@ fn partition() -> Result<()> {
                                 _ => None,
                             })
                     {
-                        dev.format_partition(*num, *format).map_or_else(
-                            |disk_error| {
-                                Err(anyhow!(
-                                    "Failed to format partition {} -> {disk_error:?}",
-                                    part
-                                ))
-                            },
-                            |_| Ok(()),
-                        )?;
+                        dev.clone()
+                            .format_partition(*num, *format)
+                            .unwrap_or_else(|disk_error| {
+                                error!("Failed to format partition {} -> {disk_error:?}", part);
+                            });
+
                         if let Some(mountpoint) = &custom_partition.mountpoint {
                             if mountpoint == "/boot" {
                                 let partition = dev
@@ -430,8 +428,11 @@ fn partition() -> Result<()> {
                     .iter()
                     .collect::<Vec<_>>();
 
-                println!("Partitions: Updating kernel partition table");
-                let _ = Command::new("partprobe").arg(&device).output()?;
+                // println!("Partitions: Updating kernel partition table");
+                // let _ = Command::new("partprobe")
+                //     .arg(&device)
+                //     .output()
+                //     .context("Patprobe failed here")?;
 
                 let _ = Command::new("udevadm")
                     .args(["settle", "--timeout=10"])

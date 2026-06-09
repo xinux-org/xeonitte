@@ -13,6 +13,7 @@ anyhow = "1.0.102"
 distinst-disks = { git = "https://git.oss.uzinfocom.uz/xinux/distinst" }
 distinst-disk-ops = { git = "https://git.oss.uzinfocom.uz/xinux/distinst" }
 disk-types = { git = "https://git.oss.uzinfocom.uz/xinux/distinst" }
+log = "0.4.30"
 
 [[bin]]
 name = "xeonitte-helper"
