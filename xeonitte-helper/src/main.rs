@@ -161,7 +161,7 @@ fn partition() -> Result<()> {
         PartitionSchema::FullDisk(full_disk_options) => {
             let start_sector = Sector::Start;
             let end_sector = Sector::End;
-            let boot_sector = Sector::Megabyte(300);
+            let boot_sector = Sector::Megabyte(2000);
 
             println!("Partition: Finding disk");
             let mut dev = distinst_disks::Disk::from_name(&full_disk_options.device).map_or_else(
@@ -653,7 +653,7 @@ fn setup_luks(device: &str, passphrase: &str) -> Result<()> {
         return Err(anyhow!("cryptsetup luksFormat failed"));
     }
 
-    println!("LUKS: Opening {} as {}", device, "cryptroot");
+    println!("LUKS: Opening {} as cryptroot", device);
     let mut child = Command::new("cryptsetup")
         .args(["open", device, "cryptroot"])
         .stdin(Stdio::piped())
@@ -674,14 +674,15 @@ fn setup_luks(device: &str, passphrase: &str) -> Result<()> {
 }
 
 fn get_memory_size() -> Option<u64> {
-    let contents = std::fs::read_to_string("/proc/meminfo").expect("Couldnʻt read the file.");
+    let contents =
+        std::fs::read_to_string("/proc/meminfo").expect("Couldnʻt read the /proc/meminfo file.");
 
     contents
         .lines()
         .filter(|line| line.contains("MemTotal"))
         .map(|x| {
             x.chars()
-                .filter(|c| c.is_digit(10))
+                .filter(|c| c.is_ascii_digit())
                 .collect::<String>()
                 .parse::<u64>()
                 .ok()
@@ -696,10 +697,10 @@ fn get_storage_size(device: &str, logical_block_size: u64) -> Option<u64> {
     let device = if device.contains("/dev/") {
         &device[5..]
     } else {
-        &device
+        device
     };
     let contents = std::fs::read_to_string(format!("/sys/class/block/{}/size", device))
-        .expect("Couldnʻt read the file.")
+        .expect("Couldnʻt read the /sys/class/block/{}/size file.")
         .trim()
         .to_string();
 
