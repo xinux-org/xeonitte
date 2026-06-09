@@ -44,6 +44,6 @@
     enable = true;
     systemconfig = "/etc/nixos/systems/@ARCH@/@HOSTNAME@/default.nix";
     flake = "/etc/nixos/flake.nix";
-    flakearg = "@HOSTNAME@";
+    hostname = "@HOSTNAME@";
   };
 }
