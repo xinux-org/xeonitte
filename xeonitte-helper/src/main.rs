@@ -163,10 +163,8 @@ fn partition() -> Result<()> {
             let boot_sector = Sector::Megabyte(2048);
 
             println!("Partition: Finding disk");
-            let mut dev = distinst_disks::Disk::from_name(&full_disk_options.device).map_or_else(
-                |disk_error| Err(anyhow!("Failed to find disk {disk_error:?}")),
-                |disk| Ok(disk),
-            )?;
+            let mut dev = distinst_disks::Disk::from_name(&full_disk_options.device)
+                .map_err(|disk_error| anyhow!("Failed to find disk {disk_error:?}"))?;
             let efi = distinst_disks::Bootloader::detect() == distinst_disks::Bootloader::Efi;
 
             // Create partition table and partitions
@@ -232,8 +230,7 @@ fn partition() -> Result<()> {
                         )
                         .partition_type(PartitionType::Primary),
                     )
-                    .ok()
-                    .ok_or_else(|| anyhow!("Failed to create root partition"))?;
+                    .map_err(|why| anyhow!("Failed to create root partition {why:?}"))?;
                 }
                 None => {
                     println!("Swap will not be created");
@@ -246,8 +243,7 @@ fn partition() -> Result<()> {
                         )
                         .partition_type(PartitionType::Primary),
                     )
-                    .ok()
-                    .ok_or_else(|| anyhow!("Failed to create root partition"))?;
+                    .map_err(|why| anyhow!("Failed to create root partition {why:?}"))?;
                 }
             };
 
@@ -429,16 +425,14 @@ fn partition() -> Result<()> {
             let mut devices = HashMap::new();
             for (path, custom_partition) in partitions {
                 if !devices.contains_key(&custom_partition.device) {
-                    let dev = distinst_disks::Disk::from_name(&custom_partition.device)
-                        .map_or_else(
-                            |disk_error| {
-                                Err(anyhow!(
-                                    "Failed to find disk {} -> {disk_error:?}",
-                                    custom_partition.device
-                                ))
-                            },
-                            |disk| Ok(disk),
-                        )?;
+                    let dev = distinst_disks::Disk::from_name(&custom_partition.device).map_err(
+                        |disk_error| {
+                            anyhow!(
+                                "Failed to find disk {} -> {disk_error:?}",
+                                custom_partition.device
+                            )
+                        },
+                    )?;
                     devices.insert(custom_partition.device.to_string(), (dev, vec![]));
                 }
                 let partvec = &mut devices.get_mut(&custom_partition.device).unwrap().1;
@@ -478,15 +472,9 @@ fn partition() -> Result<()> {
                                 _ => None,
                             })
                     {
-                        dev.format_partition(*num, *format).map_or_else(
-                            |disk_error| {
-                                Err(anyhow!(
-                                    "Failed to format partition {} -> {disk_error:?}",
-                                    part
-                                ))
-                            },
-                            |_| Ok(()),
-                        )?;
+                        dev.format_partition(*num, *format).map_err(|disk_error| {
+                            anyhow!("Failed to format partition {} -> {disk_error:?}", part)
+                        })?;
                         if let Some(mountpoint) = &custom_partition.mountpoint
                             && mountpoint == "/boot"
                         {
@@ -501,15 +489,12 @@ fn partition() -> Result<()> {
                 }
 
                 println!("Partitions: Committing changes");
-                dev.commit().map_or_else(
-                    |disk_error| {
-                        Err(anyhow!(
-                            "Failed to commit changes to disk: {} - {disk_error:?}",
-                            device
-                        ))
-                    },
-                    |_| Ok(()),
-                )?;
+                dev.commit().map_err(|disk_error| {
+                    anyhow!(
+                        "Failed to commit changes to disk: {} - {disk_error:?}",
+                        device
+                    )
+                })?;
                 // .context("Failed to commit")?;
 
                 println!("Partitions: Updating kernel partition table");
@@ -519,10 +504,9 @@ fn partition() -> Result<()> {
                     .args(["settle", "--timeout=10"])
                     .output()?;
 
-                dev.reload().map_or_else(
-                    |disk_error| Err(anyhow!("Failed to reload disk {} {disk_error:?}", device)),
-                    |_| Ok(()),
-                )?;
+                dev.reload().map_err(|disk_error| {
+                    anyhow!("Failed to reload disk {} {disk_error:?}", device)
+                })?;
             }
 
             // Find root partition before formatting to handle LUKS
