@@ -8,7 +8,6 @@ use std::{
     fs::{self, File},
     io::{self, Read, Write},
     process::{Command, Stdio},
-    u64,
 };
 
 const TMPDIR: &str = "/nix/var/nix/builds/xeonitte";
@@ -201,23 +200,22 @@ fn partition() -> Result<()> {
                 get_storage_size(&full_disk_options.device, dev.get_logical_block_size());
 
             let memory_size = get_memory_size();
-            // let swap_sector: Option<Sector> = match (storage_size, memory_size) {
-            //     (Some(512_000..), Some(memory_size)) => Some(Sector::Megabyte(memory_size / 2)),
-            //     (Some(128_000..512_000), _) => Some(Sector::Megabyte(8192)),
-            //     (Some(..128_000), _) => Some(Sector::Megabyte(4096)),
-            //     _ => None,
-            // };
-
-            let swap_sector: Option<Sector> = None;
+            let swap_sector: Option<Sector> = match (storage_size, memory_size) {
+                (Some(256_000..), Some(memory_size)) => Some(Sector::Megabyte(memory_size / 2_000)),
+                (Some(128_000..256_000), _) => Some(Sector::Megabyte(8192)),
+                (Some(..128_000), _) => Some(Sector::Megabyte(4096)),
+                _ => None,
+            };
+            // let swap_sector: Option<Sector> = None;
             println!("SWAP SECTOR: {swap_sector:?}");
 
             match swap_sector {
-                Some(sector) => {
+                Some(swap_sector) => {
                     // Add swap partition
                     dev.add_partition(
                         PartitionBuilder::new(
                             dev.get_sector(if efi { boot_sector } else { start_sector }),
-                            dev.get_sector(sector),
+                            dev.get_sector(swap_sector),
                             FileSystem::Swap,
                         )
                         .partition_type(PartitionType::Primary),
@@ -228,7 +226,7 @@ fn partition() -> Result<()> {
                     // Add root partition
                     dev.add_partition(
                         PartitionBuilder::new(
-                            dev.get_sector(sector),
+                            dev.get_sector(swap_sector),
                             dev.get_sector(end_sector),
                             FileSystem::Ext4,
                         )
@@ -278,43 +276,31 @@ fn partition() -> Result<()> {
                 ""
             };
 
-            // let (efi_partition, root_partition, swap_partition) = if efi {
-            //     (
-            //         Some(format!("{}{}1", &full_disk_options.device, partition_val)),
-            //         format!("{}{}2", &full_disk_options.device, partition_val),
-            //         Some(format!("{}{}3", &full_disk_options.device, partition_val)), // swap on the middle
-            //     )
-            // } else {
-            //     (
-            //         None,
-            //         format!("{}{}1", &full_disk_options.device, partition_val),
-            //         Some(format!("{}{}2", &full_disk_options.device, partition_val)),
-            //     )
-            // };
-            let (efi_partition, root_partition, swap_partition) = match (efi, swap_sector) {
+            let (efi_partition, swap_partition, root_partition) = match (efi, swap_sector) {
+                // example: /dev/sdc/1|2|3
                 (true, Some(_)) => {
                     (
                         Some(format!("{}{}1", &full_disk_options.device, partition_val)),
-                        format!("{}{}2", &full_disk_options.device, partition_val),
-                        Some(format!("{}{}3", &full_disk_options.device, partition_val)), // swap
+                        Some(format!("{}{}2", &full_disk_options.device, partition_val)), // swap
+                        format!("{}{}3", &full_disk_options.device, partition_val),
                     )
                 }
                 (true, None) => {
                     (
                         Some(format!("{}{}1", &full_disk_options.device, partition_val)),
-                        format!("{}{}2", &full_disk_options.device, partition_val),
                         None, // no swap
+                        format!("{}{}2", &full_disk_options.device, partition_val),
                     )
                 }
                 (false, Some(_)) => (
                     None,
-                    format!("{}{}1", &full_disk_options.device, partition_val),
-                    Some(format!("{}{}2", &full_disk_options.device, partition_val)),
+                    Some(format!("{}{}1", &full_disk_options.device, partition_val)),
+                    format!("{}{}2", &full_disk_options.device, partition_val),
                 ),
                 (false, None) => (
                     None,
-                    format!("{}{}1", &full_disk_options.device, partition_val),
                     None,
+                    format!("{}{}1", &full_disk_options.device, partition_val),
                 ),
             };
 
@@ -359,7 +345,6 @@ fn partition() -> Result<()> {
                         String::from_utf8_lossy(&output.stderr)
                     ));
                 }
-
                 "/dev/mapper/cryptroot".to_string()
             } else {
                 println!("Partition: Formatting root partition: {}", root_partition);
