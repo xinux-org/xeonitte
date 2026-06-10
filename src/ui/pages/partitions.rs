@@ -804,7 +804,8 @@ impl FactoryComponent for Partition {
                     add_css_class: "raised",
                     add_css_class: "destructive-action",
                     set_halign: gtk::Align::End,
-                    set_margin_all: 8,
+                    set_margin_top: 8,
+                    set_margin_bottom: 8,
                 },
             },
         }
