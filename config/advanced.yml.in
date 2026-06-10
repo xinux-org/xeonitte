@@ -6,8 +6,8 @@ config_type: xinux
 imperative_timezone: true
 steps:
 - welcome
-- location
 - keyboard
+- location
 - !user
   root: true
   hostname: true
