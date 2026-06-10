@@ -795,7 +795,18 @@ impl FactoryComponent for Partition {
                 add_suffix = &gtk::Label {
                     set_text: "swap",
                 }
-            }
+            },
+
+            add_row = &adw::ActionRow {
+                set_activatable: false,
+                add_suffix = &gtk::Button {
+                    set_label: "Delete",
+                    add_css_class: "raised",
+                    add_css_class: "destructive-action",
+                    set_halign: gtk::Align::End,
+                    set_margin_all: 8,
+                },
+            },
         }
     }
 
@@ -856,13 +867,100 @@ impl FactoryComponent for PartitionGroup {
 
     view! {
         adw::PreferencesGroup {
-            set_title: &self.name,
-            #[local_ref]
-            testbox -> gtk::ListBox {
-                add_css_class: "boxed-list",
+            gtk::Box {
                 set_hexpand: true,
-                set_selection_mode: gtk::SelectionMode::None,
-            }
+                set_orientation: gtk::Orientation::Horizontal,
+                add_css_class: "linked",
+                set_spacing: 8,
+
+                gtk::Box {
+                    set_hexpand: true,
+                    set_orientation: gtk::Orientation::Vertical,
+                    set_spacing: 6,
+
+                    gtk::Box {
+                        set_hexpand: true,
+                        set_orientation: gtk::Orientation::Horizontal,
+                        set_spacing: 6,
+                        set_margin_bottom: 6,
+
+                        gtk::Label {
+                            set_text: &self.name,
+                            set_margin_all: 6,
+                            add_css_class: "heading"
+                        },
+
+                        gtk::Box {
+                            set_hexpand: true,
+                            set_halign: gtk::Align::End,
+                            set_spacing: 12,
+
+                            gtk::Box {
+                                set_orientation: gtk::Orientation::Horizontal,
+                                set_spacing: 2,
+
+                                gtk::Label {
+                                    set_text: "Total: ",
+                                    add_css_class: "caption-heading"
+                                },
+
+                                gtk::Label {
+                                    set_text: "1TB",
+                                    add_css_class: "caption"
+                                },
+                            },
+
+                            gtk::Box {
+                                set_orientation: gtk::Orientation::Horizontal,
+                                set_spacing: 2,
+
+                                gtk::Label {
+                                    set_text: "Free: ",
+                                    add_css_class: "caption-heading"
+                                },
+
+                                gtk::Label {
+                                    set_text: "512GB",
+                                    add_css_class: "caption"
+                                },
+                            },
+
+                            gtk::Box {
+                                set_orientation: gtk::Orientation::Horizontal,
+                                set_halign: gtk::Align::End,
+                                set_valign: gtk::Align::Center,
+                                set_spacing: 6,
+
+                                gtk::Box {
+                                    set_orientation: gtk::Orientation::Horizontal,
+                                    add_css_class: "linked",
+
+                                    gtk::Button {
+                                        set_icon_name: "edit-undo",
+                                        add_css_class: "raised",
+                                    },
+                                    gtk::Button {
+                                        set_icon_name: "edit-redo",
+                                        add_css_class: "raised"
+                                    }
+                                },
+
+                                gtk::Button {
+                                    set_icon_name: "value-increase",
+                                    add_css_class: "circular"
+                                },
+                            },
+                        },
+
+                    },
+                    #[local_ref]
+                    testbox -> gtk::ListBox {
+                        add_css_class: "boxed-list",
+                        set_hexpand: true,
+                        set_selection_mode: gtk::SelectionMode::None,
+                    }
+                },
+            },
         }
     }
 
