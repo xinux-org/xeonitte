@@ -981,12 +981,16 @@ impl FactoryComponent for PartitionGroup {
                     },
 
                     adw::EntryRow {
-                        set_title: "/dev/sda#",
-                        set_text: "Enter the size of new partition",
+                        set_title: "Create the size of the new partition in MB",
+                        set_input_purpose: gtk::InputPurpose::Number,
+                        set_max_length: 16,
                         set_activates_default: true,
+                        set_show_apply_button: true,
                         #[watch]
                         set_visible: self.creating_partition,
-                        add_css_class: "focused"
+                        add_css_class: "focused",
+                        add_css_class: "frame",
+                        inline_css: "padding-top: 6px; padding-bottom: 6px; border-radius: 12px;",
                     },
                 },
             },
