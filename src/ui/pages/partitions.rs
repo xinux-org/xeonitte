@@ -981,8 +981,9 @@ impl FactoryComponent for PartitionGroup {
                     },
 
                     adw::EntryRow {
-                        set_title: "Create the size of the new partition in MB",
+                        set_title: "Enter the size of the new partition in MB",
                         set_input_purpose: gtk::InputPurpose::Number,
+                        set_input_hints: gtk::InputHints::SPELLCHECK,
                         set_max_length: 16,
                         set_activates_default: true,
                         set_show_apply_button: true,
