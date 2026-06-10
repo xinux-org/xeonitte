@@ -373,6 +373,7 @@ impl SimpleComponent for PartitionModel {
                                 partition_groups_guard.push_back(PartitionGroup {
                                     name: disk.name.to_string(),
                                     partitions: part_factoryvec,
+                                    creating_partition: false,
                                 });
                             }
                         } else {
@@ -860,12 +861,18 @@ impl FactoryComponent for Partition {
 pub struct PartitionGroup {
     name: String,
     partitions: FactoryVecDeque<Partition>,
+    creating_partition: bool,
+}
+
+#[derive(Debug)]
+pub enum PartitionGroupMsg {
+    ShowSizeEntry,
 }
 
 #[relm4::factory(pub)]
 impl FactoryComponent for PartitionGroup {
     type Init = PartitionGroup;
-    type Input = ();
+    type Input = PartitionGroupMsg;
     type Output = ();
     type ParentWidget = gtk::Box;
     type CommandOutput = ();
@@ -953,11 +960,14 @@ impl FactoryComponent for PartitionGroup {
                                 gtk::Button {
                                     set_icon_name: "value-increase",
                                     add_css_class: "circular",
-
                                     connect_clicked[_sender] => move |_| {
-                                        NewPartitionDialog::builder()
-                                                                .launch(("/dev/sda".to_string(), root.clone().upcast::<gtk::Widget>())).into_stream();
+                                        _sender.input(PartitionGroupMsg::ShowSizeEntry);
                                     }
+
+                                    // connect_clicked[_sender] => move |_| {
+                                    //     NewPartitionDialog::builder()
+                                    //         .launch(("/dev/sda".to_string(), root.clone().upcast::<gtk::Widget>())).into_stream();
+                                    // }
                                 },
                             },
                         },
@@ -968,7 +978,16 @@ impl FactoryComponent for PartitionGroup {
                         add_css_class: "boxed-list",
                         set_hexpand: true,
                         set_selection_mode: gtk::SelectionMode::None,
-                    }
+                    },
+
+                    adw::EntryRow {
+                        set_title: "/dev/sda#",
+                        set_text: "Enter the size of new partition",
+                        set_activates_default: true,
+                        #[watch]
+                        set_visible: self.creating_partition,
+                        add_css_class: "focused"
+                    },
                 },
             },
         }
@@ -988,6 +1007,12 @@ impl FactoryComponent for PartitionGroup {
         let testbox = self.partitions.widget();
         let widgets = view_output!();
         widgets
+    }
+
+    fn update(&mut self, message: Self::Input, _sender: FactorySender<Self>) {
+        match message {
+            PartitionGroupMsg::ShowSizeEntry => self.creating_partition = !self.creating_partition,
+        }
     }
 }
 
