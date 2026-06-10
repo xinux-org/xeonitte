@@ -1,4 +1,8 @@
-use crate::{config::LIBEXECDIR, ui::window::AppMsg, utils::i18n::i18n_f};
+use crate::{
+    config::LIBEXECDIR,
+    ui::{new_partition_dialog::NewPartitionDialog, window::AppMsg},
+    utils::i18n::i18n_f,
+};
 use gettextrs::gettext;
 use log::{debug, error, info, trace};
 use relm4::{adw::prelude::*, factory::*, *};
@@ -948,7 +952,12 @@ impl FactoryComponent for PartitionGroup {
 
                                 gtk::Button {
                                     set_icon_name: "value-increase",
-                                    add_css_class: "circular"
+                                    add_css_class: "circular",
+
+                                    connect_clicked[_sender] => move |_| {
+                                        NewPartitionDialog::builder()
+                                                                .launch(("/dev/sda".to_string(), root.clone().upcast::<gtk::Widget>())).into_stream();
+                                    }
                                 },
                             },
                         },
