@@ -374,6 +374,7 @@ impl SimpleComponent for PartitionModel {
                                     name: disk.name.to_string(),
                                     partitions: part_factoryvec,
                                     creating_partition: false,
+                                    new_size_input: adw::EntryRow::new(),
                                 });
                             }
                         } else {
@@ -862,6 +863,7 @@ pub struct PartitionGroup {
     name: String,
     partitions: FactoryVecDeque<Partition>,
     creating_partition: bool,
+    new_size_input: adw::EntryRow,
 }
 
 #[derive(Debug)]
@@ -913,12 +915,11 @@ impl FactoryComponent for PartitionGroup {
 
                                 gtk::Label {
                                     set_text: "Total: ",
-                                    add_css_class: "caption-heading"
+                                    add_css_class: "heading"
                                 },
 
                                 gtk::Label {
                                     set_text: "1TB",
-                                    add_css_class: "caption"
                                 },
                             },
 
@@ -928,12 +929,11 @@ impl FactoryComponent for PartitionGroup {
 
                                 gtk::Label {
                                     set_text: "Free: ",
-                                    add_css_class: "caption-heading"
+                                    add_css_class: "heading"
                                 },
 
                                 gtk::Label {
                                     set_text: "512GB",
-                                    add_css_class: "caption"
                                 },
                             },
 
@@ -980,7 +980,8 @@ impl FactoryComponent for PartitionGroup {
                         set_selection_mode: gtk::SelectionMode::None,
                     },
 
-                    adw::EntryRow {
+                    #[local_ref]
+                    new_size -> adw::EntryRow {
                         set_title: "Enter the size of the new partition in MB",
                         set_input_purpose: gtk::InputPurpose::Number,
                         set_input_hints: gtk::InputHints::SPELLCHECK,
@@ -1010,13 +1011,17 @@ impl FactoryComponent for PartitionGroup {
         _sender: FactorySender<Self>,
     ) -> Self::Widgets {
         let testbox = self.partitions.widget();
+        let new_size = &self.new_size_input;
         let widgets = view_output!();
         widgets
     }
 
     fn update(&mut self, message: Self::Input, _sender: FactorySender<Self>) {
         match message {
-            PartitionGroupMsg::ShowSizeEntry => self.creating_partition = !self.creating_partition,
+            PartitionGroupMsg::ShowSizeEntry => {
+                self.creating_partition = !self.creating_partition;
+                self.new_size_input.add_css_class("focused");
+            }
         }
     }
 }
