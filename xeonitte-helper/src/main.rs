@@ -117,11 +117,7 @@ fn main() {
                 }
                 outdisks.push(disk);
             }
-            println!(
-                // "the found DEVICESSSSS: {}", // doesnʻt work, throws error
-                "{}",
-                serde_json::to_string(&outdisks).unwrap()
-            );
+            println!("{}", serde_json::to_string(&outdisks).unwrap());
         }
         SubCommands::Partition {} => {
             if let Err(e) = partition() {
@@ -431,12 +427,6 @@ fn partition() -> Result<()> {
                     )
                     .iter()
                     .collect::<Vec<_>>();
-
-                // info!("Partitions: Updating kernel partition table");
-                // let _ = Command::new("partprobe")
-                //     .arg(&device)
-                //     .output()
-                //     .context("Patprobe failed here")?;
 
                 let _ = Command::new("udevadm")
                     .args(["settle", "--timeout=10"])
