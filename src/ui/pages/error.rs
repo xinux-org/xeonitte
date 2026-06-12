@@ -58,7 +58,7 @@ impl SimpleComponent for ErrorModel {
                     gtk::Frame {
                         gtk::ScrolledWindow {
                             set_height_request: 800,
-                            set_width_request: 800,
+                            set_width_request: 900,
                             // set_default_height: 800,
                             gtk::TextView {
                                 set_editable: false,

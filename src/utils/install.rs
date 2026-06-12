@@ -247,7 +247,7 @@ impl Worker for InstallAsyncModel {
 
                     // TODO: make better way to write this shell command
                     let cmd = format!(
-                        "nix flake lock {} && nixos-install --no-root-passwd --no-channel-copy --root /nix/var/nix/builds/xeonitte --option build-dir /nix/var/nix/builds/xeonitte --flake {}",
+                        "nix flake lock {} && nixos-install --no-root-passwd --no-channel-copy --root /nix/var/nix/builds/xeonitte --option build-dir /nix/var/nix/builds/xeonitte --flake {} --show-trace",
                         flake_dir, flake_uri
                     );
                     INSTALL_BROKER.send(InstallMsg::Install(vec![
@@ -814,6 +814,12 @@ fn backup_and_update_flake() -> Result<()> {
         .arg("chmod")
         .arg("777")
         .arg("/tmp/xeonitte-term.log")
+        .output()?;
+
+    Command::new("pkexec")
+        .arg("chmod")
+        .arg("755")
+        .arg("/nix/var/nix/builds/xeonitte")
         .output()?;
     Ok(())
 }
