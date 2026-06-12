@@ -227,25 +227,27 @@ impl SimpleComponent for PartitionModel {
                             // Encryption settings for Advanced mode
                             model.luks_password.widget(),
 
-                            gtk::Button {
-                                add_css_class: "pill",
-                                adw::ButtonContent {
-                                    set_icon_name: "drive-multidisk-symbolic",
-                                    #[watch]
-                                    set_label: &gettext("Launch GParted"),
-                                },
-                                set_halign: gtk::Align::Center,
-                                connect_clicked => move |_| {
-                                    let cmd = Command::new("gparted").spawn();
-                                    if let Err(e) = cmd {
-                                        error!("Failed to launch GParted: {}", e);
-                                    }
-                                }
-                            },
+                            // gtk::Button {
+                            //     add_css_class: "pill",
+                            //     adw::ButtonContent {
+                            //         set_icon_name: "drive-multidisk-symbolic",
+                            //         #[watch]
+                            //         set_label: &gettext("Launch GParted"),
+                            //     },
+                            //     set_halign: gtk::Align::Center,
+                            //     connect_clicked => move |_| {
+                            //         let cmd = Command::new("gparted").spawn();
+                            //         if let Err(e) = cmd {
+                            //             error!("Failed to launch GParted: {}", e);
+                            //         }
+                            //     }
+                            // },
                             gtk::Box {
                                 set_orientation: gtk::Orientation::Horizontal,
                                 set_spacing: 20,
                                 set_halign: gtk::Align::Center,
+                                set_margin_top: 12,
+
                                 gtk::Button {
                                     add_css_class: "pill",
                                     #[watch]
