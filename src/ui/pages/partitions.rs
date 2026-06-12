@@ -1,7 +1,7 @@
 use crate::{
     config::LIBEXECDIR,
     ui::{new_partition_dialog::NewPartitionDialog, window::AppMsg},
-    utils::i18n::i18n_f,
+    utils::{i18n::i18n_f, parse},
 };
 use gettextrs::gettext;
 use log::{debug, error, info, trace};
@@ -374,7 +374,6 @@ impl SimpleComponent for PartitionModel {
                                     name: disk.name.to_string(),
                                     partitions: part_factoryvec,
                                     creating_partition: false,
-                                    new_size_input: adw::EntryRow::new(),
                                 });
                             }
                         } else {
@@ -863,19 +862,19 @@ pub struct PartitionGroup {
     name: String,
     partitions: FactoryVecDeque<Partition>,
     creating_partition: bool,
-    new_size_input: adw::EntryRow,
 }
 
 #[derive(Debug)]
 pub enum PartitionGroupMsg {
     ShowSizeEntry,
+    Apply(Option<String>),
 }
 
 #[relm4::factory(pub)]
 impl FactoryComponent for PartitionGroup {
     type Init = PartitionGroup;
     type Input = PartitionGroupMsg;
-    type Output = ();
+    type Output = u64;
     type ParentWidget = gtk::Box;
     type CommandOutput = ();
 
@@ -960,19 +959,14 @@ impl FactoryComponent for PartitionGroup {
                                 gtk::Button {
                                     set_icon_name: "value-increase",
                                     add_css_class: "circular",
-                                    connect_clicked[_sender] => move |_| {
-                                        _sender.input(PartitionGroupMsg::ShowSizeEntry);
+                                    connect_clicked[sender] => move |_| {
+                                        sender.input(PartitionGroupMsg::ShowSizeEntry);
                                     }
-
-                                    // connect_clicked[_sender] => move |_| {
-                                    //     NewPartitionDialog::builder()
-                                    //         .launch(("/dev/sda".to_string(), root.clone().upcast::<gtk::Widget>())).into_stream();
-                                    // }
                                 },
                             },
                         },
-
                     },
+
                     #[local_ref]
                     testbox -> gtk::ListBox {
                         add_css_class: "boxed-list",
@@ -980,8 +974,10 @@ impl FactoryComponent for PartitionGroup {
                         set_selection_mode: gtk::SelectionMode::None,
                     },
 
-                    #[local_ref]
-                    new_size -> adw::EntryRow {
+                    // #[local_ref]
+                    // new_size -> adw::EntryRow {
+                    #[name= "size_entry"]
+                    adw::EntryRow {
                         set_title: "Enter the size of the new partition in MB",
                         set_input_purpose: gtk::InputPurpose::Number,
                         set_input_hints: gtk::InputHints::SPELLCHECK,
@@ -993,6 +989,17 @@ impl FactoryComponent for PartitionGroup {
                         add_css_class: "focused",
                         add_css_class: "frame",
                         inline_css: "padding-top: 6px; padding-bottom: 6px; border-radius: 12px;",
+                        // connect_entry_activated => PartitionGroupMsg::Apply,
+                        connect_changed[sender] => move |x| {
+                            sender.input(PartitionGroupMsg::Apply({
+                                let text = x.text();
+                                if text.is_empty() {
+                                    None
+                                } else {
+                                    Some(text.into())
+                                }
+                            }));
+                        }
                     },
                 },
             },
@@ -1008,22 +1015,41 @@ impl FactoryComponent for PartitionGroup {
         _index: &DynamicIndex,
         root: Self::Root,
         _returned_widget: &<Self::ParentWidget as FactoryView>::ReturnedWidget,
-        _sender: FactorySender<Self>,
+        sender: FactorySender<Self>,
     ) -> Self::Widgets {
         let testbox = self.partitions.widget();
-        let new_size = &self.new_size_input;
         let widgets = view_output!();
         widgets
     }
 
-    fn update(&mut self, message: Self::Input, _sender: FactorySender<Self>) {
+    fn update_with_view(
+        &mut self,
+        widgets: &mut Self::Widgets,
+        message: Self::Input,
+        sender: FactorySender<Self>,
+    ) {
         match message {
             PartitionGroupMsg::ShowSizeEntry => {
                 self.creating_partition = !self.creating_partition;
-                self.new_size_input.add_css_class("focused");
+                widgets.size_entry.add_css_class("focused");
+            }
+            PartitionGroupMsg::Apply(x) => {
+                match x.unwrap_or_default().parse::<u64>() {
+                    Ok(_y) => {
+                        // sender.output(y).unwrap();
+                        widgets.size_entry.remove_css_class("error");
+                    }
+                    Err(_) => {
+                        widgets.size_entry.add_css_class("error");
+                    }
+                }
             }
         }
+
+        self.update_view(widgets, sender);
     }
+
+    // fn update(&mut self, message: Self::Input, _sender: FactorySender<Self>) {}
 }
 
 struct LuksPasswordComponent {
