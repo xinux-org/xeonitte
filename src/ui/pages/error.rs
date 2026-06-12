@@ -43,8 +43,8 @@ impl SimpleComponent for ErrorModel {
                     set_vexpand: true,
                     set_valign: gtk::Align::Center,
                     set_orientation: gtk::Orientation::Vertical,
-                    set_spacing: 20,
-                    set_margin_all: 20,
+                    set_spacing: 11,
+                    set_margin_all: 11,
                     gtk::Label {
                         add_css_class: "title-2",
                         #[watch]
@@ -58,7 +58,7 @@ impl SimpleComponent for ErrorModel {
                     gtk::Frame {
                         gtk::ScrolledWindow {
                             set_height_request: 800,
-                            set_width_request: 900,
+                            set_width_request: 1000,
                             // set_default_height: 800,
                             gtk::TextView {
                                 set_editable: false,

@@ -1,8 +1,5 @@
 use super::partitions::{CustomPartition, PartitionSchema};
-use crate::ui::{
-    pages::partitions::FullDiskOptions,
-    window::{AppMsg, UserConfig},
-};
+use crate::ui::window::{AppMsg, UserConfig};
 use adw::prelude::*;
 use gettextrs::gettext;
 use gnome_desktop::{self, XkbInfo, XkbInfoExt};

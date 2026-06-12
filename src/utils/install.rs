@@ -364,7 +364,6 @@ impl Worker for InstallAsyncModel {
 fn partition(partitions: Option<PartitionSchema>) -> Result<()> {
     let partitions = partitions.context("No partitions specified")?;
     let partjson = serde_json::to_string(&partitions)?;
-    debug!("Executing partition with json: {}", partjson);
     let mut out = Command::new("pkexec")
         .arg(format!("{}/xeonitte-helper", LIBEXECDIR))
         .arg("partition")
