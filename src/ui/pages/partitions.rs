@@ -1032,6 +1032,7 @@ impl FactoryComponent for PartitionGroup {
             PartitionGroupMsg::ShowSizeEntry => {
                 self.creating_partition = !self.creating_partition;
                 widgets.size_entry.add_css_class("focused");
+                widgets.size_entry.remove_css_class("error");
             }
             PartitionGroupMsg::Apply(x) => {
                 match x.unwrap_or_default().parse::<u64>() {
