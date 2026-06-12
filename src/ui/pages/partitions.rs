@@ -1,7 +1,7 @@
 use crate::{
     config::LIBEXECDIR,
     ui::{new_partition_dialog::NewPartitionDialog, window::AppMsg},
-    utils::{i18n::i18n_f, parse},
+    utils::i18n::i18n_f,
 };
 use gettextrs::gettext;
 use log::{debug, error, info, trace};
@@ -17,6 +17,7 @@ pub struct PartitionModel {
     schema: Option<PartitionSchema>,
     efi: bool,
     luks_password: Controller<LuksPasswordComponent>,
+    selected_disk: Option<String>,
 }
 
 #[derive(Debug)]
@@ -121,14 +122,17 @@ impl SimpleComponent for PartitionModel {
                                 set_orientation: gtk::Orientation::Horizontal,
                                 set_spacing: 20,
                                 set_halign: gtk::Align::Center,
+
                                 gtk::Button {
                                     add_css_class: "pill",
+                                    #[watch]
+                                    set_sensitive: model.selected_disk.is_some(),
                                     #[watch]
                                     set_label: &gettext("Advanced"),
                                     set_halign: gtk::Align::Center,
                                     connect_clicked[sender] => move |_| {
                                         sender.input(PartitionMsg::SetMethod(PartitionMethod::Advanced));
-                                    }
+                                    },
                                 },
                                 gtk::Button {
                                     set_valign: gtk::Align::Center,
@@ -266,9 +270,6 @@ impl SimpleComponent for PartitionModel {
                             }
                         }
                     },
-
-
-
                 }
             }
         }
@@ -293,6 +294,7 @@ impl SimpleComponent for PartitionModel {
             schema: None,
             efi: distinst_disks::Bootloader::detect() == distinst_disks::Bootloader::Efi,
             luks_password: luks_model,
+            selected_disk: None,
         };
 
         sender.input(PartitionMsg::Refresh);
@@ -343,7 +345,18 @@ impl SimpleComponent for PartitionModel {
                         if let Ok(disks) = disks {
                             debug!("Got disks: {:?}", disks);
 
-                            for disk in disks {
+                            for disk in match self.method {
+                                PartitionMethod::Advanced => disks
+                                    .into_iter()
+                                    .filter(|x| {
+                                        x.name == self.selected_disk.clone().unwrap_or_default()
+                                    })
+                                    .collect::<Vec<InputDisk>>(),
+                                _ => {
+                                    self.selected_disk = None;
+                                    disks
+                                }
+                            } {
                                 disks_guard.push_back(WholeDisk {
                                     name: disk.name.to_string(),
                                     size: disk.size,
@@ -361,7 +374,7 @@ impl SimpleComponent for PartitionModel {
                                         size::Size::from_bytes(part.size)
                                     );
                                     part_guard.push_back(PartitionInit {
-                                        name: part.name,
+                                        name: part.name.clone(),
                                         size: part.size,
                                         mountrow: adw::ComboRow::new(),
                                         device: disk.name.to_string(),
@@ -398,6 +411,7 @@ impl SimpleComponent for PartitionModel {
             }
             PartitionMsg::SetFullDisk(device) => {
                 trace!("SetFullDisk: {}", device);
+                self.selected_disk = Some(device.clone());
                 self.schema = Some(PartitionSchema::FullDisk(FullDiskOptions {
                     device,
                     encryption: self.luks_password.model().encryption_enabled,
@@ -1049,8 +1063,6 @@ impl FactoryComponent for PartitionGroup {
 
         self.update_view(widgets, sender);
     }
-
-    // fn update(&mut self, message: Self::Input, _sender: FactorySender<Self>) {}
 }
 
 struct LuksPasswordComponent {
