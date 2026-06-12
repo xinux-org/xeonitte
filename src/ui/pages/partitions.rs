@@ -1049,15 +1049,18 @@ impl FactoryComponent for PartitionGroup {
                 self.creating_partition = !self.creating_partition;
                 widgets.size_entry.add_css_class("focused");
                 widgets.size_entry.remove_css_class("error");
+                widgets.size_entry.set_show_apply_button(true);
             }
             PartitionGroupMsg::Apply(x) => {
                 match x.unwrap_or_default().parse::<u64>() {
                     Ok(_y) => {
                         // sender.output(y).unwrap();
                         widgets.size_entry.remove_css_class("error");
+                        widgets.size_entry.set_show_apply_button(true);
                     }
                     Err(_) => {
                         widgets.size_entry.add_css_class("error");
+                        widgets.size_entry.set_show_apply_button(false);
                     }
                 }
             }
