@@ -883,7 +883,9 @@ pub struct PartitionGroup {
 #[derive(Debug)]
 pub enum PartitionGroupMsg {
     ShowSizeEntry,
-    Apply(Option<String>),
+    CloseEntry,
+    Input(Option<String>),
+    Apply(String),
 }
 
 #[relm4::factory(pub)]
@@ -956,7 +958,7 @@ impl FactoryComponent for PartitionGroup {
                                 set_orientation: gtk::Orientation::Horizontal,
                                 set_halign: gtk::Align::End,
                                 set_valign: gtk::Align::Center,
-                                set_spacing: 6,
+                                set_spacing: 12,
 
                                 gtk::Box {
                                     set_orientation: gtk::Orientation::Horizontal,
@@ -972,7 +974,9 @@ impl FactoryComponent for PartitionGroup {
                                     }
                                 },
 
+                                #[name = "add_partition_button"]
                                 gtk::Button {
+                                    #[watch]
                                     set_icon_name: "value-increase",
                                     add_css_class: "circular",
                                     connect_clicked[sender] => move |_| {
@@ -990,31 +994,49 @@ impl FactoryComponent for PartitionGroup {
                         set_selection_mode: gtk::SelectionMode::None,
                     },
 
-                    // #[local_ref]
-                    // new_size -> adw::EntryRow {
-                    #[name= "size_entry"]
-                    adw::EntryRow {
-                        set_title: "Enter the size of the new partition in MB",
-                        set_input_purpose: gtk::InputPurpose::Number,
-                        set_input_hints: gtk::InputHints::SPELLCHECK,
-                        set_max_length: 16,
-                        set_activates_default: true,
-                        set_show_apply_button: true,
+                    #[name = "new_partition_box"]
+                    gtk::Box {
+                        set_orientation: gtk::Orientation::Horizontal,
+                        set_valign: gtk::Align::Center,
+                        set_spacing: 12,
                         #[watch]
                         set_visible: self.creating_partition,
-                        add_css_class: "focused",
-                        add_css_class: "frame",
-                        inline_css: "padding-top: 6px; padding-bottom: 6px; border-radius: 12px;",
-                        // connect_entry_activated => PartitionGroupMsg::Apply,
-                        connect_changed[sender] => move |x| {
-                            sender.input(PartitionGroupMsg::Apply({
-                                let text = x.text();
-                                if text.is_empty() {
-                                    None
-                                } else {
-                                    Some(text.into())
-                                }
-                            }));
+
+                        #[name= "size_entry"]
+                        adw::EntryRow {
+                            set_title: "Enter the size of the new partition in MB",
+                            set_input_purpose: gtk::InputPurpose::Number,
+                            set_max_length: 16,
+                            set_activates_default: true,
+                            set_hexpand: true,
+                            #[watch]
+                            set_show_apply_button: true,
+                            add_css_class: "focused",
+                            add_css_class: "frame",
+                            inline_css: "padding-top: 6px; padding-bottom: 6px; border-radius: 12px;",
+                            connect_apply[sender] => move |x| {
+                                sender.input(PartitionGroupMsg::Apply(x.text().into()));
+                            },
+                            connect_changed[sender] => move |x| {
+                                sender.input(PartitionGroupMsg::Input({
+                                    let text = x.text();
+                                    if text.is_empty() {
+                                        None
+                                    } else {
+                                        Some(text.into())
+                                    }
+                                }));
+                            }
+                        },
+
+                        gtk::Button {
+                           set_icon_name: "value-decrease",
+                           add_css_class: "raised",
+                           add_css_class: "circular",
+                           add_css_class: "destructive-action",
+                           set_valign: gtk::Align::Center,
+
+                           connect_clicked => PartitionGroupMsg::CloseEntry,
                         }
                     },
                 },
@@ -1046,12 +1068,17 @@ impl FactoryComponent for PartitionGroup {
     ) {
         match message {
             PartitionGroupMsg::ShowSizeEntry => {
-                self.creating_partition = !self.creating_partition;
+                self.creating_partition = true;
                 widgets.size_entry.add_css_class("focused");
-                widgets.size_entry.remove_css_class("error");
                 widgets.size_entry.set_show_apply_button(true);
             }
-            PartitionGroupMsg::Apply(x) => {
+            PartitionGroupMsg::CloseEntry => {
+                self.creating_partition = false;
+                widgets.size_entry.remove_css_class("focused");
+                widgets.size_entry.remove_css_class("error");
+                widgets.size_entry.set_show_apply_button(false);
+            }
+            PartitionGroupMsg::Input(x) => {
                 match x.unwrap_or_default().parse::<u64>() {
                     Ok(_y) => {
                         // sender.output(y).unwrap();
@@ -1064,6 +1091,7 @@ impl FactoryComponent for PartitionGroup {
                     }
                 }
             }
+            PartitionGroupMsg::Apply(x) => {}
         }
 
         self.update_view(widgets, sender);
