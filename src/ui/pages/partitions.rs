@@ -17,7 +17,6 @@ pub struct PartitionModel {
     schema: Option<PartitionSchema>,
     efi: bool,
     luks_password: Controller<LuksPasswordComponent>,
-    selected_disk: Option<String>,
 }
 
 #[derive(Debug)]
@@ -125,8 +124,6 @@ impl SimpleComponent for PartitionModel {
 
                                 gtk::Button {
                                     add_css_class: "pill",
-                                    #[watch]
-                                    set_sensitive: model.selected_disk.is_some(),
                                     #[watch]
                                     set_label: &gettext("Advanced"),
                                     set_halign: gtk::Align::Center,
@@ -296,7 +293,6 @@ impl SimpleComponent for PartitionModel {
             schema: None,
             efi: distinst_disks::Bootloader::detect() == distinst_disks::Bootloader::Efi,
             luks_password: luks_model,
-            selected_disk: None,
         };
 
         sender.input(PartitionMsg::Refresh);
@@ -347,18 +343,7 @@ impl SimpleComponent for PartitionModel {
                         if let Ok(disks) = disks {
                             debug!("Got disks: {:?}", disks);
 
-                            for disk in match self.method {
-                                PartitionMethod::Advanced => disks
-                                    .into_iter()
-                                    .filter(|x| {
-                                        x.name == self.selected_disk.clone().unwrap_or_default()
-                                    })
-                                    .collect::<Vec<InputDisk>>(),
-                                _ => {
-                                    self.selected_disk = None;
-                                    disks
-                                }
-                            } {
+                            for disk in disks {
                                 disks_guard.push_back(WholeDisk {
                                     name: disk.name.to_string(),
                                     size: disk.size,
@@ -413,7 +398,6 @@ impl SimpleComponent for PartitionModel {
             }
             PartitionMsg::SetFullDisk(device) => {
                 trace!("SetFullDisk: {}", device);
-                self.selected_disk = Some(device.clone());
                 self.schema = Some(PartitionSchema::FullDisk(FullDiskOptions {
                     device,
                     encryption: self.luks_password.model().encryption_enabled,
@@ -1002,7 +986,7 @@ impl FactoryComponent for PartitionGroup {
                         #[watch]
                         set_visible: self.creating_partition,
 
-                        #[name= "size_entry"]
+                        #[name = "size_entry"]
                         adw::EntryRow {
                             set_title: "Enter the size of the new partition in MB",
                             set_input_purpose: gtk::InputPurpose::Number,
