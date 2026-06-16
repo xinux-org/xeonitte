@@ -1,6 +1,6 @@
 use crate::{
     config::LIBEXECDIR,
-    ui::{new_partition_dialog::NewPartitionDialog, window::AppMsg},
+    ui::{new_partition_dialog::NewPartitionDialog, pages::partitions, window::AppMsg},
     utils::i18n::i18n_f,
 };
 use gettextrs::gettext;
@@ -361,9 +361,9 @@ impl SimpleComponent for PartitionModel {
                                         size::Size::from_bytes(part.size)
                                     );
                                     part_guard.push_back(PartitionInit {
+                                        mountrow: adw::ComboRow::new(),
                                         name: part.name.clone(),
                                         size: part.size,
-                                        mountrow: adw::ComboRow::new(),
                                         device: disk.name.to_string(),
                                     });
                                 }
@@ -374,6 +374,7 @@ impl SimpleComponent for PartitionModel {
                                     name: disk.name.to_string(),
                                     partitions: part_factoryvec,
                                     creating_partition: false,
+                                    new_partition_size: 0,
                                 });
                             }
                         } else {
@@ -862,6 +863,7 @@ pub struct PartitionGroup {
     name: String,
     partitions: FactoryVecDeque<Partition>,
     creating_partition: bool,
+    new_partition_size: u64,
 }
 
 #[derive(Debug)]
@@ -869,7 +871,7 @@ pub enum PartitionGroupMsg {
     ShowSizeEntry,
     CloseEntry,
     Input(Option<String>),
-    Apply(String),
+    Apply,
 }
 
 #[relm4::factory(pub)]
@@ -999,7 +1001,7 @@ impl FactoryComponent for PartitionGroup {
                             add_css_class: "frame",
                             inline_css: "padding-top: 6px; padding-bottom: 6px; border-radius: 12px;",
                             connect_apply[sender] => move |x| {
-                                sender.input(PartitionGroupMsg::Apply(x.text().into()));
+                                sender.input(PartitionGroupMsg::Apply);
                             },
                             connect_changed[sender] => move |x| {
                                 sender.input(PartitionGroupMsg::Input({
@@ -1065,7 +1067,8 @@ impl FactoryComponent for PartitionGroup {
             PartitionGroupMsg::Input(x) => {
                 let x = x.unwrap_or_default();
                 match x.parse::<u64>() {
-                    Ok(_y) => {
+                    Ok(y) => {
+                        self.new_partition_size = y;
                         widgets.size_entry.set_show_apply_button(true);
                     }
                     Err(_) => {
@@ -1081,7 +1084,19 @@ impl FactoryComponent for PartitionGroup {
                     }
                 }
             }
-            PartitionGroupMsg::Apply(x) => {}
+            PartitionGroupMsg::Apply => {
+                let index = self.partitions.len() + 1;
+                let device = self.partitions.front().unwrap().device.clone();
+                self.partitions.guard().push_back({
+                    PartitionInit {
+                        name: format!("{device}{index}"),
+                        size: self.new_partition_size * 1024 * 1024,
+                        mountrow: adw::ComboRow::new(),
+                        device,
+                    }
+                });
+                sender.input(PartitionGroupMsg::CloseEntry);
+            }
         }
 
         self.update_view(widgets, sender);
