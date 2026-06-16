@@ -1059,8 +1059,8 @@ impl FactoryComponent for PartitionGroup {
             PartitionGroupMsg::CloseEntry => {
                 self.creating_partition = false;
                 widgets.size_entry.remove_css_class("focused");
-                widgets.size_entry.remove_css_class("error");
                 widgets.size_entry.set_show_apply_button(false);
+                widgets.size_entry.set_text("");
             }
             PartitionGroupMsg::Input(x) => {
                 let x = x.unwrap_or_default();
