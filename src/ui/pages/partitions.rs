@@ -1063,15 +1063,21 @@ impl FactoryComponent for PartitionGroup {
                 widgets.size_entry.set_show_apply_button(false);
             }
             PartitionGroupMsg::Input(x) => {
-                match x.unwrap_or_default().parse::<u64>() {
+                let x = x.unwrap_or_default();
+                match x.parse::<u64>() {
                     Ok(_y) => {
-                        // sender.output(y).unwrap();
-                        widgets.size_entry.remove_css_class("error");
                         widgets.size_entry.set_show_apply_button(true);
                     }
                     Err(_) => {
-                        widgets.size_entry.add_css_class("error");
-                        widgets.size_entry.set_show_apply_button(false);
+                        if !x.is_empty() {
+                            let y = &x
+                                .chars()
+                                .into_iter()
+                                .filter(|y| !y.is_ascii_digit())
+                                .collect::<String>();
+                            let index = x.find(y).unwrap().try_into().unwrap();
+                            widgets.size_entry.delete_text(index, index + 1);
+                        }
                     }
                 }
             }
