@@ -1006,8 +1006,8 @@ impl FactoryComponent for PartitionGroup {
                             set_hexpand: true,
                             #[watch]
                             set_show_apply_button: true,
-                            add_css_class: "focused",
-                            add_css_class: "frame",
+                            #[iterate]
+                            add_css_class: ["focused", "frame"],
                             inline_css: "padding-top: 6px; padding-bottom: 6px; border-radius: 12px;",
                             connect_apply[sender] => move |x| {
                                 sender.input(PartitionGroupMsg::Apply);
@@ -1026,9 +1026,8 @@ impl FactoryComponent for PartitionGroup {
 
                         gtk::Button {
                            set_icon_name: "value-decrease",
-                           add_css_class: "raised",
-                           add_css_class: "circular",
-                           add_css_class: "destructive-action",
+                           #[iterate]
+                           add_css_class: ["raised", "circular", "destructive-action"],
                            set_valign: gtk::Align::Center,
 
                            connect_clicked => PartitionGroupMsg::CloseEntry,
@@ -1079,6 +1078,13 @@ impl FactoryComponent for PartitionGroup {
                     Ok(y) => {
                         self.new_partition_size = y;
                         widgets.size_entry.set_show_apply_button(true);
+                        if y > self.free_space / 1000_000 {
+                            widgets.size_entry.set_show_apply_button(false);
+                            widgets.size_entry.add_css_class("error");
+                        } else {
+                            widgets.size_entry.remove_css_class("error");
+                            widgets.size_entry.set_show_apply_button(true);
+                        }
                     }
                     Err(_) => {
                         if !x.is_empty() {
@@ -1089,6 +1095,9 @@ impl FactoryComponent for PartitionGroup {
                                 .collect::<String>();
                             let index = x.find(y).unwrap().try_into().unwrap();
                             widgets.size_entry.delete_text(index, index + 1);
+                        } else {
+                            widgets.size_entry.set_show_apply_button(false);
+                            widgets.size_entry.remove_css_class("error");
                         }
                     }
                 }
