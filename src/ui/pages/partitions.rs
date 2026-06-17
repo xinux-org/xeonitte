@@ -1065,12 +1065,17 @@ impl FactoryComponent for PartitionGroup {
                 self.creating_partition = true;
                 widgets.size_entry.add_css_class("focused");
                 widgets.size_entry.set_show_apply_button(true);
+                widgets
+                    .size_entry
+                    .set_text(&(self.free_space / 1000_000).to_string());
             }
             PartitionGroupMsg::CloseEntry => {
                 self.creating_partition = false;
                 widgets.size_entry.remove_css_class("focused");
                 widgets.size_entry.set_show_apply_button(false);
-                widgets.size_entry.set_text("");
+                widgets
+                    .size_entry
+                    .set_text(&(self.free_space / 1000_000).to_string());
             }
             PartitionGroupMsg::Input(x) => {
                 let x = x.unwrap_or_default();
