@@ -24,6 +24,7 @@ pub enum PartitionMsg {
     RemoveFormatPartition(String),
     RemoveMountPartition(String),
     AddPartition(String, CustomPartition),
+    // RemovePartition(String),
     SetEncryption,
     SetPassphrase,
     SetPassphraseConfirm,
@@ -746,13 +747,19 @@ pub struct PartitionInit {
 pub enum PartitionRowMsg {
     Deselect(String),
     SetSwap(bool),
+    Delete,
+}
+
+#[derive(Debug)]
+pub enum PartitionOut {
+    Delete(String),
 }
 
 #[relm4::factory(pub)]
 impl FactoryComponent for Partition {
     type Init = PartitionInit;
     type Input = PartitionRowMsg;
-    type Output = ();
+    type Output = PartitionOut;
     type ParentWidget = gtk::ListBox;
     type CommandOutput = ();
 
@@ -817,6 +824,9 @@ impl FactoryComponent for Partition {
                     set_halign: gtk::Align::End,
                     set_margin_top: 8,
                     set_margin_bottom: 8,
+
+                    connect_activate => PartitionRowMsg::Delete,
+                    connect_clicked => PartitionRowMsg::Delete
                 },
             },
         }
@@ -841,7 +851,7 @@ impl FactoryComponent for Partition {
         _returned_widget: &<Self::ParentWidget as FactoryView>::ReturnedWidget,
         sender: FactorySender<Self>,
     ) -> Self::Widgets {
-        let mountrow = &self.mountrow;
+        let mountrow = &self.mountrow.clone();
         let widgets = view_output!();
         widgets
     }
@@ -860,10 +870,18 @@ impl FactoryComponent for Partition {
             PartitionRowMsg::SetSwap(swap) => {
                 self.swap = swap;
             }
+            PartitionRowMsg::Delete => {
+                _sender
+                    .output(PartitionOut::Delete(self.name.clone()))
+                    .unwrap()
+
+                // PARTITION_BROKER.send(PartitionMsg::RemovePartition(self.name.to_string()));
+            }
         }
     }
 }
 
+#[derive(Debug)]
 pub struct PartitionGroup {
     name: String,
     partitions: FactoryVecDeque<Partition>,
@@ -879,13 +897,14 @@ pub enum PartitionGroupMsg {
     CloseEntry,
     Input(Option<String>),
     Apply,
+    Delete(String),
 }
 
 #[relm4::factory(pub)]
 impl FactoryComponent for PartitionGroup {
     type Init = PartitionGroup;
     type Input = PartitionGroupMsg;
-    type Output = u64;
+    type Output = ();
     type ParentWidget = gtk::Box;
     type CommandOutput = ();
 
@@ -1038,8 +1057,35 @@ impl FactoryComponent for PartitionGroup {
         }
     }
 
-    fn init_model(parent: Self::Init, _index: &DynamicIndex, _sender: FactorySender<Self>) -> Self {
-        parent
+    fn init_model(parent: Self::Init, _index: &DynamicIndex, sender: FactorySender<Self>) -> Self {
+        let mut partitions = FactoryVecDeque::builder()
+            .launch(gtk::ListBox::default())
+            .forward(sender.input_sender(), |output| match output {
+                PartitionOut::Delete(x) => PartitionGroupMsg::Delete(x),
+            });
+
+        let _ = parent
+            .partitions
+            .iter()
+            .map(|x| {
+                partitions.guard().push_back(PartitionInit {
+                    name: x.name.clone(),
+                    device: x.device.clone(),
+                    mountrow: x.mountrow.clone(),
+                    size: x.size,
+                })
+            })
+            .collect::<Vec<_>>();
+
+        Self {
+            name: parent.name,
+            creating_partition: parent.creating_partition,
+            new_partition_size: parent.new_partition_size,
+            free_space: parent.free_space,
+            total_size: parent.total_size,
+            // partitions: parent.partitions,
+            partitions,
+        }
     }
 
     fn init_widgets(
@@ -1100,6 +1146,7 @@ impl FactoryComponent for PartitionGroup {
                                 .collect::<String>();
                             let index = x.find(y).unwrap().try_into().unwrap();
                             widgets.size_entry.delete_text(index, index + 1);
+                            widgets.size_entry.set_text(&self.free_space.to_string());
                         } else {
                             widgets.size_entry.set_show_apply_button(false);
                             widgets.size_entry.remove_css_class("error");
@@ -1119,6 +1166,14 @@ impl FactoryComponent for PartitionGroup {
                     }
                 });
                 sender.input(PartitionGroupMsg::CloseEntry);
+            }
+            PartitionGroupMsg::Delete(name) => {
+                let index = self
+                    .partitions
+                    .iter()
+                    .enumerate()
+                    .find_map(|(i, x)| if x.name == name { Some(i) } else { None });
+                self.partitions.guard().remove(index.unwrap());
             }
         }
 
