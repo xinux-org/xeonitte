@@ -1,8 +1,4 @@
-use crate::{
-    config::LIBEXECDIR,
-    ui::{new_partition_dialog::NewPartitionDialog, pages::partitions, window::AppMsg},
-    utils::i18n::i18n_f,
-};
+use crate::{config::LIBEXECDIR, ui::window::AppMsg, utils::i18n::i18n_f};
 use gettextrs::gettext;
 use log::{debug, error, info, trace};
 use relm4::{adw::prelude::*, factory::*, *};
@@ -370,11 +366,21 @@ impl SimpleComponent for PartitionModel {
 
                                 part_guard.drop();
 
+                                let name = disk.name.to_string();
+                                let used =
+                                    part_factoryvec.iter().map(|x| x.size).fold(0, |x, y| x + y);
+                                let total_size =
+                                    get_storage_size_in_bytes(&name.clone(), 512).unwrap();
+                                println!("the TOTAL: {total_size}, and USED: {used}");
+                                let free_space = total_size - used;
+
                                 partition_groups_guard.push_back(PartitionGroup {
-                                    name: disk.name.to_string(),
                                     partitions: part_factoryvec,
                                     creating_partition: false,
                                     new_partition_size: 0,
+                                    name,
+                                    free_space,
+                                    total_size,
                                 });
                             }
                         } else {
@@ -864,6 +870,8 @@ pub struct PartitionGroup {
     partitions: FactoryVecDeque<Partition>,
     creating_partition: bool,
     new_partition_size: u64,
+    free_space: u64,
+    total_size: u64,
 }
 
 #[derive(Debug)]
@@ -922,7 +930,7 @@ impl FactoryComponent for PartitionGroup {
                                 },
 
                                 gtk::Label {
-                                    set_text: "1TB",
+                                    set_text: &size::Size::from_bytes(self.total_size).to_string(),
                                 },
                             },
 
@@ -936,7 +944,9 @@ impl FactoryComponent for PartitionGroup {
                                 },
 
                                 gtk::Label {
-                                    set_text: "512GB",
+                                    // set_text: "512GB",
+                                    // set_text: &size::Size::from_megabytes(get_storage_free_size(&self.name, 512).unwrap_or_default()).to_string(),
+                                    set_text: &size::Size::from_bytes(self.free_space).to_string(),
                                 },
                             },
 
@@ -992,7 +1002,7 @@ impl FactoryComponent for PartitionGroup {
                         adw::EntryRow {
                             set_title: "Enter the size of the new partition in MB",
                             set_input_purpose: gtk::InputPurpose::Number,
-                            set_max_length: 16,
+                            set_max_length: 12,
                             set_activates_default: true,
                             set_hexpand: true,
                             #[watch]
@@ -1202,4 +1212,21 @@ impl SimpleComponent for LuksPasswordComponent {
             }
         }
     }
+}
+
+fn get_storage_size_in_bytes(device: &str, logical_block_size: u64) -> Option<u64> {
+    let device = if device.contains("/dev/") {
+        &device[5..]
+    } else {
+        device
+    };
+    let contents = std::fs::read_to_string(format!("/sys/class/block/{}/size", device))
+        .expect(&format!(
+            "Couldnʻt read the /sys/class/block/{}/size file.",
+            device
+        ))
+        .trim()
+        .to_string();
+
+    contents.parse::<u64>().ok().map(|x| x * logical_block_size)
 }
