@@ -371,7 +371,6 @@ impl SimpleComponent for PartitionModel {
                                     part_factoryvec.iter().map(|x| x.size).fold(0, |x, y| x + y);
                                 let total_size =
                                     get_storage_size_in_bytes(&name.clone(), 512).unwrap();
-                                println!("the TOTAL: {total_size}, and USED: {used}");
                                 let free_space = total_size - used;
 
                                 partition_groups_guard.push_back(PartitionGroup {
