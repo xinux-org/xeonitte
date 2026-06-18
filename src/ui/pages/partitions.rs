@@ -378,6 +378,7 @@ impl SimpleComponent for PartitionModel {
                                     partitions: part_factoryvec,
                                     creating_partition: false,
                                     new_partition_size: 0,
+                                    size_type: SizeType::MB,
                                     name,
                                     free_space,
                                     total_size,
@@ -882,6 +883,14 @@ impl FactoryComponent for Partition {
 }
 
 #[derive(Debug)]
+pub enum SizeType {
+    TB,
+    GB,
+    MB,
+    KB,
+}
+
+#[derive(Debug)]
 pub struct PartitionGroup {
     name: String,
     partitions: FactoryVecDeque<Partition>,
@@ -889,6 +898,7 @@ pub struct PartitionGroup {
     new_partition_size: u64,
     free_space: u64,
     total_size: u64,
+    size_type: SizeType,
 }
 
 #[derive(Debug)]
@@ -898,6 +908,7 @@ pub enum PartitionGroupMsg {
     Input(Option<String>),
     Apply,
     Delete(String),
+    SetSizeType(SizeType),
 }
 
 #[relm4::factory(pub)]
@@ -910,10 +921,11 @@ impl FactoryComponent for PartitionGroup {
 
     view! {
         adw::PreferencesGroup {
+
             gtk::Box {
                 set_hexpand: true,
                 set_orientation: gtk::Orientation::Horizontal,
-                add_css_class: "linked",
+                // add_css_class: "linked",
                 set_spacing: 8,
 
                 gtk::Box {
@@ -932,6 +944,9 @@ impl FactoryComponent for PartitionGroup {
                             set_margin_all: 6,
                             add_css_class: "heading"
                         },
+
+
+
 
                         gtk::Box {
                             set_hexpand: true,
@@ -1013,6 +1028,8 @@ impl FactoryComponent for PartitionGroup {
                         set_orientation: gtk::Orientation::Horizontal,
                         set_valign: gtk::Align::Center,
                         set_spacing: 12,
+                        set_margin_top: 6,
+
                         #[watch]
                         set_visible: self.creating_partition,
 
@@ -1028,7 +1045,7 @@ impl FactoryComponent for PartitionGroup {
                             #[iterate]
                             add_css_class: ["focused", "frame"],
                             inline_css: "padding-top: 6px; padding-bottom: 6px; border-radius: 12px;",
-                            connect_apply[sender] => move |x| {
+                            connect_apply[sender] => move |_| {
                                 sender.input(PartitionGroupMsg::Apply);
                             },
                             connect_changed[sender] => move |x| {
@@ -1041,6 +1058,20 @@ impl FactoryComponent for PartitionGroup {
                                     }
                                 }));
                             }
+                        },
+
+                        gtk::DropDown {
+                            set_valign: gtk::Align::Center,
+                            set_model: Some(&gtk::StringList::new(&["TB", "GB", "MB", "KB"])),
+                            connect_selected_item_notify[sender] => move |row| {
+                                let x = match row.selected() {
+                                    0 => SizeType::TB,
+                                    1 => SizeType::GB,
+                                    3 => SizeType::KB,
+                                    _ => SizeType::MB,
+                                };
+                                sender.input(PartitionGroupMsg::SetSizeType(x));
+                            },
                         },
 
                         gtk::Button {
@@ -1083,7 +1114,7 @@ impl FactoryComponent for PartitionGroup {
             new_partition_size: parent.new_partition_size,
             free_space: parent.free_space,
             total_size: parent.total_size,
-            // partitions: parent.partitions,
+            size_type: parent.size_type,
             partitions,
         }
     }
@@ -1174,6 +1205,9 @@ impl FactoryComponent for PartitionGroup {
                     .enumerate()
                     .find_map(|(i, x)| if x.name == name { Some(i) } else { None });
                 self.partitions.guard().remove(index.unwrap());
+            }
+            PartitionGroupMsg::SetSizeType(x) => {
+                self.size_type = x;
             }
         }
 
