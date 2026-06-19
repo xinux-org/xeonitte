@@ -8,9 +8,9 @@ pub enum SizeType {
 
 pub fn get_byte_from(x: SizeType) -> u64 {
     match x {
-        SizeType::TB => 1_000_000_000_000,
-        SizeType::GB => 1_000_000_000,
-        SizeType::MB => 1_000_000,
-        SizeType::KB => 1_000,
+        SizeType::TB => 1024 ^ 4,
+        SizeType::GB => 1024 ^ 3,
+        SizeType::MB => 1024 ^ 2,
+        SizeType::KB => 1024,
     }
 }

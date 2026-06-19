@@ -1,6 +1,7 @@
 use crate::{
     config::LIBEXECDIR,
     ui::{
+        pages::partitions,
         util::{SizeType, get_byte_from},
         window::{self, AppMsg},
     },
@@ -973,6 +974,7 @@ impl FactoryComponent for PartitionGroup {
                                 },
 
                                 gtk::Label {
+                                    #[watch]
                                     set_text: &size::Size::from_bytes(self.free_space).to_string(),
                                 },
                             },
@@ -1189,16 +1191,25 @@ impl FactoryComponent for PartitionGroup {
                             device,
                         }
                     });
+                    self.free_space = self
+                        .free_space
+                        .wrapping_sub(self.new_partition_size * get_byte_from(self.size_type));
                     sender.input(PartitionGroupMsg::CloseEntry);
                 }
             }
             PartitionGroupMsg::Delete(name) => {
-                let index = self
+                let (index, x) = self
                     .partitions
                     .iter()
+                    .cloned()
                     .enumerate()
-                    .find_map(|(i, x)| if x.name == name { Some(i) } else { None });
-                self.partitions.guard().remove(index.unwrap());
+                    .find_map(|(i, x)| if x.name == name { Some((i, x)) } else { None })
+                    .unwrap_or_default();
+
+                self.free_space = self
+                    .free_space
+                    .wrapping_sub(x.size * get_byte_from(self.size_type));
+                self.partitions.guard().remove(index.clone());
             }
             PartitionGroupMsg::SetSizeType(x) => {
                 self.size_type = x;
@@ -1208,6 +1219,7 @@ impl FactoryComponent for PartitionGroup {
                 if self.new_partition_size > self.free_space / get_byte_from(self.size_type) {
                     widgets.size_entry.set_show_apply_button(false);
                     widgets.size_entry.add_css_class("error");
+                    // widgets.size_entry.set_
                 } else {
                     widgets.size_entry.remove_css_class("error");
                     widgets.size_entry.set_show_apply_button(true);
