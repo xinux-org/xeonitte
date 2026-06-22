@@ -801,8 +801,8 @@ impl FactoryComponent for Partition {
             },
             #[local_ref]
             add_row = mountrow -> adw::ComboRow {
-                #[watch]
-                set_visible: !self.swap,
+                // #[watch]
+                set_visible: true,
                 #[watch]
                 set_title: &gettext("Mount"),
                 // TODO: When switching language the "Do not mount" option does not update
@@ -1100,7 +1100,7 @@ impl FactoryComponent for PartitionGroup {
                 partitions.guard().push_back(PartitionInit {
                     name: x.name.clone(),
                     device: x.device.clone(),
-                    mountrow: x.mountrow.clone(),
+                    mountrow: adw::ComboRow::new(),
                     size: x.size,
                 })
             })
