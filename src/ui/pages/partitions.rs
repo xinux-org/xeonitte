@@ -1031,7 +1031,7 @@ impl FactoryComponent for PartitionGroup {
 
                         #[name = "size_entry"]
                         adw::EntryRow {
-                            set_title: "Enter the size of the new partition in MB",
+                            set_title: "Enter the new partition size",
                             set_input_purpose: gtk::InputPurpose::Number,
                             set_max_length: 12,
                             set_activates_default: true,
@@ -1059,7 +1059,7 @@ impl FactoryComponent for PartitionGroup {
                         #[name = "dropdown"]
                         gtk::DropDown {
                             set_valign: gtk::Align::Center,
-                            set_model: Some(&gtk::StringList::new(&["TB", "GB", "MB", "KB"])),
+                            set_model: Some(&gtk::StringList::new(&["TiB", "GiB", "MiB", "KiB"])),
                             connect_selected_item_notify[sender] => move |row| {
                                 let x = match row.selected() {
                                     0 => SizeType::TB,
