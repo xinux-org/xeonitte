@@ -1,9 +1,8 @@
 use crate::{
     config::LIBEXECDIR,
     ui::{
-        pages::partitions,
-        util::{SizeType, get_byte_from},
-        window::{self, AppMsg},
+        util::{SizeType, represent},
+        window::AppMsg,
     },
     utils::i18n::i18n_f,
 };
@@ -11,7 +10,13 @@ use gettextrs::gettext;
 use log::{debug, error, info, trace};
 use relm4::{adw::prelude::*, factory::*, *};
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, convert::identity, process::Command};
+use size::Size;
+use std::{
+    collections::HashMap,
+    convert::identity,
+    ops::{AddAssign, SubAssign},
+    process::Command,
+};
 
 pub struct PartitionModel {
     disks: FactoryVecDeque<WholeDisk>,
@@ -380,16 +385,16 @@ impl SimpleComponent for PartitionModel {
                                     part_factoryvec.iter().map(|x| x.size).fold(0, |x, y| x + y);
                                 let total_size =
                                     get_storage_size_in_bytes(&name.clone(), 512).unwrap();
-                                let free_space = total_size - used;
+                                let free_space = Size::from_bytes(total_size - used);
 
                                 partition_groups_guard.push_back(PartitionGroup {
                                     partitions: part_factoryvec,
                                     creating_partition: false,
-                                    new_partition_size: 0,
-                                    size_type: SizeType::MB,
+                                    new_partition_size: Size::default(),
                                     name,
                                     free_space,
                                     total_size,
+                                    size_type: SizeType::MB,
                                 });
                             }
                         } else {
@@ -879,13 +884,9 @@ impl FactoryComponent for Partition {
             PartitionRowMsg::SetSwap(swap) => {
                 self.swap = swap;
             }
-            PartitionRowMsg::Delete => {
-                _sender
-                    .output(PartitionOut::Delete(self.name.clone()))
-                    .unwrap()
-
-                // PARTITION_BROKER.send(PartitionMsg::RemovePartition(self.name.to_string()));
-            }
+            PartitionRowMsg::Delete => _sender
+                .output(PartitionOut::Delete(self.name.clone()))
+                .unwrap(),
         }
     }
 }
@@ -895,8 +896,8 @@ pub struct PartitionGroup {
     name: String,
     partitions: FactoryVecDeque<Partition>,
     creating_partition: bool,
-    new_partition_size: u64,
-    free_space: u64,
+    new_partition_size: Size,
+    free_space: Size,
     total_size: u64,
     size_type: SizeType,
 }
@@ -960,7 +961,7 @@ impl FactoryComponent for PartitionGroup {
                                 },
 
                                 gtk::Label {
-                                    set_text: &size::Size::from_bytes(self.total_size).to_string(),
+                                    set_text: &size::Size::from_bytes::<u64>(self.total_size).to_string(),
                                 },
                             },
 
@@ -975,7 +976,7 @@ impl FactoryComponent for PartitionGroup {
 
                                 gtk::Label {
                                     #[watch]
-                                    set_text: &size::Size::from_bytes(self.free_space).to_string(),
+                                    set_text: &self.free_space.to_string(),
                                 },
                             },
 
@@ -1060,14 +1061,14 @@ impl FactoryComponent for PartitionGroup {
                         gtk::DropDown {
                             set_valign: gtk::Align::Center,
                             set_model: Some(&gtk::StringList::new(&["TiB", "GiB", "MiB", "KiB"])),
-                            connect_selected_item_notify[sender] => move |row| {
-                                let x = match row.selected() {
+                            connect_selected_item_notify[sender, x = self.new_partition_size.clone().bytes()] => move |row| {
+                                let t = match row.selected() {
                                     0 => SizeType::TB,
                                     1 => SizeType::GB,
                                     3 => SizeType::KB,
                                     _ => SizeType::MB,
                                 };
-                                sender.input(PartitionGroupMsg::SetSizeType(x));
+                                sender.input(PartitionGroupMsg::SetSizeType(t));
                             },
                         },
 
@@ -1137,29 +1138,23 @@ impl FactoryComponent for PartitionGroup {
     ) {
         match message {
             PartitionGroupMsg::ShowSizeEntry => {
-                widgets
-                    .size_entry
-                    .set_text(&self.new_partition_size.to_string());
-
                 self.creating_partition = true;
-                self.size_type = SizeType::MB;
                 widgets.size_entry.add_css_class("focused");
-
-                sender.input(PartitionGroupMsg::Validate);
             }
             PartitionGroupMsg::CloseEntry => {
                 self.creating_partition = false;
                 widgets.size_entry.remove_css_class("focused");
                 widgets.size_entry.set_show_apply_button(false);
-                widgets
-                    .size_entry
-                    .set_text(&(self.free_space / get_byte_from(self.size_type)).to_string());
+                // widgets
+                //     .size_entry
+                //     .set_text(&(self.free_space / get_byte_from(self.size_type.1)).to_string());
             }
             PartitionGroupMsg::Input(x) => {
                 let x = x.unwrap_or_default();
                 match x.parse::<u64>() {
                     Ok(y) => {
-                        self.new_partition_size = y;
+                        self.new_partition_size = represent(self.size_type, y);
+
                         sender.input(PartitionGroupMsg::Validate);
                     }
                     Err(_) => {
@@ -1172,7 +1167,7 @@ impl FactoryComponent for PartitionGroup {
                             let index = x.find(y).unwrap().try_into().unwrap();
                             widgets.size_entry.delete_text(index, index + 1);
                         } else {
-                            self.new_partition_size = 0;
+                            self.new_partition_size = Size::default();
                             widgets.size_entry.set_show_apply_button(false);
                             widgets.size_entry.remove_css_class("error");
                         }
@@ -1180,20 +1175,18 @@ impl FactoryComponent for PartitionGroup {
                 }
             }
             PartitionGroupMsg::Apply => {
-                if self.new_partition_size > 0 {
+                if self.new_partition_size.bytes() > 0 {
                     let index = self.partitions.len() + 1;
                     let device = self.partitions.front().unwrap().device.clone();
                     self.partitions.guard().push_back({
                         PartitionInit {
                             name: format!("{device}{index}"),
-                            size: self.new_partition_size * get_byte_from(self.size_type),
+                            size: self.new_partition_size.bytes() as u64,
                             mountrow: adw::ComboRow::new(),
                             device,
                         }
                     });
-                    self.free_space = self
-                        .free_space
-                        .wrapping_sub(self.new_partition_size * get_byte_from(self.size_type));
+                    self.free_space.sub_assign(self.new_partition_size);
                     sender.input(PartitionGroupMsg::CloseEntry);
                 }
             }
@@ -1206,17 +1199,16 @@ impl FactoryComponent for PartitionGroup {
                     .find_map(|(i, x)| if x.name == name { Some((i, x)) } else { None })
                     .unwrap_or_default();
 
-                self.free_space = self
-                    .free_space
-                    .wrapping_sub(x.size * get_byte_from(self.size_type));
+                self.free_space.add_assign(Size::from_bytes(x.size));
                 self.partitions.guard().remove(index.clone());
             }
             PartitionGroupMsg::SetSizeType(x) => {
                 self.size_type = x;
+                self.new_partition_size = represent(x, self.new_partition_size.bytes() as u64);
                 sender.input(PartitionGroupMsg::Validate);
             }
             PartitionGroupMsg::Validate => {
-                if self.new_partition_size > self.free_space / get_byte_from(self.size_type) {
+                if self.new_partition_size.ge(&self.free_space) {
                     widgets.size_entry.set_show_apply_button(false);
                     widgets.size_entry.add_css_class("error");
                     // widgets.size_entry.set_
