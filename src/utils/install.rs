@@ -8,12 +8,14 @@ use crate::{
         },
         window::{AppMsg, UserConfig},
     },
+    utils::disko::Devices,
 };
 use anyhow::{Context, Result, anyhow};
 use log::{debug, error, info};
 use relm4::*;
 use std::{
     collections::HashMap,
+    fmt::format,
     fs,
     io::{BufRead, BufReader, Write},
     process::{Command, Stdio},
@@ -38,6 +40,7 @@ pub enum InstallAsyncMsg {
         HashMap<String, HashMap<String, Choice>>, // Listconfig
         ConfigType,
         bool,
+        Devices,
     ),
     FinishInstall(
         Option<String>, //timezone,
@@ -73,6 +76,7 @@ impl Worker for InstallAsyncModel {
                 listconfig,
                 configtype,
                 imperative_timezone,
+                disko_config,
             ) => {
                 self.username = user.as_ref().as_ref().map(|u| u.username.clone());
                 self.password = user.as_ref().as_ref().map(|u| u.password.clone());
@@ -156,6 +160,7 @@ impl Worker for InstallAsyncModel {
                         ))
                         .output()
                         .unwrap();
+
                     Command::new("pkexec")
                         .arg("mv")
                         .arg(format!("{}/etc/nixos/hardware-configuration.nix", TMPDIR))
@@ -172,26 +177,47 @@ impl Worker for InstallAsyncModel {
                         .arg(format!("{}/etc/nixos/configuration.nix", TMPDIR))
                         .output()
                         .unwrap();
+
+                    // Generate disko.nix
+                    Command::new("pkexec")
+                        .arg("touch")
+                        .arg(format!(
+                            "{}/etc/nixos/systems/{}-linux/{}/disko.nix",
+                            TMPDIR, arch, hostname
+                        ))
+                        .output()
+                        .unwrap();
+
+                    Command::new("pkexec")
+                        .arg("echo")
+                        .arg(">")
+                        .arg(format!("{{...}}:{{ {} }}", disko_config.to_nix_module()))
+                        .arg(format!(
+                            "{}/etc/nixos/systems/{}-linux/{}/disko.nix",
+                            TMPDIR, arch, hostname
+                        ))
+                        .output()
+                        .unwrap();
                 }
 
                 // Step 3: Make configuration base on language, timezone, keyboard, and user
                 info!("Step 3: Make configuration");
 
-                let mut mbrdisk = None;
-                if let Some(partitions) = partitions.as_ref() {
-                    match partitions {
-                        PartitionSchema::FullDisk(disk) => {
-                            mbrdisk = Some(disk.device.clone());
-                        }
-                        PartitionSchema::Custom(options) => {
-                            for part in options.partitions.values() {
-                                if part.mountpoint == Some("/".to_string()) {
-                                    mbrdisk = Some(part.device.to_string());
-                                }
-                            }
-                        }
-                    }
-                }
+                // let mut mbrdisk = None;
+                // if let Some(partitions) = partitions.as_ref() {
+                //     match partitions {
+                //         PartitionSchema::FullDisk(disk) => {
+                //             mbrdisk = Some(disk.device.clone());
+                //         }
+                //         PartitionSchema::Custom(options) => {
+                //             for part in options.partitions.values() {
+                //                 if part.mountpoint == Some("/".to_string()) {
+                //                     mbrdisk = Some(part.device.to_string());
+                //                 }
+                //             }
+                //         }
+                //     }
+                // }
 
                 if let Err(e) = makeconfig(MakeConfig {
                     id,
@@ -200,7 +226,7 @@ impl Worker for InstallAsyncModel {
                     keyboard,
                     user: *user.clone(),
                     list: listconfig,
-                    bootdisk: mbrdisk,
+                    // bootdisk: mbrdisk,
                     imperative_timezone,
                 }) {
                     error!("Failed to make config: {}", e);
@@ -407,7 +433,7 @@ pub struct MakeConfig {
     pub keyboard: Option<String>,
     pub user: Option<UserConfig>,
     pub list: HashMap<String, HashMap<String, Choice>>,
-    pub bootdisk: Option<String>,
+    // pub bootdisk: Option<String>,
     pub imperative_timezone: bool,
 }
 
@@ -474,20 +500,21 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
                     config = config.replace("@BOOTLOADER@", "");
                     config =
                         config.replace("@BOOTLOADER_MODULE@", "xinux-modules.nixosModules.efiboot")
-                } else {
-                    config = config.replace(
-                        "@BOOTLOADER@",
-                        &format!(
-                            r#"  boot.loader.grub.device = "{}";"#,
-                            makeconfig
-                                .bootdisk
-                                .as_ref()
-                                .context("Failed to get bootloader disk")?
-                        ),
-                    );
-                    config =
-                        config.replace("@BOOTLOADER_MODULE@", "xinux-modules.nixosModules.biosboot")
                 }
+                // else {
+                //     config = config.replace(
+                //         "@BOOTLOADER@",
+                //         &format!(
+                //             r#"  boot.loader.grub.device = "{}";"#,
+                //             makeconfig
+                //                 .bootdisk
+                //                 .as_ref()
+                //                 .context("Failed to get bootloader disk")?
+                //         ),
+                //     );
+                //     config =
+                //         config.replace("@BOOTLOADER_MODULE@", "xinux-modules.nixosModules.biosboot")
+                // }
 
                 config = config.replace(
                     "@NETWORK@",

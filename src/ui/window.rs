@@ -42,9 +42,12 @@ use libgweather::glib::closure::IntoClosureReturnValue;
 use log::{debug, error, info, trace, warn};
 use relm4::*;
 use size::Size;
+use std::io::prelude::*;
 use std::{
     collections::{BTreeMap, HashMap},
     convert::identity,
+    fs::File,
+    io::Write,
     panic,
     process::Command,
 };
@@ -991,8 +994,19 @@ impl Component for AppModel {
 
                 println!(
                     "+++++++++++++++++++++++++++++++\nDEVICES: {:?}###############################",
-                    devices
+                    devices.to_nix_module()
                 );
+
+                let mut file = File::create("/home/shahruz/disko.nix").unwrap();
+                // file.write_all(nix);
+                writeln!(file, "{{...}}: {}", devices.to_nix_module()).unwrap();
+
+                // Command::new("echo")
+                //     .arg(format!("\"{{...}}:{}\"", devices.to_nix_module()))
+                //     .arg(">>")
+                //     .arg("/home/shahruz/disko.nix")
+                //     .output()
+                //     .unwrap();
 
                 self.diskoconfig = devices;
                 self.partitionconfig = partition;
@@ -1018,6 +1032,7 @@ impl Component for AppModel {
                         self.listconfig.clone(),
                         config.config_type.clone(),
                         config.imperative_timezone.clone(),
+                        self.diskoconfig.clone(),
                     ));
                 }
             }
