@@ -4,7 +4,10 @@ use crate::{
         util::{SizeType, represent},
         window::AppMsg,
     },
-    utils::i18n::i18n_f,
+    utils::{
+        disko::{Attrs, Devices, Disk},
+        i18n::i18n_f,
+    },
 };
 use gettextrs::gettext;
 use log::{debug, error, info, trace};
@@ -78,6 +81,7 @@ pub struct CustomPartition {
     pub format: Option<String>,
     pub mountpoint: Option<String>,
     pub device: String,
+    pub size: u64,
 }
 
 #[relm4::component(pub)]
@@ -181,7 +185,10 @@ impl SimpleComponent for PartitionModel {
                                         }
                                     }
                                     match (root, bootefi) {
-                                        (true, true) => &["pill", "success"],
+                                        (true, true) => {
+                                            println!("\n\nnthe partitions: {:?}", opts.partitions);
+                                           &["pill", "success"]
+                                        } ,
                                         (true, false) => &["pill", "error"],
                                         (false, true) => &["pill", "error"],
                                         (false, false) => &["pill", "error"],
@@ -503,6 +510,7 @@ impl SimpleComponent for PartitionModel {
                             CustomPartition {
                                 format: Some(format),
                                 mountpoint: None,
+                                size: get_storage_size_in_bytes(&device, 512).unwrap_or_default(),
                                 device,
                             },
                         );
@@ -514,6 +522,7 @@ impl SimpleComponent for PartitionModel {
                         CustomPartition {
                             format: Some(format),
                             mountpoint: None,
+                            size: get_storage_size_in_bytes(&device, 512).unwrap_or_default(),
                             device,
                         },
                     );
@@ -568,6 +577,7 @@ impl SimpleComponent for PartitionModel {
                             CustomPartition {
                                 format: None,
                                 mountpoint: Some(mount),
+                                size: get_storage_size_in_bytes(&device, 512).unwrap_or_default(),
                                 device,
                             },
                         );
@@ -579,6 +589,7 @@ impl SimpleComponent for PartitionModel {
                         CustomPartition {
                             format: None,
                             mountpoint: Some(mount),
+                            size: get_storage_size_in_bytes(&device, 512).unwrap_or_default(),
                             device,
                         },
                     );
@@ -1136,6 +1147,7 @@ impl FactoryComponent for PartitionGroup {
         message: Self::Input,
         sender: FactorySender<Self>,
     ) {
+        // println!("\n\n\n\n\n\n\n\n\n\n\n{:?}", self);
         match message {
             PartitionGroupMsg::ShowSizeEntry => {
                 self.creating_partition = true;
@@ -1324,7 +1336,7 @@ impl SimpleComponent for LuksPasswordComponent {
     }
 }
 
-fn get_storage_size_in_bytes(device: &str, logical_block_size: u64) -> Option<u64> {
+pub fn get_storage_size_in_bytes(device: &str, logical_block_size: u64) -> Option<u64> {
     let device = if device.contains("/dev/") {
         &device[5..]
     } else {
@@ -1339,4 +1351,26 @@ fn get_storage_size_in_bytes(device: &str, logical_block_size: u64) -> Option<u6
         .to_string();
 
     contents.parse::<u64>().ok().map(|x| x * logical_block_size)
+}
+
+pub fn get_storage_size_for_disko(device: &str, logical_block_size: u64) -> Option<String> {
+    get_storage_size_in_bytes(device, logical_block_size).map(|x| {
+        let size = Size::from_bytes(x.clone())
+            .format()
+            .with_style(size::Style::Abbreviated)
+            .to_string();
+
+        let mut ssize = size.split_ascii_whitespace().map(|x| {
+            if let Some(y) = x.find(".") {
+                &x[0..y]
+            } else {
+                x
+            }
+        });
+        format!(
+            "{}{}",
+            ssize.next().unwrap(),
+            ssize.next().unwrap().chars().nth(0).unwrap_or_default()
+        )
+    })
 }

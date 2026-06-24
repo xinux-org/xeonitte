@@ -372,9 +372,8 @@ fn indent(s: &str, levels: usize) -> String {
     }
 }
 
-
 // nix version: https://gist.github.com/lambdajon/1946c9585c997a2615f5386a5f222c6f
-fn luks_encrypted(device: impl Into<String>) -> Devices {
+pub fn luks_encrypted(device: impl Into<String>) -> Devices {
     let mut partitions = Attrs::new();
 
     partitions.insert(
@@ -443,7 +442,7 @@ fn luks_encrypted(device: impl Into<String>) -> Devices {
     }
 }
 
-fn canonical() -> Devices {
+pub fn canonical(device: impl Into<String>) -> Devices {
     let mut partitions = Attrs::new();
     partitions.insert(
         "ESP".into(),
@@ -487,7 +486,7 @@ fn canonical() -> Devices {
     disk.insert(
         "main".into(),
         Disk {
-            device: "/dev/sda".into(),
+            device: device.into(),
             content: Some(DeviceContent::Gpt(Gpt {
                 partitions,
                 ..Default::default()
