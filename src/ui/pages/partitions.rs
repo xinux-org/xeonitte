@@ -1209,7 +1209,20 @@ impl FactoryComponent for PartitionGroup {
             PartitionGroupMsg::Apply => {
                 if self.new_partition_size.bytes() > 0 {
                     let index = self.partitions.len() + 1;
-                    let device = self.partitions.front().unwrap().device.clone();
+                    let device = self
+                        .partitions
+                        .front()
+                        .unwrap_or(&Partition {
+                            name: self.name.clone() + "1",
+                            size: 0,
+                            mountrow: adw::ComboRow::new(),
+                            device: self.name.clone(),
+                            swap: false,
+                            donotmount: "".to_string(),
+                            donotformat: "".to_string(),
+                        })
+                        .device
+                        .clone();
                     let size = self.new_partition_size.bytes() as u64;
                     println!("THE NEW PARTITION SIZE: {size}");
                     self.partitions.guard().push_back({
