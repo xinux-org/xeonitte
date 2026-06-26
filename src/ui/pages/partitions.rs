@@ -34,13 +34,12 @@ pub struct PartitionModel {
 #[derive(Debug)]
 pub enum PartitionMsg {
     SetMethod(PartitionMethod),
-    SetFullDisk(String),
-    AddFormatPartition(String, String, String),
-    AddMountPartition(String, String, String),
+    SetFullDisk(String, u64),
+    AddFormatPartition(String, String, String, u64),
+    AddMountPartition(String, String, String, u64),
     RemoveFormatPartition(String),
     RemoveMountPartition(String),
     AddPartition(String, CustomPartition),
-    // RemovePartition(String),
     SetEncryption,
     SetPassphrase,
     SetPassphraseConfirm,
@@ -61,6 +60,7 @@ pub struct FullDiskOptions {
     pub device: String,
     pub encryption: bool,
     pub passphrase: Option<String>,
+    pub disk_size: u64,
 }
 
 #[derive(Serialize, Debug, Clone)]
@@ -68,6 +68,7 @@ pub struct CustomOptions {
     pub partitions: HashMap<String, CustomPartition>,
     pub encryption: bool,
     pub passphrase: Option<String>,
+    pub disk_size: u64,
 }
 
 #[derive(Serialize, Debug, Clone)]
@@ -377,6 +378,11 @@ impl SimpleComponent for PartitionModel {
                                         part.name,
                                         size::Size::from_bytes(part.size)
                                     );
+                                    println!(
+                                        "Partition: {:?} length {}",
+                                        part.name,
+                                        size::Size::from_bytes(part.size).to_string()
+                                    );
                                     part_guard.push_back(PartitionInit {
                                         mountrow: adw::ComboRow::new(),
                                         name: part.name.clone(),
@@ -390,8 +396,7 @@ impl SimpleComponent for PartitionModel {
                                 let name = disk.name.to_string();
                                 let used =
                                     part_factoryvec.iter().map(|x| x.size).fold(0, |x, y| x + y);
-                                let total_size =
-                                    get_storage_size_in_bytes(&name.clone(), 512).unwrap();
+                                let total_size = disk.size;
                                 let free_space = Size::from_bytes(total_size - used);
 
                                 partition_groups_guard.push_back(PartitionGroup {
@@ -424,10 +429,11 @@ impl SimpleComponent for PartitionModel {
                 let _ = sender.output(AppMsg::SetCanGoForward(false));
                 sender.input(PartitionMsg::Refresh);
             }
-            PartitionMsg::SetFullDisk(device) => {
+            PartitionMsg::SetFullDisk(device, size) => {
                 trace!("SetFullDisk: {}", device);
                 self.schema = Some(PartitionSchema::FullDisk(FullDiskOptions {
                     device,
+                    disk_size: size,
                     encryption: self.luks_password.model().encryption_enabled,
                     passphrase: if self.luks_password.model().encryption_enabled
                         && !self.luks_password.model().passphrase.is_empty()
@@ -499,7 +505,7 @@ impl SimpleComponent for PartitionModel {
                 // self.luks_password.model().passphrase_confirm = pass;
                 sender.input(PartitionMsg::CheckSelected);
             }
-            PartitionMsg::AddFormatPartition(name, format, device) => {
+            PartitionMsg::AddFormatPartition(name, format, device, size) => {
                 trace!("AddFormatPartition");
                 if let Some(PartitionSchema::Custom(opts)) = &mut self.schema {
                     if let Some(part) = opts.partitions.get_mut(&name) {
@@ -510,7 +516,7 @@ impl SimpleComponent for PartitionModel {
                             CustomPartition {
                                 format: Some(format),
                                 mountpoint: None,
-                                size: get_storage_size_in_bytes(&device, 512).unwrap_or_default(),
+                                size: size,
                                 device,
                             },
                         );
@@ -522,12 +528,13 @@ impl SimpleComponent for PartitionModel {
                         CustomPartition {
                             format: Some(format),
                             mountpoint: None,
-                            size: get_storage_size_in_bytes(&device, 512).unwrap_or_default(),
+                            size: size,
                             device,
                         },
                     );
                     self.schema = Some(PartitionSchema::Custom(CustomOptions {
                         partitions,
+                        disk_size: size,
                         encryption: self.luks_password.model().encryption_enabled,
                         passphrase: if self.luks_password.model().encryption_enabled
                             && !self.luks_password.model().passphrase.is_empty()
@@ -541,7 +548,7 @@ impl SimpleComponent for PartitionModel {
                 sender.input(PartitionMsg::CheckSelected);
                 trace!("Schema: {:?}", self.schema);
             }
-            PartitionMsg::AddMountPartition(name, mount, device) => {
+            PartitionMsg::AddMountPartition(name, mount, device, size) => {
                 trace!("AddMountPartition");
                 if let Some(PartitionSchema::Custom(opts)) = &mut self.schema {
                     // Check if the mountpoint is already in use
@@ -577,7 +584,7 @@ impl SimpleComponent for PartitionModel {
                             CustomPartition {
                                 format: None,
                                 mountpoint: Some(mount),
-                                size: get_storage_size_in_bytes(&device, 512).unwrap_or_default(),
+                                size: size,
                                 device,
                             },
                         );
@@ -589,12 +596,13 @@ impl SimpleComponent for PartitionModel {
                         CustomPartition {
                             format: None,
                             mountpoint: Some(mount),
-                            size: get_storage_size_in_bytes(&device, 512).unwrap_or_default(),
+                            size: size,
                             device,
                         },
                     );
                     self.schema = Some(PartitionSchema::Custom(CustomOptions {
                         partitions,
+                        disk_size: size,
                         encryption: self.luks_password.model().encryption_enabled,
                         passphrase: if self.luks_password.model().encryption_enabled
                             && !self.luks_password.model().passphrase.is_empty()
@@ -604,6 +612,10 @@ impl SimpleComponent for PartitionModel {
                             None
                         },
                     }));
+                    println!(
+                        "98457109283470192837401982374019827412840129419283401241-2938472\n\nself.schema: {:?}\n\n**************************************",
+                        self.schema
+                    )
                 }
                 sender.input(PartitionMsg::CheckSelected);
                 trace!("Schema: {:?}", self.schema);
@@ -642,9 +654,10 @@ impl SimpleComponent for PartitionModel {
                     opts.partitions.insert(name, part);
                 } else {
                     let mut partitions = HashMap::new();
-                    partitions.insert(name, part);
+                    partitions.insert(name, part.clone());
                     self.schema = Some(PartitionSchema::Custom(CustomOptions {
                         partitions,
+                        disk_size: part.size,
                         encryption: self.luks_password.model().encryption_enabled,
                         passphrase: if self.luks_password.model().encryption_enabled
                             && !self.luks_password.model().passphrase.is_empty()
@@ -731,15 +744,15 @@ impl FactoryComponent for WholeDisk {
             #[name(checkbtn)]
             add_suffix = &gtk::CheckButton {
                 set_group: Some(&self.group),
-                connect_toggled[name = self.name.to_string()] => move |btn| {
+                connect_toggled[name = self.name.to_string(), size = self.size] => move |btn| {
                     if btn.is_active() {
-                        PARTITION_BROKER.send(PartitionMsg::SetFullDisk(name.to_string()));
+                        PARTITION_BROKER.send(PartitionMsg::SetFullDisk(name.to_string(), size));
                     }
                 }
             },
-            connect_activated[checkbtn, name = self.name.to_string()] => move |_| {
+            connect_activated[checkbtn, name = self.name.to_string(), size = self.size] => move |_| {
                 checkbtn.set_active(true);
-                PARTITION_BROKER.send(PartitionMsg::SetFullDisk(name.to_string()));
+                PARTITION_BROKER.send(PartitionMsg::SetFullDisk(name.to_string(), size));
             }
         }
     }
@@ -797,13 +810,13 @@ impl FactoryComponent for Partition {
                 set_title: &gettext("Format"),
                 // TODO: When switching language the "Leave as is" option does not update
                 set_model: Some(&gtk::StringList::new(&[&self.donotformat, "btrfs", "ext4", "ext3", "fat32", "ntfs", "xfs", "swap"])),
-                connect_selected_notify[sender, name = self.name.to_string(), device = self.device.to_string(), formatstring = self.donotformat.to_string()] => move |row| {
+                connect_selected_notify[sender, name = self.name.to_string(), device = self.device.to_string(), formatstring = self.donotformat.to_string(), size = self.size] => move |row| {
                     if let Some(item) = row.selected_item() {
                         if let Ok(item) = item.downcast::<gtk::StringObject>() {
                             if item.string() == formatstring {
                                 PARTITION_BROKER.send(PartitionMsg::RemoveFormatPartition(name.to_string()));
                             } else {
-                                PARTITION_BROKER.send(PartitionMsg::AddFormatPartition(name.to_string(), item.string().to_string(), device.to_string()));
+                                PARTITION_BROKER.send(PartitionMsg::AddFormatPartition(name.to_string(), item.string().to_string(), device.to_string(), size));
                             }
                             sender.input(PartitionRowMsg::SetSwap(item.string().eq("swap")));
                         }
@@ -812,19 +825,19 @@ impl FactoryComponent for Partition {
             },
             #[local_ref]
             add_row = mountrow -> adw::ComboRow {
-                // #[watch]
-                set_visible: true,
+                #[watch]
+                set_visible: !self.swap,
                 #[watch]
                 set_title: &gettext("Mount"),
                 // TODO: When switching language the "Do not mount" option does not update
                 set_model: Some(&gtk::StringList::new(&[&self.donotmount, " /", "/boot", "/home", "/opt", "/var", "/nix"])),
-                connect_selected_notify[name = self.name.to_string(), device = self.device.to_string(), mountstring = self.donotmount.to_string()] => move |row| {
+                connect_selected_notify[name = self.name.to_string(), device = self.device.to_string(), mountstring = self.donotmount.to_string(), size = self.size] => move |row| {
                     if let Some(item) = row.selected_item() {
                         if let Ok(item) = item.downcast::<gtk::StringObject>() {
                             if item.string() == mountstring {
                                 PARTITION_BROKER.send(PartitionMsg::RemoveMountPartition(name.to_string()));
                             } else {
-                                PARTITION_BROKER.send(PartitionMsg::AddMountPartition(name.to_string(), item.string().trim().to_string(), device.to_string()));
+                                PARTITION_BROKER.send(PartitionMsg::AddMountPartition(name.to_string(), item.string().trim().to_string(), device.to_string(), size));
                             }
                         }
                     }
@@ -922,6 +935,11 @@ pub enum PartitionGroupMsg {
     Delete(String),
     SetSizeType(SizeType),
     Validate,
+}
+
+pub enum PartitionGroupOut {
+    ApplyOut(String, CustomPartition),
+    Delete(String),
 }
 
 #[relm4::factory(pub)]
@@ -1190,16 +1208,19 @@ impl FactoryComponent for PartitionGroup {
                 if self.new_partition_size.bytes() > 0 {
                     let index = self.partitions.len() + 1;
                     let device = self.partitions.front().unwrap().device.clone();
+                    let size = self.new_partition_size.bytes() as u64;
+                    println!("THE NEW PARTITION SIZE: {size}");
                     self.partitions.guard().push_back({
                         PartitionInit {
                             name: format!("{device}{index}"),
-                            size: self.new_partition_size.bytes() as u64,
+                            size: size,
                             mountrow: adw::ComboRow::new(),
                             device,
                         }
                     });
                     self.free_space.sub_assign(self.new_partition_size);
                     sender.input(PartitionGroupMsg::CloseEntry);
+                    // sender.output(PartitionGroupOut::ApplyOut(self.name, CustomPartition { format: (), mountpoint: (), device, size: () }))
                 }
             }
             PartitionGroupMsg::Delete(name) => {
@@ -1336,41 +1357,44 @@ impl SimpleComponent for LuksPasswordComponent {
     }
 }
 
-pub fn get_storage_size_in_bytes(device: &str, logical_block_size: u64) -> Option<u64> {
-    let device = if device.contains("/dev/") {
-        &device[5..]
-    } else {
-        device
-    };
-    let contents = std::fs::read_to_string(format!("/sys/class/block/{}/size", device))
-        .expect(&format!(
-            "Couldnʻt read the /sys/class/block/{}/size file.",
-            device
-        ))
-        .trim()
+// pub fn get_storage_size_in_bytes(device: &str, logical_block_size: u64) -> Option<u64> {
+//     let device = if device.contains("/dev/") {
+//         &device[5..]
+//     } else {
+//         device
+//     };
+//     let contents = std::fs::read_to_string(format!("/sys/class/block/{}/size", device))
+//         .expect(&format!(
+//             "Couldnʻt read the /sys/class/block/{}/size file.",
+//             device
+//         ))
+//         .trim()
+//         .to_string();
+
+//     contents.parse::<u64>().ok().map(|x| x * logical_block_size)
+// }
+
+pub fn get_storage_size_for_disko(size: u64) -> String {
+    let size = Size::from_bytes(size)
+        .format()
+        .with_style(size::Style::Abbreviated)
         .to_string();
 
-    contents.parse::<u64>().ok().map(|x| x * logical_block_size)
-}
+    println!(
+        "\n\n\n\n\n\n\n\nSIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIZE: {}\n\n\n\n\n\n\n\n\n\n\n\n",
+        size.clone()
+    );
 
-pub fn get_storage_size_for_disko(device: &str, logical_block_size: u64) -> Option<String> {
-    get_storage_size_in_bytes(device, logical_block_size).map(|x| {
-        let size = Size::from_bytes(x.clone())
-            .format()
-            .with_style(size::Style::Abbreviated)
-            .to_string();
-
-        let mut ssize = size.split_ascii_whitespace().map(|x| {
-            if let Some(y) = x.find(".") {
-                &x[0..y]
-            } else {
-                x
-            }
-        });
-        format!(
-            "{}{}",
-            ssize.next().unwrap(),
-            ssize.next().unwrap().chars().nth(0).unwrap_or_default()
-        )
-    })
+    let mut ssize = size.split_ascii_whitespace().map(|x| {
+        if let Some(y) = x.find(".") {
+            &x[0..y]
+        } else {
+            x
+        }
+    });
+    format!(
+        "{}{}",
+        ssize.next().unwrap(),
+        ssize.next().unwrap().chars().nth(0).unwrap_or_default()
+    )
 }

@@ -16,7 +16,7 @@ use relm4::*;
 use std::{
     collections::HashMap,
     fmt::format,
-    fs,
+    fs::{self, File},
     io::{BufRead, BufReader, Write},
     process::{Command, Stdio},
 };
@@ -122,12 +122,12 @@ impl Worker for InstallAsyncModel {
                 }
 
                 // Step 1: Setup and mount partitions
-                info!("Step 1: Setup and mount partitions");
-                if let Err(e) = partition(*partitions.clone()) {
-                    error!("Failed to partition: {}", e);
-                    let _ = sender.output(AppMsg::Error);
-                    return;
-                }
+                // info!("Step 1: Setup and mount partitions");
+                // if let Err(e) = partition(*partitions.clone()) {
+                //     error!("Failed to partition: {}", e);
+                //     let _ = sender.output(AppMsg::Error);
+                //     return;
+                // }
 
                 // Step 2: Generate base config
                 Command::new("pkexec")
@@ -177,27 +177,6 @@ impl Worker for InstallAsyncModel {
                         .arg(format!("{}/etc/nixos/configuration.nix", TMPDIR))
                         .output()
                         .unwrap();
-
-                    // Generate disko.nix
-                    Command::new("pkexec")
-                        .arg("touch")
-                        .arg(format!(
-                            "{}/etc/nixos/systems/{}-linux/{}/disko.nix",
-                            TMPDIR, arch, hostname
-                        ))
-                        .output()
-                        .unwrap();
-
-                    Command::new("pkexec")
-                        .arg("echo")
-                        .arg(">")
-                        .arg(format!("{{...}}:{{ {} }}", disko_config.to_nix_module()))
-                        .arg(format!(
-                            "{}/etc/nixos/systems/{}-linux/{}/disko.nix",
-                            TMPDIR, arch, hostname
-                        ))
-                        .output()
-                        .unwrap();
                 }
 
                 // Step 3: Make configuration base on language, timezone, keyboard, and user
@@ -228,6 +207,7 @@ impl Worker for InstallAsyncModel {
                     list: listconfig,
                     // bootdisk: mbrdisk,
                     imperative_timezone,
+                    disko: disko_config.to_nix_module(),
                 }) {
                     error!("Failed to make config: {}", e);
                     let _ = sender.output(AppMsg::Error);
@@ -271,9 +251,14 @@ impl Worker for InstallAsyncModel {
                     let flake_dir = format!("{}/etc/nixos", TMPDIR);
                     let flake_uri = format!("{}#{}", flake_dir, hostname);
 
+                    let disko_path = format!(
+                        "{}/etc/nixos/systems/{}-linux/{}/disko.nix",
+                        TMPDIR, arch, hostname
+                    );
+
                     // TODO: make better way to write this shell command
                     let cmd = format!(
-                        "nix flake lock {} && nixos-install --no-root-passwd --no-channel-copy --root /nix/var/nix/builds/xeonitte --option build-dir /nix/var/nix/builds/xeonitte --flake {}",
+                        "nix run https://git.oss.uzinfocom.uz/mirrors/disko/archive/latest.tar.gz -- --mode destroy,format,mount {disko_path} --yes-wipe-all-disks && nix flake lock {} && nixos-install --no-root-passwd --no-channel-copy --root /nix/var/nix/builds/xeonitte --option build-dir /nix/var/nix/builds/xeonitte --flake {}",
                         flake_dir, flake_uri
                     );
                     INSTALL_BROKER.send(InstallMsg::Install(vec![
@@ -387,45 +372,6 @@ impl Worker for InstallAsyncModel {
     }
 }
 
-fn partition(partitions: Option<PartitionSchema>) -> Result<()> {
-    let partitions = partitions.context("No partitions specified")?;
-    let partjson = serde_json::to_string(&partitions)?;
-    debug!("Executing partition with json: {}", partjson);
-    let mut out = Command::new("pkexec")
-        .arg(format!("{}/xeonitte-helper", LIBEXECDIR))
-        .arg("partition")
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()?;
-
-    out.stdin
-        .take()
-        .context("Failed to write to stdin")?
-        .write_all(partjson.as_bytes())?;
-    let mut stdout = BufReader::new(out.stdout.as_mut().context("Failed to get stdout")?);
-    let mut line = String::new();
-    while stdout.read_line(&mut line)? > 0 {
-        debug!("PARTITION OUTPUT: {}", line.trim());
-        line.clear();
-    }
-    let output = out
-        .wait_with_output()
-        .context("Failed to wait for output")?;
-    if output.status.success() {
-        Ok(())
-    } else {
-        error!(
-            "Partitioning failed: {}",
-            String::from_utf8_lossy(&output.stderr)
-        );
-        Err(anyhow!(
-            "Partitioning failed: {}",
-            String::from_utf8_lossy(&output.stderr)
-        ))
-    }
-}
-
 pub struct MakeConfig {
     pub id: String,
     pub language: Option<String>,
@@ -435,6 +381,7 @@ pub struct MakeConfig {
     pub list: HashMap<String, HashMap<String, Choice>>,
     // pub bootdisk: Option<String>,
     pub imperative_timezone: bool,
+    pub disko: String,
 }
 
 pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
@@ -449,6 +396,7 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
         @AUTOLOGIN@ - Autologin config
         @PACKAGES@ - Packages to install
         @STATEVERSION@ - NixOS State version
+        @DISKO@ - Disko configuration
     */
 
     /* Value keys:
@@ -496,6 +444,12 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
 
                 config = config.replace("@ARCH@", &format!("{}-linux", arch));
 
+                config = config.replace("@DISKO@", &makeconfig.disko);
+
+                println!(
+                    "++++++++++++++++++++++++++++++++++\nTHE DISKOOOOO: {}\n================================",
+                    &makeconfig.disko
+                );
                 if efi {
                     config = config.replace("@BOOTLOADER@", "");
                     config =

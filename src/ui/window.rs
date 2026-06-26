@@ -779,7 +779,8 @@ impl Component for AppModel {
                         PartitionSchema::FullDisk(FullDiskOptions{
                             device,
                             encryption,
-                            passphrase
+                            passphrase,
+                            disk_size
                         }) => {
                             devices = if encryption {
                                 luks_encrypted(device)
@@ -792,6 +793,7 @@ impl Component for AppModel {
                             partitions,
                             encryption,
                             passphrase,
+                            disk_size
                         }) => {
                             let mut disk_disko: BTreeMap<String, Disk> = Attrs::new();
                             let mut luks_settings = Attrs::new();
@@ -805,16 +807,14 @@ impl Component for AppModel {
                                         .iter()
                                         .map(|x| {
                                             if x.1.device == device {
-                                                let _ = match x.1.mountpoint.as_ref() {
+                                                let _ = match x.1.mountpoint.clone() {
                                                     Some(y) => match y.as_str() {
                                                         "/" => {
                                                             if encryption {
                                                                 partitions_disko.insert(
                                                                     "luks".into(),
                                                                     Partition {
-                                                                        size: get_storage_size_for_disko(
-                                                                            x.0, 512,
-                                                                        ),
+                                                                        size: Some(get_storage_size_for_disko(disk_size)) ,
                                                                         content: Some(PartitionContent::Luks(Luks {
                                                                             name: "crypted".into(),
                                                                             settings: luks_settings.clone(),
@@ -839,9 +839,7 @@ impl Component for AppModel {
                                                                 partitions_disko.insert(
                                                                     "root".into(),
                                                                     Partition {
-                                                                        size: get_storage_size_for_disko(
-                                                                            x.0, 512,
-                                                                        ),
+                                                                        size: Some(get_storage_size_for_disko(disk_size)),
                                                                         content: Some(
                                                                             PartitionContent::Filesystem(
                                                                                 Filesystem {
@@ -864,44 +862,42 @@ impl Component for AppModel {
                                                                     },
                                                                 );
                                                             }
-                                                       }
+                                                        }
                                                         "/boot" => {
                                                             partitions_disko.insert(
-                                                        "ESP".into(),
-                                                        Partition {
-                                                            type_code: Some("EF00".into()),
-                                                            size: get_storage_size_for_disko(
-                                                                x.0, 512,
-                                                            ),
-                                                            content: Some(
-                                                                PartitionContent::Filesystem(
-                                                                    Filesystem {
-                                                                        format: x
-                                                                            .1
-                                                                            .clone()
-                                                                            .format
-                                                                            .unwrap_or(
-                                                                                "vfat".to_string(),
-                                                                            )
-                                                                            .into(),
-                                                                        mountpoint: Some(
-                                                                            "/boot".into(),
+                                                                "ESP".into(),
+                                                                Partition {
+                                                                    type_code: Some("EF00".into()),
+                                                                    size: Some(get_storage_size_for_disko(disk_size)) ,
+                                                                    content: Some(
+                                                                        PartitionContent::Filesystem(
+                                                                            Filesystem {
+                                                                                format: x
+                                                                                    .1
+                                                                                    .clone()
+                                                                                    .format
+                                                                                    .unwrap_or(
+                                                                                        "vfat".to_string(),
+                                                                                    )
+                                                                                    .into(),
+                                                                                mountpoint: Some(
+                                                                                    "/boot".into(),
+                                                                                ),
+                                                                                mount_options: vec![
+                                                                                    "umask=0077".into(),
+                                                                                ],
+                                                                                ..Default::default()
+                                                                            },
                                                                         ),
-                                                                        mount_options: vec![
-                                                                            "umask=0077".into(),
-                                                                        ],
-                                                                        ..Default::default()
-                                                                    },
-                                                                ),
-                                                            ),
-                                                            ..Default::default()
-                                                        },
-                                                    );
+                                                                    ),
+                                                                    ..Default::default()
+                                                                },
+                                                            );
                                                         }
                                                         _ => panic!("Coulnd' find "),
                                                     },
                                                     None => {
-                                                        match x.1.format.as_ref().unwrap().as_str()
+                                                        match x.1.format.clone().unwrap().as_str()
                                                         {
                                                             "swap" => {
                                                                 partitions_disko.insert(
@@ -924,43 +920,6 @@ impl Component for AppModel {
                                                         }
                                                     }
                                                 };
-
-                                                let _ = partitions_disko.insert(
-                                            match x.1.mountpoint.as_ref() {
-                                                Some(y) => match y.as_str() {
-                                                    "/" => "root".into(),
-                                                    "/boot" => "ESP".into(),
-                                                    _ => {
-                                                        panic!("Couldn't get correct mount points")
-                                                    }
-                                                },
-                                                None => {
-                                                    if x.1
-                                                        .format
-                                                        .as_ref()
-                                                        .unwrap_or(&"".to_string())
-                                                        == "swap"
-                                                    {
-                                                        "swap".into()
-                                                    } else {
-                                                        panic!("HAVE NOOO IDEA")
-                                                    }
-                                                }
-                                            },
-                                            Partition {
-                                                type_code: Some("EF00".into()),
-                                                size: Some(Size::from_bytes(x.1.size).to_string()),
-                                                content: Some(PartitionContent::Filesystem(
-                                                    Filesystem {
-                                                        format: "vfat".into(),
-                                                        mountpoint: Some("/boot".into()),
-                                                        mount_options: vec!["umask=0077".into()],
-                                                        ..Default::default()
-                                                    },
-                                                )),
-                                                ..Default::default()
-                                            },
-                                        );
                                             }
                                         })
                                         .collect::<Vec<_>>();
@@ -991,22 +950,6 @@ impl Component for AppModel {
                         }
                     };
                 });
-
-                println!(
-                    "+++++++++++++++++++++++++++++++\nDEVICES: {:?}###############################",
-                    devices.to_nix_module()
-                );
-
-                let mut file = File::create("/home/shahruz/disko.nix").unwrap();
-                // file.write_all(nix);
-                writeln!(file, "{{...}}: {}", devices.to_nix_module()).unwrap();
-
-                // Command::new("echo")
-                //     .arg(format!("\"{{...}}:{}\"", devices.to_nix_module()))
-                //     .arg(">>")
-                //     .arg("/home/shahruz/disko.nix")
-                //     .output()
-                //     .unwrap();
 
                 self.diskoconfig = devices;
                 self.partitionconfig = partition;

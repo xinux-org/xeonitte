@@ -18,6 +18,10 @@
       url = "git+https://git.oss.uzinfocom.uz/mirrors/uzbek-linux-keyboard?shallow=1";
       flake = false;
     };
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs:
@@ -27,6 +31,7 @@
 
       channels-config.allowUnfree = true;
       systems.modules.nixos = with inputs; [
+        inputs.disko.nixosModules.disko
         nix-data.nixosModules.nix-data
         @BOOTLOADER_MODULE@
         xinux-modules.nixosModules.meta
