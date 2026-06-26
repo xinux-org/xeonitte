@@ -1042,12 +1042,28 @@ impl FactoryComponent for PartitionGroup {
                         },
                     },
 
+                   // TODO: make the logic better
                     #[local_ref]
                     testbox -> gtk::ListBox {
-                        add_css_class: "boxed-list",
+                        #[watch]
+                        set_visible: self.partitions.len() > 0,
                         set_hexpand: true,
                         set_selection_mode: gtk::SelectionMode::None,
+                        add_css_class: "boxed-list",
                     },
+                    gtk::ListBox {
+                        #[watch]
+                        set_visible: self.partitions.len() <= 0,
+                        add_css_class: "boxed-list",
+                        adw::ActionRow {
+                            set_title: "Free space",
+                            #[watch]
+                            set_subtitle: &self.free_space.to_string(),
+                            set_activatable: false,
+                            // add_css_class: "card",
+                        },
+                    },
+                   // TODO: closing
 
                     #[name = "new_partition_box"]
                     gtk::Box {
