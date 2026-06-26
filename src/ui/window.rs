@@ -814,7 +814,7 @@ impl Component for AppModel {
                                                                 partitions_disko.insert(
                                                                     "luks".into(),
                                                                     Partition {
-                                                                        size: Some(get_storage_size_for_disko(disk_size)) ,
+                                                                        size: Some(get_storage_size_for_disko(x.1.size)) ,
                                                                         content: Some(PartitionContent::Luks(Luks {
                                                                             name: "crypted".into(),
                                                                             settings: luks_settings.clone(),
@@ -839,7 +839,7 @@ impl Component for AppModel {
                                                                 partitions_disko.insert(
                                                                     "root".into(),
                                                                     Partition {
-                                                                        size: Some(get_storage_size_for_disko(disk_size)),
+                                                                        size: Some(get_storage_size_for_disko(x.1.size)),
                                                                         content: Some(
                                                                             PartitionContent::Filesystem(
                                                                                 Filesystem {
@@ -868,7 +868,7 @@ impl Component for AppModel {
                                                                 "ESP".into(),
                                                                 Partition {
                                                                     type_code: Some("EF00".into()),
-                                                                    size: Some(get_storage_size_for_disko(disk_size)) ,
+                                                                    size: Some(get_storage_size_for_disko(x.1.size)) ,
                                                                     content: Some(
                                                                         PartitionContent::Filesystem(
                                                                             Filesystem {
@@ -903,7 +903,7 @@ impl Component for AppModel {
                                                                 partitions_disko.insert(
                                                         "swap".into(),
                                                         Partition {
-                                                            size: Some("8G".into()),
+                                                            size: Some(get_storage_size_for_disko(x.1.size)) ,
                                                             content: Some(PartitionContent::Swap(
                                                                 Swap {
                                                                     resume_device: Some(true),

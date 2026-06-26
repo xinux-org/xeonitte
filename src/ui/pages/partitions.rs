@@ -1126,12 +1126,14 @@ impl FactoryComponent for PartitionGroup {
             .partitions
             .iter()
             .map(|x| {
-                partitions.guard().push_back(PartitionInit {
+                let p = PartitionInit {
                     name: x.name.clone(),
                     device: x.device.clone(),
                     mountrow: adw::ComboRow::new(),
                     size: x.size,
-                })
+                };
+                println!("PAARRRTTTTT: {:?}", p);
+                partitions.guard().push_back(p);
             })
             .collect::<Vec<_>>();
 
