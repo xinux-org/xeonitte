@@ -186,10 +186,7 @@ impl SimpleComponent for PartitionModel {
                                         }
                                     }
                                     match (root, bootefi) {
-                                        (true, true) => {
-                                            println!("\n\nnthe partitions: {:?}", opts.partitions);
-                                           &["pill", "success"]
-                                        } ,
+                                        (true, true) => &["pill", "success"],
                                         (true, false) => &["pill", "error"],
                                         (false, true) => &["pill", "error"],
                                         (false, false) => &["pill", "error"],
@@ -377,11 +374,6 @@ impl SimpleComponent for PartitionModel {
                                         "Partition: {:?} length {}",
                                         part.name,
                                         size::Size::from_bytes(part.size)
-                                    );
-                                    println!(
-                                        "Partition: {:?} length {}",
-                                        part.name,
-                                        size::Size::from_bytes(part.size).to_string()
                                     );
                                     part_guard.push_back(PartitionInit {
                                         mountrow: adw::ComboRow::new(),
@@ -612,10 +604,6 @@ impl SimpleComponent for PartitionModel {
                             None
                         },
                     }));
-                    println!(
-                        "98457109283470192837401982374019827412840129419283401241-2938472\n\nself.schema: {:?}\n\n**************************************",
-                        self.schema
-                    )
                 }
                 sender.input(PartitionMsg::CheckSelected);
                 trace!("Schema: {:?}", self.schema);
@@ -1148,7 +1136,6 @@ impl FactoryComponent for PartitionGroup {
                     mountrow: adw::ComboRow::new(),
                     size: x.size,
                 };
-                println!("PAARRRTTTTT: {:?}", p);
                 partitions.guard().push_back(p);
             })
             .collect::<Vec<_>>();
@@ -1183,7 +1170,6 @@ impl FactoryComponent for PartitionGroup {
         message: Self::Input,
         sender: FactorySender<Self>,
     ) {
-        // println!("\n\n\n\n\n\n\n\n\n\n\n{:?}", self);
         match message {
             PartitionGroupMsg::ShowSizeEntry => {
                 self.creating_partition = true;
@@ -1193,9 +1179,6 @@ impl FactoryComponent for PartitionGroup {
                 self.creating_partition = false;
                 widgets.size_entry.remove_css_class("focused");
                 widgets.size_entry.set_show_apply_button(false);
-                // widgets
-                //     .size_entry
-                //     .set_text(&(self.free_space / get_byte_from(self.size_type.1)).to_string());
             }
             PartitionGroupMsg::Input(x) => {
                 let x = x.unwrap_or_default();
@@ -1240,7 +1223,6 @@ impl FactoryComponent for PartitionGroup {
                         .device
                         .clone();
                     let size = self.new_partition_size.bytes() as u64;
-                    println!("THE NEW PARTITION SIZE: {size}");
                     self.partitions.guard().push_back({
                         PartitionInit {
                             name: format!("{device}{index}"),
@@ -1251,7 +1233,6 @@ impl FactoryComponent for PartitionGroup {
                     });
                     self.free_space.sub_assign(self.new_partition_size);
                     sender.input(PartitionGroupMsg::CloseEntry);
-                    // sender.output(PartitionGroupOut::ApplyOut(self.name, CustomPartition { format: (), mountpoint: (), device, size: () }))
                 }
             }
             PartitionGroupMsg::Delete(name) => {
@@ -1275,14 +1256,12 @@ impl FactoryComponent for PartitionGroup {
                 if self.new_partition_size.ge(&self.free_space) {
                     widgets.size_entry.set_show_apply_button(false);
                     widgets.size_entry.add_css_class("error");
-                    // widgets.size_entry.set_
                 } else {
                     widgets.size_entry.remove_css_class("error");
                     widgets.size_entry.set_show_apply_button(true);
                 }
             }
         }
-
         self.update_view(widgets, sender);
     }
 }
@@ -1388,33 +1367,11 @@ impl SimpleComponent for LuksPasswordComponent {
     }
 }
 
-// pub fn get_storage_size_in_bytes(device: &str, logical_block_size: u64) -> Option<u64> {
-//     let device = if device.contains("/dev/") {
-//         &device[5..]
-//     } else {
-//         device
-//     };
-//     let contents = std::fs::read_to_string(format!("/sys/class/block/{}/size", device))
-//         .expect(&format!(
-//             "Couldnʻt read the /sys/class/block/{}/size file.",
-//             device
-//         ))
-//         .trim()
-//         .to_string();
-
-//     contents.parse::<u64>().ok().map(|x| x * logical_block_size)
-// }
-
 pub fn get_storage_size_for_disko(size: u64) -> String {
     let size = Size::from_bytes(size)
         .format()
         .with_style(size::Style::Abbreviated)
         .to_string();
-
-    println!(
-        "\n\n\n\n\n\n\n\nSIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIZE: {}\n\n\n\n\n\n\n\n\n\n\n\n",
-        size.clone()
-    );
 
     let mut ssize = size.split_ascii_whitespace().map(|x| {
         if let Some(y) = x.find(".") {

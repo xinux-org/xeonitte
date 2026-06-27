@@ -773,8 +773,6 @@ impl Component for AppModel {
             AppMsg::SetPartitionConfig(partition) => {
                 let mut devices = Devices { disk: Attrs::new() };
                 partition.clone().map(|x| {
-                    println!("\n\n\n\nTHE CONFIGGGGGGGGGG {:?}\n\n\n\n", x.clone());
-
                     let _ = match x {
                         PartitionSchema::FullDisk(FullDiskOptions{
                             device,

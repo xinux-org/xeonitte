@@ -446,10 +446,6 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
 
                 config = config.replace("@DISKO@", &makeconfig.disko);
 
-                println!(
-                    "++++++++++++++++++++++++++++++++++\nTHE DISKOOOOO: {}\n================================",
-                    &makeconfig.disko
-                );
                 if efi {
                     config = config.replace("@BOOTLOADER@", "");
                     config =
