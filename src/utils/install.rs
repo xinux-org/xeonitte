@@ -8,7 +8,7 @@ use crate::{
         },
         window::{AppMsg, UserConfig},
     },
-    utils::disko::Devices,
+    utils::disko::{Devices, LUKS_PASSWORD_FILE},
 };
 use anyhow::{Context, Result, anyhow};
 use log::{debug, error, info};
@@ -256,11 +256,51 @@ impl Worker for InstallAsyncModel {
                         TMPDIR, arch, hostname
                     );
 
+                    let luks_passphrase = partitions.as_ref().as_ref().and_then(|schema| {
+                        match schema {
+                            PartitionSchema::FullDisk(opts) => opts.passphrase.clone(),
+                            PartitionSchema::Custom(opts) => opts.passphrase.clone(),
+                        }
+                    });
+                    if let Some(passphrase) = &luks_passphrase {
+                        info!("Step 4.1: Write LUKS key file");
+                        fn write_luks_key(passphrase: &str) -> Result<()> {
+                            let mut child = Command::new("pkexec")
+                                .arg(format!("{}/xeonitte-helper", LIBEXECDIR))
+                                .arg("write-luks-key")
+                                .arg("--path")
+                                .arg(LUKS_PASSWORD_FILE)
+                                .stdin(Stdio::piped())
+                                .spawn()?;
+                            child
+                                .stdin
+                                .as_mut()
+                                .context("Failed to open helper stdin")?
+                                .write_all(passphrase.as_bytes())?;
+                            if !child.wait()?.success() {
+                                return Err(anyhow!("xeonitte-helper write-luks-key failed"));
+                            }
+                            Ok(())
+                        }
+                        if let Err(e) = write_luks_key(passphrase) {
+                            error!("Failed to write LUKS key file: {}", e);
+                            sender.output(AppMsg::Error);
+                            return;
+                        }
+                    }
+
                     // TODO: make better way to write this shell command
-                    let cmd = format!(
-                        "nix run https://git.oss.uzinfocom.uz/mirrors/disko/archive/latest.tar.gz -- --mode destroy,format,mount {disko_path} --yes-wipe-all-disks && nix flake lock {} && nixos-install --no-root-passwd --no-channel-copy --root /nix/var/nix/builds/xeonitte --option build-dir /nix/var/nix/builds/xeonitte --flake {}",
-                        flake_dir, flake_uri
-                    );
+                    let cmd = if luks_passphrase.is_some() {
+                        format!(
+                            "nix run https://git.oss.uzinfocom.uz/mirrors/disko/archive/latest.tar.gz -- --mode destroy,format,mount {disko_path} --yes-wipe-all-disks; disko_rc=$?; shred -u -z -n 0 {key} 2>/dev/null; [ \"$disko_rc\" -eq 0 ] && nix flake lock {flake_dir} && nixos-install --no-root-passwd --no-channel-copy --root /nix/var/nix/builds/xeonitte --option build-dir /nix/var/nix/builds/xeonitte --flake {flake_uri}",
+                            key = LUKS_PASSWORD_FILE,
+                        )
+                    } else {
+                        format!(
+                            "nix run https://git.oss.uzinfocom.uz/mirrors/disko/archive/latest.tar.gz -- --mode destroy,format,mount {disko_path} --yes-wipe-all-disks && nix flake lock {} && nixos-install --no-root-passwd --no-channel-copy --root /nix/var/nix/builds/xeonitte --option build-dir /nix/var/nix/builds/xeonitte --flake {}",
+                            flake_dir, flake_uri
+                        )
+                    };
                     INSTALL_BROKER.send(InstallMsg::Install(vec![
                         "/usr/bin/env".to_string(),
                         "pkexec".to_string(),

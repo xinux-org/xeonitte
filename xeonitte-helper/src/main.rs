@@ -7,6 +7,8 @@ use std::{
     collections::HashMap,
     fs::{self, File},
     io::{self, Read, Write},
+    os::unix::fs::OpenOptionsExt,
+    path::Path,
     process::{Command, Stdio},
 };
 
@@ -61,6 +63,10 @@ enum SubCommands {
         path: String,
         #[clap(short, long)]
         contents: String,
+    },
+    WriteLuksKey {
+        #[clap(short, long)]
+        path: String,
     },
     Unmount {},
 }
@@ -121,6 +127,38 @@ fn main() {
             fs::create_dir_all(path.rsplitn(2, '/').last().unwrap()).unwrap();
             let mut file = File::create(path).unwrap();
             file.write_all(contents.as_bytes()).unwrap();
+        }
+        SubCommands::WriteLuksKey { path } => {
+            let write = || -> Result<()> {
+                // Read the passphrase from stdin.
+                let mut passphrase = Vec::new();
+                io::stdin()
+                    .read_to_end(&mut passphrase)
+                    .context("failed to read passphrase from stdin")?;
+                if passphrase.last() == Some(&b'\n') {
+                    passphrase.pop();
+                }
+
+                if let Some(parent) = Path::new(&path).parent() {
+                    fs::create_dir_all(parent)
+                        .context("failed to create key file directory")?;
+                }
+                let mut file = fs::OpenOptions::new()
+                    .write(true)
+                    .create(true)
+                    .truncate(true)
+                    .mode(0o600)
+                    .open(&path)
+                    .context("failed to create key file")?;
+                file.write_all(&passphrase)
+                    .context("failed to write passphrase")?;
+                file.sync_all().context("failed to flush key file")?;
+                Ok(())
+            };
+            if let Err(e) = write() {
+                eprintln!("failed to write LUKS key file: {e:#}");
+                std::process::exit(1);
+            }
         }
 
         SubCommands::Unmount {} => {

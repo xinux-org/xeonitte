@@ -27,8 +27,8 @@ use crate::{
     },
     utils::{
         disko::{
-            Attrs, DeviceContent, Devices, Disk, Filesystem, Gpt, Luks, NixValue, Partition,
-            PartitionContent, Swap, canonical, luks_encrypted,
+            Attrs, DeviceContent, Devices, Disk, Filesystem, Gpt, Luks,
+            NixValue, Partition, PartitionContent, Swap, canonical, luks_encrypted, LUKS_PASSWORD_FILE,
         },
         i18n::i18n_f,
         install::{InstallAsyncModel, InstallAsyncMsg},
@@ -781,7 +781,7 @@ impl Component for AppModel {
                             disk_size
                         }) => {
                             devices = if encryption {
-                                luks_encrypted(device)
+                                luks_encrypted(device, LUKS_PASSWORD_FILE)
                             } else {
                                 canonical(device)
                             };
@@ -815,6 +815,7 @@ impl Component for AppModel {
                                                                         size: Some(get_storage_size_for_disko(x.1.size)) ,
                                                                         content: Some(PartitionContent::Luks(Luks {
                                                                             name: "crypted".into(),
+                                                                            password_file: Some(LUKS_PASSWORD_FILE.into()),
                                                                             settings: luks_settings.clone(),
                                                                             content: Some(Box::new(DeviceContent::Filesystem(Filesystem {
                                                                                 format: x

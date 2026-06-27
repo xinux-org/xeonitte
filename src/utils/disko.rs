@@ -3,6 +3,8 @@ use std::collections::BTreeMap;
 
 pub type Attrs<T> = BTreeMap<String, T>;
 
+pub const LUKS_PASSWORD_FILE: &str = "/run/xeonitte-luks.key";
+
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Devices {
     #[serde(default, skip_serializing_if = "Attrs::is_empty")]
@@ -373,7 +375,7 @@ fn indent(s: &str, levels: usize) -> String {
 }
 
 // nix version: https://gist.github.com/lambdajon/1946c9585c997a2615f5386a5f222c6f
-pub fn luks_encrypted(device: impl Into<String>) -> Devices {
+pub fn luks_encrypted(device: impl Into<String>, password_file: impl Into<String>) -> Devices {
     let mut partitions = Attrs::new();
 
     partitions.insert(
@@ -411,6 +413,7 @@ pub fn luks_encrypted(device: impl Into<String>) -> Devices {
             size: Some("100%".into()),
             content: Some(PartitionContent::Luks(Luks {
                 name: "crypted".into(),
+                password_file: Some(password_file.into()),
                 settings: luks_settings,
                 content: Some(Box::new(DeviceContent::Filesystem(Filesystem {
                     format: "ext4".into(),
