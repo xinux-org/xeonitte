@@ -1183,6 +1183,7 @@ impl FactoryComponent for PartitionGroup {
     ) {
         match message {
             PartitionGroupMsg::ShowSizeEntry => {
+                println!("SSSHHHHOOOOOOWWWWWWWWWW");
                 self.creating_partition = true;
                 // let all_zero = |x: &str| x.chars().into_iter().all(|y| y == '0');
                 // let size = self
@@ -1230,6 +1231,7 @@ impl FactoryComponent for PartitionGroup {
                 widgets.apply_button.remove_css_class("dimmed");
             }
             PartitionGroupMsg::CloseEntry => {
+                println!("CLLLLLLLLLLLLLLLLOOOOOOOOOOSSSSSSSSSSEEEEEEEEEEEEE");
                 self.creating_partition = false;
                 widgets.size_entry.remove_css_class("focused");
                 widgets.apply_button.set_can_target(false);
@@ -1238,6 +1240,7 @@ impl FactoryComponent for PartitionGroup {
                 // self.appliable = false;
             }
             PartitionGroupMsg::Input(x) => {
+                println!("IINNNNNNNPUUUUTTTTTTTTT");
                 let x = x.unwrap_or_default();
                 match x.parse::<f64>() {
                     Ok(y) => {
@@ -1265,11 +1268,14 @@ impl FactoryComponent for PartitionGroup {
 
                         // widgets.size_entry.set_show_apply_button(false);
                         // self.apply_visible = false;
-                        widgets.size_entry.remove_css_class("error");
+                        widgets.size_entry.add_css_class("error");
+                        widgets.apply_button.set_can_target(false);
+                        widgets.apply_button.add_css_class("dimmed");
                     }
                 }
             }
             PartitionGroupMsg::Apply => {
+                println!("APPPPLLLLLLLYYYYYYYYY");
                 // let mut free = Size::from_str(&self.free_space.to_string()).unwrap_or_default();
                 // let mut new =
                 //     Size::from_str(&self.new_partition_size.to_string()).unwrap_or_default();
@@ -1351,11 +1357,29 @@ impl FactoryComponent for PartitionGroup {
                 self.partitions.guard().remove(index.clone());
             }
             PartitionGroupMsg::SetSizeType(x) => {
+                println!("SEEETTTTSIIIIIZZZEEEETTTTYYYYYYYYPPEEEE");
+                let new_size = represent(
+                    x,
+                    widgets.size_entry.text().parse::<f64>().unwrap_or_default(),
+                );
                 self.size_type = x;
-                self.new_partition_size = represent(x, self.new_partition_size.bytes() as f64);
-                sender.input(PartitionGroupMsg::Validate);
+                self.new_partition_size = new_size;
+                if self.free_space.ge(&new_size) {
+                    println!("IIIIFFFFFFFFFFFFFFFFFFFFFFFFF");
+                    widgets.size_entry.remove_css_class("error");
+                    widgets.apply_button.set_can_target(true);
+                    widgets.apply_button.remove_css_class("dimmed");
+                } else {
+                    println!("EREEEEELLLLLLSSSSESEEEE");
+                    // widgets.size_entry.set_show_apply_button(true);
+                    widgets.size_entry.add_css_class("error");
+                    widgets.apply_button.set_can_target(false);
+                    widgets.apply_button.add_css_class("dimmed");
+                }
+                // sender.input(PartitionGroupMsg::Validate);
             }
             PartitionGroupMsg::Validate => {
+                println!("VALIIIIIDDAAAAAATTTTTTEEEEEE");
                 // let free = Size::from_str(&self.free_space.to_string()).unwrap_or_default();
                 // let new = Size::from_str(&self.new_partition_size.to_string()).unwrap_or_default();
                 // let eq = free.eq(&new);
