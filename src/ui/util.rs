@@ -66,11 +66,13 @@ pub fn format_size(s: Size) -> String {
     println!("THEEEEEEEEEEEEEEEEEEEEEEEEEE: {the:?},        tip: {tip}");
 
     let s = format!("{}", bytes as f64 / the as f64).to_string();
+
+    let main = match s.find(|x| x == '.') {
+        Some(x) => s[..(x + 3)].to_string(),
+        None => s,
+    };
     // let main = &s[..significant.len()];
-    format!(
-        "{} {tip}",
-        s[..(s.find(|x| x == '.').unwrap_or(s.len() - 3) + 3)].to_string()
-    )
+    format!("{} {tip}", main)
     // s[..(s.find(|x| x == '.').unwrap_or_default() + 2)].to_string()
 
     // unimplemented!()

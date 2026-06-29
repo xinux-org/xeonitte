@@ -1309,7 +1309,7 @@ impl FactoryComponent for PartitionGroup {
                 //     self.new_partition_size.bytes()
                 // );
 
-                if self.new_partition_size.bytes() > 0 {
+                if self.new_partition_size.bytes().is_positive() {
                     let index = self.partitions.len() + 1;
                     let device = self
                         .partitions
@@ -1325,11 +1325,13 @@ impl FactoryComponent for PartitionGroup {
                         })
                         .device
                         .clone();
-                    let size = self.new_partition_size.bytes() as u64;
+                    // let size = Size::from_str(&format_size(widgets.size_entry.text());
+                    let new_size =
+                        Size::from_str(&format_size(self.new_partition_size)).unwrap_or_default();
                     self.partitions.guard().push_back({
                         PartitionInit {
                             name: format!("{device}{index}"),
-                            size: size,
+                            size: new_size.bytes() as u64,
                             mountrow: adw::ComboRow::new(),
                             device,
                         }
@@ -1369,6 +1371,7 @@ impl FactoryComponent for PartitionGroup {
                     widgets.apply_button.set_can_target(false);
                     widgets.apply_button.add_css_class("dimmed");
                 }
+                widgets.size_entry.add_css_class("focused");
                 // sender.input(PartitionGroupMsg::Validate);
             }
             PartitionGroupMsg::Validate => {
@@ -1496,10 +1499,7 @@ impl SimpleComponent for LuksPasswordComponent {
 }
 
 pub fn get_storage_size_for_disko(size: u64) -> String {
-    let size = Size::from_bytes(size)
-        .format()
-        .with_style(size::Style::Abbreviated)
-        .to_string();
+    let size = format_size(Size::from_bytes(size));
 
     let mut ssize = size.split_ascii_whitespace().map(|x| {
         if let Some(y) = x.find(".") {
