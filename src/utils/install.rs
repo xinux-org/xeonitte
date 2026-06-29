@@ -292,12 +292,12 @@ impl Worker for InstallAsyncModel {
                     // TODO: make better way to write this shell command
                     let cmd = if luks_passphrase.is_some() {
                         format!(
-                            "nix run https://git.oss.uzinfocom.uz/mirrors/disko/archive/latest.tar.gz -- --mode destroy,format,mount {disko_path} --yes-wipe-all-disks; disko_rc=$?; shred -u -z -n 0 {key} 2>/dev/null; [ \"$disko_rc\" -eq 0 ] && nix flake lock {flake_dir} && nixos-install --no-root-passwd --no-channel-copy --root /nix/var/nix/builds/xeonitte --option build-dir /nix/var/nix/builds/xeonitte --flake {flake_uri}",
+                            "swapoff -a || true; nix run https://git.oss.uzinfocom.uz/mirrors/disko/archive/latest.tar.gz -- --mode destroy,format,mount {disko_path} --yes-wipe-all-disks; disko_rc=$?; shred -u -z -n 0 {key}; [ \"$disko_rc\" -eq 0 ] && nix flake lock {flake_dir} && nixos-install --no-root-passwd --no-channel-copy --root /nix/var/nix/builds/xeonitte --option build-dir /nix/var/nix/builds/xeonitte --flake {flake_uri}",
                             key = LUKS_PASSWORD_FILE,
                         )
                     } else {
                         format!(
-                            "nix run https://git.oss.uzinfocom.uz/mirrors/disko/archive/latest.tar.gz -- --mode destroy,format,mount {disko_path} --yes-wipe-all-disks && nix flake lock {} && nixos-install --no-root-passwd --no-channel-copy --root /nix/var/nix/builds/xeonitte --option build-dir /nix/var/nix/builds/xeonitte --flake {}",
+                            "swapoff -a || true; nix run https://git.oss.uzinfocom.uz/mirrors/disko/archive/latest.tar.gz -- --mode destroy,format,mount {disko_path} --yes-wipe-all-disks && nix flake lock {} && nixos-install --no-root-passwd --no-channel-copy --root /nix/var/nix/builds/xeonitte --option build-dir /nix/var/nix/builds/xeonitte --flake {}",
                             flake_dir, flake_uri
                         )
                     };

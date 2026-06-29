@@ -19,7 +19,7 @@
       flake = false;
     };
     disko = {
-      url = "github:nix-community/disko";
+      url = "git+https://git.oss.uzinfocom.uz/mirrors/disko?ref=master&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };

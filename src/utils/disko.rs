@@ -23,10 +23,39 @@ impl Devices {
 
     // importable module: `{ disko.devices = { ... }; }`.
     pub fn to_nix_module(&self) -> String {
-        format!(
-            "{{\n  disko.devices = {};\n}}\n",
-            indent(&self.to_nix_devices(), 1)
-        )
+        let mut body = format!("  disko.devices = {};\n", indent(&self.to_nix_devices(), 1));
+        if self.has_luks() {
+            // boot.initrd.systemd.enable - saves passphrase to keyring and open all encrypted partitions
+            body.push_str("  boot.initrd.systemd.enable = true;\n");
+        }
+        format!("{{\n{body}}}\n")
+    }
+
+    // True if any device in the tree is LUKS-encrypted
+    fn has_luks(&self) -> bool {
+        self.disk
+            .values()
+            .filter_map(|d| d.content.as_ref())
+            .any(device_has_luks)
+    }
+}
+
+fn device_has_luks(content: &DeviceContent) -> bool {
+    match content {
+        DeviceContent::Luks(_) => true,
+        DeviceContent::Gpt(gpt) => gpt
+            .partitions
+            .values()
+            .filter_map(|p| p.content.as_ref())
+            .any(partition_has_luks),
+        DeviceContent::Filesystem(_) | DeviceContent::Swap(_) => false,
+    }
+}
+
+fn partition_has_luks(content: &PartitionContent) -> bool {
+    match content {
+        PartitionContent::Luks(_) => true,
+        PartitionContent::Filesystem(_) | PartitionContent::Swap(_) => false,
     }
 }
 
@@ -377,6 +406,8 @@ fn indent(s: &str, levels: usize) -> String {
 
 // nix version: https://gist.github.com/lambdajon/1946c9585c997a2615f5386a5f222c6f
 pub fn luks_encrypted(device: impl Into<String>, password_file: impl Into<String>) -> Devices {
+    // Shared by the swap and LUKS containers
+    let password_file = password_file.into();
     let mut partitions = Attrs::new();
 
     partitions.insert(
@@ -394,19 +425,27 @@ pub fn luks_encrypted(device: impl Into<String>, password_file: impl Into<String
         },
     );
 
+    let mut luks_settings = Attrs::new();
+    luks_settings.insert("allowDiscards".into(), NixValue::Bool(true));
+
+    // Encrypt swap with the same passphrase as LUKS
     partitions.insert(
         "SWAP".into(),
         Partition {
             size: Some("12G".into()),
-            content: Some(PartitionContent::Swap(Swap {
+            content: Some(PartitionContent::Luks(Luks {
+                name: "cryptswap".into(),
+                password_file: Some(password_file.clone()),
+                settings: luks_settings.clone(),
+                content: Some(Box::new(DeviceContent::Swap(Swap {
+                    resume_device: Some(true),
+                    ..Default::default()
+                }))),
                 ..Default::default()
             })),
             ..Default::default()
         },
     );
-
-    let mut luks_settings = Attrs::new();
-    luks_settings.insert("allowDiscards".into(), NixValue::Bool(true));
 
     partitions.insert(
         "luks".into(),

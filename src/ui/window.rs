@@ -833,13 +833,25 @@ impl Component for AppModel {
                                             ..Default::default()
                                         }),
                                     ),
-                                    (None, Some("swap")) => (
-                                        None,
-                                        PartitionContent::Swap(Swap {
+                                    (None, Some("swap")) => {
+                                        let swap = Swap {
                                             resume_device: Some(true),
                                             ..Default::default()
-                                        }),
-                                    ),
+                                        };
+                                        // if luks on swap also take it
+                                        let content = if encryption {
+                                            PartitionContent::Luks(Luks {
+                                                name: format!("crypted-{}", part_key),
+                                                password_file: Some(LUKS_PASSWORD_FILE.into()),
+                                                settings: luks_settings.clone(),
+                                                content: Some(Box::new(DeviceContent::Swap(swap))),
+                                                ..Default::default()
+                                            })
+                                        } else {
+                                            PartitionContent::Swap(swap)
+                                        };
+                                        (None, content)
+                                    }
                                     (Some(mount), fmt) => (
                                         None,
                                         make_fs_content(
