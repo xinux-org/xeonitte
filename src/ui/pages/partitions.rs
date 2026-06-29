@@ -797,7 +797,7 @@ impl FactoryComponent for Partition {
                 #[watch]
                 set_title: &gettext("Format"),
                 // TODO: When switching language the "Leave as is" option does not update
-                set_model: Some(&gtk::StringList::new(&[&self.donotformat, "btrfs", "ext4", "ext3", "fat32", "ntfs", "xfs", "swap"])),
+                set_model: Some(&gtk::StringList::new(&[&self.donotformat, "btrfs", "ext4", "ext3", "vfat", "ntfs", "xfs", "swap"])),
                 connect_selected_notify[sender, name = self.name.to_string(), device = self.device.to_string(), formatstring = self.donotformat.to_string(), size = self.size] => move |row| {
                     if let Some(item) = row.selected_item() {
                         if let Ok(item) = item.downcast::<gtk::StringObject>() {
