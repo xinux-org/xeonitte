@@ -1173,7 +1173,51 @@ impl FactoryComponent for PartitionGroup {
         match message {
             PartitionGroupMsg::ShowSizeEntry => {
                 self.creating_partition = true;
+                // let all_zero = |x: &str| x.chars().into_iter().all(|y| y == '0');
+                // let size = self
+                //     .free_space
+                //     .to_string()
+                //     .split(" ")
+                //     .nth(0)
+                //     .unwrap_or_default()
+                //     .to_string();
+                let tip = match self
+                    .free_space
+                    .to_string()
+                    .split(" ")
+                    .nth(1)
+                    .unwrap_or_default()
+                    .as_ref()
+                {
+                    "TiB" => {
+                        widgets.dropdown.set_selected(0);
+                        SizeType::TB
+                    }
+                    "GiB" => {
+                        widgets.dropdown.set_selected(1);
+                        SizeType::GB
+                    }
+                    "MiB" => {
+                        widgets.dropdown.set_selected(2);
+                        SizeType::MB
+                    }
+                    _ => {
+                        widgets.dropdown.set_selected(3);
+                        SizeType::KB
+                    }
+                };
+                self.size_type = tip;
+                self.new_partition_size = self.free_space;
+                widgets.size_entry.set_text(
+                    &self
+                        .new_partition_size
+                        .to_string()
+                        .split(" ")
+                        .nth(0)
+                        .unwrap_or_default(),
+                );
                 widgets.size_entry.add_css_class("focused");
+                widgets.size_entry.set_show_apply_button(true);
             }
             PartitionGroupMsg::CloseEntry => {
                 self.creating_partition = false;
@@ -1182,8 +1226,11 @@ impl FactoryComponent for PartitionGroup {
             }
             PartitionGroupMsg::Input(x) => {
                 let x = x.unwrap_or_default();
-                match x.parse::<u64>() {
+                match x.parse::<f64>() {
                     Ok(y) => {
+                        // let tip = match self.size_type {
+                        //     SizeType::TB => "TiB",
+                        // };
                         self.new_partition_size = represent(self.size_type, y);
 
                         sender.input(PartitionGroupMsg::Validate);
@@ -1195,13 +1242,16 @@ impl FactoryComponent for PartitionGroup {
                                 .into_iter()
                                 .filter(|y| !y.is_ascii_digit())
                                 .collect::<String>();
-                            let index = x.find(y).unwrap().try_into().unwrap();
-                            widgets.size_entry.delete_text(index, index + 1);
+                            // let index = x.find(y).unwrap().try_into().unwrap();
+                            // widgets.size_entry.delete_text(index, index + 1);
                         } else {
                             self.new_partition_size = Size::default();
-                            widgets.size_entry.set_show_apply_button(false);
-                            widgets.size_entry.remove_css_class("error");
+                            // widgets.size_entry.set_show_apply_button(false);
+                            // widgets.size_entry.remove_css_class("error");
                         }
+
+                        widgets.size_entry.set_show_apply_button(false);
+                        widgets.size_entry.remove_css_class("error");
                     }
                 }
             }
@@ -1249,7 +1299,7 @@ impl FactoryComponent for PartitionGroup {
             }
             PartitionGroupMsg::SetSizeType(x) => {
                 self.size_type = x;
-                self.new_partition_size = represent(x, self.new_partition_size.bytes() as u64);
+                self.new_partition_size = represent(x, self.new_partition_size.bytes() as f64);
                 sender.input(PartitionGroupMsg::Validate);
             }
             PartitionGroupMsg::Validate => {

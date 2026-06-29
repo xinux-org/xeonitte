@@ -8,15 +8,20 @@ pub enum SizeType {
     KB,
 }
 
-pub fn represent(x: SizeType, y: u64) -> Size {
+pub fn represent(x: SizeType, y: f64) -> Size {
     let f = match x {
-        SizeType::TB => Size::from_tib,
-        SizeType::GB => Size::from_gib,
-        SizeType::MB => Size::from_mib,
-        SizeType::KB => Size::from_kib,
+        // SizeType::TB => Size::from_tib,
+        // SizeType::GB => Size::from_gib,
+        // SizeType::MB => Size::from_mib,
+        // SizeType::KB => Size::from_kib,
+        SizeType::TB => "TiB",
+        SizeType::GB => "GiB",
+        SizeType::MB => "MiB",
+        SizeType::KB => "KiB",
     };
 
-    f(y)
+    Size::from_str(&format!("{} {}", y, f)).unwrap_or_default()
+    // f(y)
 }
 
 // pub fn get_byte_from(x: SizeType) -> u64 {
