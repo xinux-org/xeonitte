@@ -153,7 +153,8 @@ impl From<&str> for FsFormat {
             "ext2" => FsFormat::Ext2,
             "ext3" => FsFormat::Ext3,
             "ext4" => FsFormat::Ext4,
-            "vfat" => FsFormat::Vfat,
+            // The UI presents the friendly label "fat32"; disko's format is "vfat"
+            "vfat" | "fat32" => FsFormat::Vfat,
             "xfs" => FsFormat::Xfs,
             "btrfs" => FsFormat::Btrfs,
             "f2fs" => FsFormat::F2fs,

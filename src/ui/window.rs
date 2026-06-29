@@ -790,157 +790,105 @@ impl Component for AppModel {
                         PartitionSchema::Custom(CustomOptions {
                             partitions,
                             encryption,
-                            passphrase,
-                            disk_size
+                            passphrase: _,
+                            disk_size: _,
                         }) => {
-                            let mut disk_disko: BTreeMap<String, Disk> = Attrs::new();
                             let mut luks_settings = Attrs::new();
                             luks_settings.insert("allowDiscards".into(), NixValue::Bool(true));
 
-                            let get_partitions = |device: String| {
-                                let mut partitions_disko: BTreeMap<String, Partition> =
-                                    Attrs::new();
-                                let _ =
-                                    partitions
-                                        .iter()
-                                        .map(|x| {
-                                            if x.1.device == device {
-                                                let _ = match x.1.mountpoint.clone() {
-                                                    Some(y) => match y.as_str() {
-                                                        "/" => {
-                                                            if encryption {
-                                                                partitions_disko.insert(
-                                                                    "luks".into(),
-                                                                    Partition {
-                                                                        size: Some(get_storage_size_for_disko(x.1.size)) ,
-                                                                        content: Some(PartitionContent::Luks(Luks {
-                                                                            name: "crypted".into(),
-                                                                            password_file: Some(LUKS_PASSWORD_FILE.into()),
-                                                                            settings: luks_settings.clone(),
-                                                                            content: Some(Box::new(DeviceContent::Filesystem(Filesystem {
-                                                                                format: x
-                                                                                    .1
-                                                                                    .clone()
-                                                                                    .format
-                                                                                    .unwrap_or(
-                                                                                        "ext4".to_string(),
-                                                                                    )
-                                                                                    .into(),
-                                                                                mountpoint: Some("/".into()),
-                                                                                ..Default::default()
-                                                                            }))),
-                                                                            ..Default::default()
-                                                                        })),
-                                                                        ..Default::default()
-                                                                    },
-                                                                );
-                                                            } else {
-                                                                partitions_disko.insert(
-                                                                    "root".into(),
-                                                                    Partition {
-                                                                        size: Some(get_storage_size_for_disko(x.1.size)),
-                                                                        content: Some(
-                                                                            PartitionContent::Filesystem(
-                                                                                Filesystem {
-                                                                                    format: x
-                                                                                        .1
-                                                                                        .clone()
-                                                                                        .format
-                                                                                        .unwrap_or(
-                                                                                            "ext4".to_string(),
-                                                                                        )
-                                                                                        .into(),
-                                                                                    mountpoint: Some(
-                                                                                        "/".into(),
-                                                                                    ),
-                                                                                    ..Default::default()
-                                                                                },
-                                                                            ),
-                                                                        ),
-                                                                        ..Default::default()
-                                                                    },
-                                                                );
-                                                            }
-                                                        }
-                                                        "/boot" => {
-                                                            partitions_disko.insert(
-                                                                "ESP".into(),
-                                                                Partition {
-                                                                    type_code: Some("EF00".into()),
-                                                                    size: Some(get_storage_size_for_disko(x.1.size)) ,
-                                                                    content: Some(
-                                                                        PartitionContent::Filesystem(
-                                                                            Filesystem {
-                                                                                format: x
-                                                                                    .1
-                                                                                    .clone()
-                                                                                    .format
-                                                                                    .unwrap_or(
-                                                                                        "vfat".to_string(),
-                                                                                    )
-                                                                                    .into(),
-                                                                                mountpoint: Some(
-                                                                                    "/boot".into(),
-                                                                                ),
-                                                                                mount_options: vec![
-                                                                                    "umask=0077".into(),
-                                                                                ],
-                                                                                ..Default::default()
-                                                                            },
-                                                                        ),
-                                                                    ),
-                                                                    ..Default::default()
-                                                                },
-                                                            );
-                                                        }
-                                                        _ => panic!("Coulnd' find "),
-                                                    },
-                                                    None => {
-                                                        match x.1.format.clone().unwrap().as_str()
-                                                        {
-                                                            "swap" => {
-                                                                partitions_disko.insert(
-                                                        "swap".into(),
-                                                        Partition {
-                                                            size: Some(get_storage_size_for_disko(x.1.size)) ,
-                                                            content: Some(PartitionContent::Swap(
-                                                                Swap {
-                                                                    resume_device: Some(true),
-                                                                    ..Default::default()
-                                                                },
-                                                            )),
-                                                            ..Default::default()
-                                                        },
-                                                    );
-                                                            }
-                                                            _ => panic!(
-                                                                "couldnʻt find partition format"
-                                                            ),
-                                                        }
-                                                    }
-                                                };
-                                            }
-                                        })
-                                        .collect::<Vec<_>>();
-                                partitions_disko
-                            };
-
-                            let _ = partitions
-                                .iter()
-                                .map(|x| {
-                                    disk_disko.insert(
-                                        "main".into(),
-                                        Disk {
-                                            device: x.1.device.clone().into(),
-                                            content: Some(DeviceContent::Gpt(Gpt {
-                                                partitions: get_partitions(x.1.device.clone()),
-                                                ..Default::default()
-                                            })),
+                            let make_fs_content =
+                                |fs: Filesystem, encrypt: bool, luks_name: String| {
+                                    if encrypt {
+                                        PartitionContent::Luks(Luks {
+                                            name: luks_name,
+                                            password_file: Some(LUKS_PASSWORD_FILE.into()),
+                                            settings: luks_settings.clone(),
+                                            content: Some(Box::new(DeviceContent::Filesystem(
+                                                fs,
+                                            ))),
                                             ..Default::default()
-                                        },
-                                    );
-                                })
-                                .collect::<Vec<_>>();
+                                        })
+                                    } else {
+                                        PartitionContent::Filesystem(fs)
+                                    }
+                                };
+
+                            let mut disk_disko: BTreeMap<String, Disk> = Attrs::new();
+
+                            for (name, part) in partitions.iter() {
+                                let part_key =
+                                    name.rsplit('/').next().unwrap_or(name.as_str()).to_string();
+                                let encrypt = encryption && part.encrypt;
+
+                                let (type_code, content) = match (
+                                    part.mountpoint.as_deref(),
+                                    part.format.as_deref(),
+                                ) {
+                                    (Some("/boot"), fmt) => (
+                                        Some("EF00".to_string()),
+                                        PartitionContent::Filesystem(Filesystem {
+                                            format: fmt.unwrap_or("vfat").into(),
+                                            mountpoint: Some("/boot".into()),
+                                            mount_options: vec!["umask=0077".into()],
+                                            ..Default::default()
+                                        }),
+                                    ),
+                                    (None, Some("swap")) => (
+                                        None,
+                                        PartitionContent::Swap(Swap {
+                                            resume_device: Some(true),
+                                            ..Default::default()
+                                        }),
+                                    ),
+                                    (Some(mount), fmt) => (
+                                        None,
+                                        make_fs_content(
+                                            Filesystem {
+                                                format: fmt.unwrap_or("ext4").into(),
+                                                mountpoint: Some(mount.to_string()),
+                                                ..Default::default()
+                                            },
+                                            encrypt,
+                                            format!("crypted-{}", part_key),
+                                        ),
+                                    ),
+                                    (None, Some(fmt)) => (
+                                        None,
+                                        make_fs_content(
+                                            Filesystem {
+                                                format: fmt.into(),
+                                                ..Default::default()
+                                            },
+                                            encrypt,
+                                            format!("crypted-{}", part_key),
+                                        ),
+                                    ),
+                                    (None, None) => continue,
+                                };
+
+                                let disko_partition = Partition {
+                                    type_code,
+                                    size: Some(get_storage_size_for_disko(part.size)),
+                                    content: Some(content),
+                                    ..Default::default()
+                                };
+
+                                let disk_key = part
+                                    .device
+                                    .rsplit('/')
+                                    .next()
+                                    .unwrap_or(part.device.as_str())
+                                    .to_string();
+                                let disk =
+                                    disk_disko.entry(disk_key).or_insert_with(|| Disk {
+                                        device: part.device.clone(),
+                                        content: Some(DeviceContent::Gpt(Gpt::default())),
+                                        ..Default::default()
+                                    });
+                                if let Some(DeviceContent::Gpt(gpt)) = disk.content.as_mut() {
+                                    gpt.partitions.insert(part_key, disko_partition);
+                                }
+                            }
 
                             devices = Devices {
                                 disk: disk_disko,

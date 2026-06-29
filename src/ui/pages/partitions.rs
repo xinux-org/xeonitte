@@ -41,6 +41,7 @@ pub enum PartitionMsg {
     RemoveMountPartition(String),
     AddPartition(String, CustomPartition),
     SetEncryption,
+    SetPartitionEncryption(String, String, u64, bool),
     SetPassphrase,
     SetPassphraseConfirm,
     CheckSelected,
@@ -83,6 +84,7 @@ pub struct CustomPartition {
     pub mountpoint: Option<String>,
     pub device: String,
     pub size: u64,
+    pub encrypt: bool,
 }
 
 #[relm4::component(pub)]
@@ -466,6 +468,46 @@ impl SimpleComponent for PartitionModel {
                 }
                 sender.input(PartitionMsg::CheckSelected);
             }
+            PartitionMsg::SetPartitionEncryption(name, device, size, encrypt) => {
+                trace!("SetPartitionEncryption {} {}", name, encrypt);
+                if let Some(PartitionSchema::Custom(opts)) = &mut self.schema {
+                    opts.partitions
+                        .entry(name)
+                        .and_modify(|part| part.encrypt = encrypt)
+                        .or_insert_with(|| CustomPartition {
+                            format: None,
+                            mountpoint: None,
+                            size,
+                            device,
+                            encrypt,
+                        });
+                } else {
+                    let mut partitions = HashMap::new();
+                    partitions.insert(
+                        name,
+                        CustomPartition {
+                            format: None,
+                            mountpoint: None,
+                            size,
+                            device,
+                            encrypt,
+                        },
+                    );
+                    self.schema = Some(PartitionSchema::Custom(CustomOptions {
+                        partitions,
+                        disk_size: size,
+                        encryption: self.luks_password.model().encryption_enabled,
+                        passphrase: if self.luks_password.model().encryption_enabled
+                            && !self.luks_password.model().passphrase.is_empty()
+                        {
+                            Some(self.luks_password.model().passphrase.clone())
+                        } else {
+                            None
+                        },
+                    }));
+                }
+                sender.input(PartitionMsg::CheckSelected);
+            }
             PartitionMsg::SetPassphrase => {
                 trace!("SetPassphrase");
                 // self.luks_password.model().passphrase = pass;
@@ -510,6 +552,7 @@ impl SimpleComponent for PartitionModel {
                                 mountpoint: None,
                                 size: size,
                                 device,
+                                encrypt: false,
                             },
                         );
                     }
@@ -522,6 +565,7 @@ impl SimpleComponent for PartitionModel {
                             mountpoint: None,
                             size: size,
                             device,
+                            encrypt: false,
                         },
                     );
                     self.schema = Some(PartitionSchema::Custom(CustomOptions {
@@ -578,6 +622,7 @@ impl SimpleComponent for PartitionModel {
                                 mountpoint: Some(mount),
                                 size: size,
                                 device,
+                                encrypt: false,
                             },
                         );
                     }
@@ -590,6 +635,7 @@ impl SimpleComponent for PartitionModel {
                             mountpoint: Some(mount),
                             size: size,
                             device,
+                            encrypt: false,
                         },
                     );
                     self.schema = Some(PartitionSchema::Custom(CustomOptions {
@@ -838,6 +884,23 @@ impl FactoryComponent for Partition {
                 set_title: &gettext("Mount"),
                 add_suffix = &gtk::Label {
                     set_text: "swap",
+                }
+            },
+
+            add_row = &adw::SwitchRow {
+                #[watch]
+                set_visible: !self.swap,
+                #[watch]
+                set_title: &gettext("Encrypt"),
+                #[watch]
+                set_subtitle: &gettext("Encrypt this partition with LUKS"),
+                connect_active_notify[name = self.name.to_string(), device = self.device.to_string(), size = self.size] => move |row| {
+                    PARTITION_BROKER.send(PartitionMsg::SetPartitionEncryption(
+                        name.to_string(),
+                        device.to_string(),
+                        size,
+                        row.is_active(),
+                    ));
                 }
             },
 
