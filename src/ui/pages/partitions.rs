@@ -1070,14 +1070,14 @@ impl FactoryComponent for PartitionGroup {
                             set_max_length: 12,
                             set_activates_default: true,
                             set_hexpand: true,
-                            #[watch]
-                            set_show_apply_button: true,
+                            // #[watch]
+                            set_show_apply_button: false,
                             #[iterate]
                             add_css_class: ["focused", "frame"],
                             inline_css: "padding-top: 6px; padding-bottom: 6px; border-radius: 12px;",
-                            connect_apply[sender] => move |_| {
-                                sender.input(PartitionGroupMsg::Apply);
-                            },
+                            // connect_apply[sender] => move |_| {
+                            //     sender.input(PartitionGroupMsg::Apply);
+                            // },
                             connect_changed[sender] => move |x| {
                                 sender.input(PartitionGroupMsg::Input({
                                     let text = x.text();
@@ -1112,7 +1112,21 @@ impl FactoryComponent for PartitionGroup {
                            set_valign: gtk::Align::Center,
 
                            connect_clicked => PartitionGroupMsg::CloseEntry,
-                        }
+                        },
+
+
+                        #[name = "apply_button"]
+                        gtk::Button {
+                            set_icon_name: "adw-entry-apply-symbolic",
+                            set_valign: gtk::Align::Center,
+                            #[iterate]
+                            add_css_class: ["suggested-action", "circular", "apply-button", "image-button", "disabled"],
+
+                            connect_activate[sender] => move |_| {
+                                sender.input(PartitionGroupMsg::Apply);
+                            },
+                        },
+
                     },
                 },
             },
@@ -1217,12 +1231,16 @@ impl FactoryComponent for PartitionGroup {
                         .unwrap_or_default(),
                 );
                 widgets.size_entry.add_css_class("focused");
-                widgets.size_entry.set_show_apply_button(true);
+                widgets.apply_button.set_can_target(true);
+                widgets.apply_button.remove_css_class("dimmed");
             }
             PartitionGroupMsg::CloseEntry => {
                 self.creating_partition = false;
                 widgets.size_entry.remove_css_class("focused");
-                widgets.size_entry.set_show_apply_button(false);
+                widgets.apply_button.set_can_target(false);
+                widgets.apply_button.add_css_class("dimmed");
+                // widgets.size_entry.set_show_apply_button(false);
+                // self.appliable = false;
             }
             PartitionGroupMsg::Input(x) => {
                 let x = x.unwrap_or_default();
@@ -1250,7 +1268,8 @@ impl FactoryComponent for PartitionGroup {
                             // widgets.size_entry.remove_css_class("error");
                         }
 
-                        widgets.size_entry.set_show_apply_button(false);
+                        // widgets.size_entry.set_show_apply_button(false);
+                        // self.apply_visible = false;
                         widgets.size_entry.remove_css_class("error");
                     }
                 }
@@ -1284,6 +1303,7 @@ impl FactoryComponent for PartitionGroup {
                     self.free_space.sub_assign(self.new_partition_size);
                     sender.input(PartitionGroupMsg::CloseEntry);
                 }
+                sender.input(PartitionGroupMsg::Validate);
             }
             PartitionGroupMsg::Delete(name) => {
                 let (index, x) = self
@@ -1303,12 +1323,15 @@ impl FactoryComponent for PartitionGroup {
                 sender.input(PartitionGroupMsg::Validate);
             }
             PartitionGroupMsg::Validate => {
-                if self.new_partition_size.ge(&self.free_space) {
-                    widgets.size_entry.set_show_apply_button(false);
-                    widgets.size_entry.add_css_class("error");
-                } else {
+                if self.free_space.ge(&self.new_partition_size) {
                     widgets.size_entry.remove_css_class("error");
-                    widgets.size_entry.set_show_apply_button(true);
+                    widgets.apply_button.set_can_target(true);
+                    widgets.apply_button.remove_css_class("dimmed");
+                } else {
+                    // widgets.size_entry.set_show_apply_button(true);
+                    widgets.size_entry.add_css_class("error");
+                    widgets.apply_button.set_can_target(false);
+                    widgets.apply_button.add_css_class("dimmed");
                 }
             }
         }
