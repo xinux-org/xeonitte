@@ -1,7 +1,7 @@
 use crate::{
     config::LIBEXECDIR,
     ui::{
-        util::{SizeType, represent},
+        util::{SizeType, format_size, represent},
         window::AppMsg,
     },
     utils::{
@@ -17,7 +17,7 @@ use size::Size;
 use std::{
     collections::HashMap,
     convert::identity,
-    ops::{AddAssign, SubAssign},
+    ops::{AddAssign, Sub, SubAssign},
     process::Command,
 };
 
@@ -843,7 +843,7 @@ impl FactoryComponent for Partition {
                 #[watch]
                 set_title: &gettext("Format"),
                 // TODO: When switching language the "Leave as is" option does not update
-                set_model: Some(&gtk::StringList::new(&[&self.donotformat, "btrfs", "ext4", "ext3", "fat32", "ntfs", "xfs", "swap"])),
+                set_model: Some(&gtk::StringList::new(&[&self.donotformat, "btrfs", "ext4", "ext3", "vfat", "ntfs", "xfs", "swap"])),
                 connect_selected_notify[sender, name = self.name.to_string(), device = self.device.to_string(), formatstring = self.donotformat.to_string(), size = self.size] => move |row| {
                     if let Some(item) = row.selected_item() {
                         if let Ok(item) = item.downcast::<gtk::StringObject>() {
@@ -1048,15 +1048,13 @@ impl FactoryComponent for PartitionGroup {
                             gtk::Box {
                                 set_orientation: gtk::Orientation::Horizontal,
                                 set_spacing: 2,
-
                                 gtk::Label {
                                     set_text: "Free: ",
                                     add_css_class: "heading"
                                 },
-
                                 gtk::Label {
                                     #[watch]
-                                    set_text: &self.free_space.to_string(),
+                                    set_text: &format_size(self.free_space),
                                 },
                             },
 
@@ -1109,7 +1107,7 @@ impl FactoryComponent for PartitionGroup {
                         adw::ActionRow {
                             set_title: "Free space",
                             #[watch]
-                            set_subtitle: &self.free_space.to_string(),
+                            set_subtitle: &format_size(self.free_space),
                             set_activatable: false,
                             // add_css_class: "card",
                         },
@@ -1133,14 +1131,14 @@ impl FactoryComponent for PartitionGroup {
                             set_max_length: 12,
                             set_activates_default: true,
                             set_hexpand: true,
-                            #[watch]
-                            set_show_apply_button: true,
+                            // #[watch]
+                            set_show_apply_button: false,
                             #[iterate]
                             add_css_class: ["focused", "frame"],
                             inline_css: "padding-top: 6px; padding-bottom: 6px; border-radius: 12px;",
-                            connect_apply[sender] => move |_| {
-                                sender.input(PartitionGroupMsg::Apply);
-                            },
+                            // connect_apply[sender] => move |_| {
+                            //     sender.input(PartitionGroupMsg::Apply);
+                            // },
                             connect_changed[sender] => move |x| {
                                 sender.input(PartitionGroupMsg::Input({
                                     let text = x.text();
@@ -1175,7 +1173,20 @@ impl FactoryComponent for PartitionGroup {
                            set_valign: gtk::Align::Center,
 
                            connect_clicked => PartitionGroupMsg::CloseEntry,
-                        }
+                        },
+
+
+                        #[name = "apply_button"]
+                        gtk::Button {
+                            set_icon_name: "adw-entry-apply-symbolic",
+                            set_valign: gtk::Align::Center,
+                            #[iterate]
+                            add_css_class: ["suggested-action", "circular", "apply-button", "image-button", "disabled"],
+
+                            connect_activate => PartitionGroupMsg::Apply,
+                            connect_clicked => PartitionGroupMsg::Apply,
+                        },
+
                     },
                 },
             },
@@ -1236,17 +1247,66 @@ impl FactoryComponent for PartitionGroup {
         match message {
             PartitionGroupMsg::ShowSizeEntry => {
                 self.creating_partition = true;
+                // let all_zero = |x: &str| x.chars().into_iter().all(|y| y == '0');
+                // let size = self
+                //     .free_space
+                //     .to_string()
+                //     .split(" ")
+                //     .nth(0)
+                //     .unwrap_or_default()
+                //     .to_string();
+                let tip = match self
+                    .free_space
+                    .to_string()
+                    .split(" ")
+                    .nth(1)
+                    .unwrap_or_default()
+                    .as_ref()
+                {
+                    "TiB" => {
+                        widgets.dropdown.set_selected(0);
+                        SizeType::TB
+                    }
+                    "GiB" => {
+                        widgets.dropdown.set_selected(1);
+                        SizeType::GB
+                    }
+                    "MiB" => {
+                        widgets.dropdown.set_selected(2);
+                        SizeType::MB
+                    }
+                    _ => {
+                        widgets.dropdown.set_selected(3);
+                        SizeType::KB
+                    }
+                };
+                self.size_type = tip;
+                self.new_partition_size = self.free_space;
+                widgets.size_entry.set_text(
+                    format_size(self.new_partition_size)
+                        .split(" ")
+                        .nth(0)
+                        .unwrap_or_default(),
+                );
                 widgets.size_entry.add_css_class("focused");
+                widgets.apply_button.set_can_target(true);
+                widgets.apply_button.remove_css_class("dimmed");
             }
             PartitionGroupMsg::CloseEntry => {
                 self.creating_partition = false;
                 widgets.size_entry.remove_css_class("focused");
-                widgets.size_entry.set_show_apply_button(false);
+                widgets.apply_button.set_can_target(false);
+                widgets.apply_button.add_css_class("dimmed");
+                // widgets.size_entry.set_show_apply_button(false);
+                // self.appliable = false;
             }
             PartitionGroupMsg::Input(x) => {
                 let x = x.unwrap_or_default();
-                match x.parse::<u64>() {
+                match x.parse::<f64>() {
                     Ok(y) => {
+                        // let tip = match self.size_type {
+                        //     SizeType::TB => "TiB",
+                        // };
                         self.new_partition_size = represent(self.size_type, y);
 
                         sender.input(PartitionGroupMsg::Validate);
@@ -1258,18 +1318,61 @@ impl FactoryComponent for PartitionGroup {
                                 .into_iter()
                                 .filter(|y| !y.is_ascii_digit())
                                 .collect::<String>();
-                            let index = x.find(y).unwrap().try_into().unwrap();
-                            widgets.size_entry.delete_text(index, index + 1);
+                            // let index = x.find(y).unwrap().try_into().unwrap();
+                            // widgets.size_entry.delete_text(index, index + 1);
                         } else {
                             self.new_partition_size = Size::default();
-                            widgets.size_entry.set_show_apply_button(false);
-                            widgets.size_entry.remove_css_class("error");
+                            // widgets.size_entry.set_show_apply_button(false);
+                            // widgets.size_entry.remove_css_class("error");
                         }
+
+                        // widgets.size_entry.set_show_apply_button(false);
+                        // self.apply_visible = false;
+                        widgets.size_entry.add_css_class("error");
+                        widgets.apply_button.set_can_target(false);
+                        widgets.apply_button.add_css_class("dimmed");
                     }
                 }
             }
             PartitionGroupMsg::Apply => {
-                if self.new_partition_size.bytes() > 0 {
+                // let mut free = Size::from_str(&self.free_space.to_string()).unwrap_or_default();
+                // let mut new =
+                //     Size::from_str(&self.new_partition_size.to_string()).unwrap_or_default();
+                // let mut eq = free.eq(&new);
+
+                // println!(
+                //     "BEEEEEFOOOORE: \nfree: {free}\n\nnew: {new}\n\n\neq: {eq}\nfree_space: {:?}\n\nnew_size: {:?}",
+                //     self.free_space.bytes(),
+                //     self.new_partition_size.bytes()
+                // );
+
+                // if eq
+                //     || self
+                //         .free_space
+                //         .sub(self.new_partition_size)
+                //         .bytes()
+                //         .is_negative()
+                // {
+                // let mut remainder = self.new_partition_size.sub(self.free_space);
+                // remainder.add_assign(Size::from_megabytes(1));
+                // println!("\nTHE REMAINDER IS: {remainder}\n");
+                //     self.new_partition_size = self.free_space;
+                //     self.free_space = Size::from_bytes(0)
+                // } else {
+                //     self.free_space.sub_assign(self.new_partition_size);
+                // }
+
+                // free = Size::from_str(&self.free_space.to_string()).unwrap_or_default();
+                // new = Size::from_str(&self.new_partition_size.to_string()).unwrap_or_default();
+                // eq = free.eq(&new);
+
+                // println!(
+                //     "AAFFTEEERRRRRR: \nfree: {free}\n\nnew: {new}\n\n\neq: {eq}\nfree_space: {:?}\n\nnew_size: {:?}",
+                //     self.free_space.bytes(),
+                //     self.new_partition_size.bytes()
+                // );
+
+                if self.new_partition_size.bytes().is_positive() {
                     let index = self.partitions.len() + 1;
                     let device = self
                         .partitions
@@ -1285,18 +1388,22 @@ impl FactoryComponent for PartitionGroup {
                         })
                         .device
                         .clone();
-                    let size = self.new_partition_size.bytes() as u64;
+                    // let size = Size::from_str(&format_size(widgets.size_entry.text());
+                    let new_size =
+                        Size::from_str(&format_size(self.new_partition_size)).unwrap_or_default();
                     self.partitions.guard().push_back({
                         PartitionInit {
                             name: format!("{device}{index}"),
-                            size: size,
+                            size: new_size.bytes() as u64,
                             mountrow: adw::ComboRow::new(),
                             device,
                         }
                     });
+
                     self.free_space.sub_assign(self.new_partition_size);
                     sender.input(PartitionGroupMsg::CloseEntry);
                 }
+                sender.input(PartitionGroupMsg::Validate);
             }
             PartitionGroupMsg::Delete(name) => {
                 let (index, x) = self
@@ -1311,17 +1418,41 @@ impl FactoryComponent for PartitionGroup {
                 self.partitions.guard().remove(index.clone());
             }
             PartitionGroupMsg::SetSizeType(x) => {
+                let new_size = represent(
+                    x,
+                    widgets.size_entry.text().parse::<f64>().unwrap_or_default(),
+                );
                 self.size_type = x;
-                self.new_partition_size = represent(x, self.new_partition_size.bytes() as u64);
-                sender.input(PartitionGroupMsg::Validate);
+                self.new_partition_size = new_size;
+                if self.free_space.ge(&new_size) {
+                    widgets.size_entry.remove_css_class("error");
+                    widgets.apply_button.set_can_target(true);
+                    widgets.apply_button.remove_css_class("dimmed");
+                } else {
+                    // widgets.size_entry.set_show_apply_button(true);
+                    widgets.size_entry.add_css_class("error");
+                    widgets.apply_button.set_can_target(false);
+                    widgets.apply_button.add_css_class("dimmed");
+                }
+                widgets.size_entry.add_css_class("focused");
+                // sender.input(PartitionGroupMsg::Validate);
             }
             PartitionGroupMsg::Validate => {
-                if self.new_partition_size.ge(&self.free_space) {
-                    widgets.size_entry.set_show_apply_button(false);
-                    widgets.size_entry.add_css_class("error");
-                } else {
+                // let free = Size::from_str(&self.free_space.to_string()).unwrap_or_default();
+                // let new = Size::from_str(&self.new_partition_size.to_string()).unwrap_or_default();
+                // let eq = free.eq(&new);
+
+                // println!("I AMMM WOOORRRKIINNGGGG");
+
+                if self.free_space.ge(&self.new_partition_size) {
                     widgets.size_entry.remove_css_class("error");
-                    widgets.size_entry.set_show_apply_button(true);
+                    widgets.apply_button.set_can_target(true);
+                    widgets.apply_button.remove_css_class("dimmed");
+                } else {
+                    // widgets.size_entry.set_show_apply_button(true);
+                    widgets.size_entry.add_css_class("error");
+                    widgets.apply_button.set_can_target(false);
+                    widgets.apply_button.add_css_class("dimmed");
                 }
             }
         }
@@ -1431,10 +1562,7 @@ impl SimpleComponent for LuksPasswordComponent {
 }
 
 pub fn get_storage_size_for_disko(size: u64) -> String {
-    let size = Size::from_bytes(size)
-        .format()
-        .with_style(size::Style::Abbreviated)
-        .to_string();
+    let size = format_size(Size::from_bytes(size));
 
     let mut ssize = size.split_ascii_whitespace().map(|x| {
         if let Some(y) = x.find(".") {
