@@ -1,7 +1,7 @@
 use crate::{
     config::LIBEXECDIR,
     ui::{
-        util::{SizeType, represent},
+        util::{SizeType, format_size, represent},
         window::AppMsg,
     },
     utils::{
@@ -17,7 +17,7 @@ use size::Size;
 use std::{
     collections::HashMap,
     convert::identity,
-    ops::{AddAssign, SubAssign},
+    ops::{AddAssign, Sub, SubAssign},
     process::Command,
 };
 
@@ -985,15 +985,13 @@ impl FactoryComponent for PartitionGroup {
                             gtk::Box {
                                 set_orientation: gtk::Orientation::Horizontal,
                                 set_spacing: 2,
-
                                 gtk::Label {
                                     set_text: "Free: ",
                                     add_css_class: "heading"
                                 },
-
                                 gtk::Label {
                                     #[watch]
-                                    set_text: &self.free_space.to_string(),
+                                    set_text: &format_size(self.free_space),
                                 },
                             },
 
@@ -1046,7 +1044,7 @@ impl FactoryComponent for PartitionGroup {
                         adw::ActionRow {
                             set_title: "Free space",
                             #[watch]
-                            set_subtitle: &self.free_space.to_string(),
+                            set_subtitle: &format_size(self.free_space),
                             set_activatable: false,
                             // add_css_class: "card",
                         },
@@ -1222,9 +1220,7 @@ impl FactoryComponent for PartitionGroup {
                 self.size_type = tip;
                 self.new_partition_size = self.free_space;
                 widgets.size_entry.set_text(
-                    &self
-                        .new_partition_size
-                        .to_string()
+                    format_size(self.new_partition_size)
                         .split(" ")
                         .nth(0)
                         .unwrap_or_default(),
@@ -1274,6 +1270,43 @@ impl FactoryComponent for PartitionGroup {
                 }
             }
             PartitionGroupMsg::Apply => {
+                // let mut free = Size::from_str(&self.free_space.to_string()).unwrap_or_default();
+                // let mut new =
+                //     Size::from_str(&self.new_partition_size.to_string()).unwrap_or_default();
+                // let mut eq = free.eq(&new);
+
+                // println!(
+                //     "BEEEEEFOOOORE: \nfree: {free}\n\nnew: {new}\n\n\neq: {eq}\nfree_space: {:?}\n\nnew_size: {:?}",
+                //     self.free_space.bytes(),
+                //     self.new_partition_size.bytes()
+                // );
+
+                // if eq
+                //     || self
+                //         .free_space
+                //         .sub(self.new_partition_size)
+                //         .bytes()
+                //         .is_negative()
+                // {
+                // let mut remainder = self.new_partition_size.sub(self.free_space);
+                // remainder.add_assign(Size::from_megabytes(1));
+                // println!("\nTHE REMAINDER IS: {remainder}\n");
+                //     self.new_partition_size = self.free_space;
+                //     self.free_space = Size::from_bytes(0)
+                // } else {
+                //     self.free_space.sub_assign(self.new_partition_size);
+                // }
+
+                // free = Size::from_str(&self.free_space.to_string()).unwrap_or_default();
+                // new = Size::from_str(&self.new_partition_size.to_string()).unwrap_or_default();
+                // eq = free.eq(&new);
+
+                // println!(
+                //     "AAFFTEEERRRRRR: \nfree: {free}\n\nnew: {new}\n\n\neq: {eq}\nfree_space: {:?}\n\nnew_size: {:?}",
+                //     self.free_space.bytes(),
+                //     self.new_partition_size.bytes()
+                // );
+
                 if self.new_partition_size.bytes() > 0 {
                     let index = self.partitions.len() + 1;
                     let device = self
@@ -1299,6 +1332,7 @@ impl FactoryComponent for PartitionGroup {
                             device,
                         }
                     });
+
                     self.free_space.sub_assign(self.new_partition_size);
                     sender.input(PartitionGroupMsg::CloseEntry);
                 }
@@ -1322,6 +1356,12 @@ impl FactoryComponent for PartitionGroup {
                 sender.input(PartitionGroupMsg::Validate);
             }
             PartitionGroupMsg::Validate => {
+                // let free = Size::from_str(&self.free_space.to_string()).unwrap_or_default();
+                // let new = Size::from_str(&self.new_partition_size.to_string()).unwrap_or_default();
+                // let eq = free.eq(&new);
+
+                // println!("I AMMM WOOORRRKIINNGGGG");
+
                 if self.free_space.ge(&self.new_partition_size) {
                     widgets.size_entry.remove_css_class("error");
                     widgets.apply_button.set_can_target(true);
