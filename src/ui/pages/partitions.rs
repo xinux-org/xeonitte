@@ -1122,9 +1122,8 @@ impl FactoryComponent for PartitionGroup {
                             #[iterate]
                             add_css_class: ["suggested-action", "circular", "apply-button", "image-button", "disabled"],
 
-                            connect_activate[sender] => move |_| {
-                                sender.input(PartitionGroupMsg::Apply);
-                            },
+                            connect_activate => PartitionGroupMsg::Apply,
+                            connect_clicked => PartitionGroupMsg::Apply,
                         },
 
                     },
