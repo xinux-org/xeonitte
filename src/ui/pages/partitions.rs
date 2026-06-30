@@ -785,6 +785,7 @@ pub struct Partition {
     mountrow: adw::ComboRow,
     device: String,
     swap: bool,
+    boot: bool,
     donotmount: String,
     donotformat: String,
 }
@@ -801,6 +802,7 @@ pub struct PartitionInit {
 pub enum PartitionRowMsg {
     Deselect(String),
     SetSwap(bool),
+    SetBoot(bool),
     Delete,
 }
 
@@ -847,14 +849,16 @@ impl FactoryComponent for Partition {
                 set_title: &gettext("Mount"),
                 // TODO: When switching language the "Do not mount" option does not update
                 set_model: Some(&gtk::StringList::new(&[&self.donotmount, " /", "/boot", "/home", "/opt", "/var", "/nix"])),
-                connect_selected_notify[name = self.name.to_string(), device = self.device.to_string(), mountstring = self.donotmount.to_string(), size = self.size] => move |row| {
+                connect_selected_notify[sender, name = self.name.to_string(), device = self.device.to_string(), mountstring = self.donotmount.to_string(), size = self.size] => move |row| {
                     if let Some(item) = row.selected_item() {
                         if let Ok(item) = item.downcast::<gtk::StringObject>() {
-                            if item.string() == mountstring {
+                            let x = item.string();
+                            if x == mountstring {
                                 PARTITION_BROKER.send(PartitionMsg::RemoveMountPartition(name.to_string()));
                             } else {
                                 PARTITION_BROKER.send(PartitionMsg::AddMountPartition(name.to_string(), item.string().trim().to_string(), device.to_string(), size));
                             }
+                            sender.input(PartitionRowMsg::SetBoot(x.eq("/boot")));
                         }
                     }
                 }
@@ -871,7 +875,7 @@ impl FactoryComponent for Partition {
 
             add_row = &adw::SwitchRow {
                 #[watch]
-                set_visible: !self.swap,
+                set_visible: !self.swap && !self.boot,
                 #[watch]
                 set_title: &gettext("Encrypt"),
                 #[watch]
@@ -889,7 +893,8 @@ impl FactoryComponent for Partition {
             add_row = &adw::ActionRow {
                 set_activatable: false,
                 add_suffix = &gtk::Button {
-                    set_label: "Delete",
+                    #[watch]
+                    set_label: &gettext("Delete"),
                     add_css_class: "raised",
                     add_css_class: "destructive-action",
                     set_halign: gtk::Align::End,
@@ -910,6 +915,7 @@ impl FactoryComponent for Partition {
             mountrow: parent.mountrow,
             device: parent.device,
             swap: false,
+            boot: false,
             donotmount: gettext("Do not mount"),
             donotformat: gettext("Leave as is"),
         }
@@ -940,6 +946,9 @@ impl FactoryComponent for Partition {
             }
             PartitionRowMsg::SetSwap(swap) => {
                 self.swap = swap;
+            }
+            PartitionRowMsg::SetBoot(boot) => {
+                self.boot = boot;
             }
             PartitionRowMsg::Delete => _sender
                 .output(PartitionOut::Delete(self.name.clone()))
@@ -1018,11 +1027,13 @@ impl FactoryComponent for PartitionGroup {
                                 set_spacing: 2,
 
                                 gtk::Label {
-                                    set_text: "Total: ",
+                                    #[watch]
+                                    set_text: &format!("{}: ", gettext("Total")),
                                     add_css_class: "heading"
                                 },
 
                                 gtk::Label {
+                                    #[watch]
                                     set_text: &size::Size::from_bytes::<u64>(self.total_size).to_string(),
                                 },
                             },
@@ -1031,7 +1042,8 @@ impl FactoryComponent for PartitionGroup {
                                 set_orientation: gtk::Orientation::Horizontal,
                                 set_spacing: 2,
                                 gtk::Label {
-                                    set_text: "Free: ",
+                                    #[watch]
+                                    set_text: &format!("{}: ", gettext("Free")),
                                     add_css_class: "heading"
                                 },
                                 gtk::Label {
@@ -1107,7 +1119,8 @@ impl FactoryComponent for PartitionGroup {
 
                         #[name = "size_entry"]
                         adw::EntryRow {
-                            set_title: "Enter the new partition size",
+                            #[watch]
+                            set_title: &gettext("Enter the new partition size"),
                             set_input_purpose: gtk::InputPurpose::Number,
                             set_max_length: 12,
                             set_activates_default: true,
@@ -1299,6 +1312,7 @@ impl FactoryComponent for PartitionGroup {
                             mountrow: adw::ComboRow::new(),
                             device: self.name.clone(),
                             swap: false,
+                            boot: false,
                             donotmount: "".to_string(),
                             donotformat: "".to_string(),
                         })

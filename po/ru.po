@@ -257,3 +257,52 @@ msgstr "Нет интернета"
 #: src/ui/window.rs:339
 msgid "Please connect to the Internet to continue"
 msgstr "Пожалуйста, подключитесь к Интернету, чтобы продолжить."
+
+#: src/ui/pages/partitions.rs:1021
+msgid "Total"
+msgstr "Всего"
+
+#: src/ui/pages/partitions.rs:1034
+msgid "Free"
+msgstr "Свободно"
+
+#: src/ui/pages/partitions.rs:1391
+msgid "Encryption"
+msgstr "Шифрование"
+
+#: src/ui/pages/partitions.rs:1394
+msgid "Enable Disk Encryption"
+msgstr "Включить шифрование диска"
+
+#: src/ui/pages/partitions.rs:1396
+msgid "Encrypt your disk with LUKS"
+msgstr "Зашифруйте диск с помощью LUKS"
+
+#: src/ui/pages/partitions.rs:1405
+msgid "Encryption Password"
+msgstr "Пароль шифрования"
+
+#: src/ui/pages/partitions.rs:1425
+msgid "Passwords do not match"
+msgstr "Пароли не совпадают"
+
+#: src/ui/pages/partitions.rs:1432
+msgid "Password is required"
+msgstr "Требуется пароль"
+
+
+#: src/ui/pages/partitions.rs:876
+msgid "Encrypt"
+msgstr "Зашифровать"
+
+#: src/ui/pages/partitions.rs:878
+msgid "Encrypt this partition with LUKS"
+msgstr "Зашифровать раздел с помощью LUKS"
+
+#: src/ui/pages/partitions.rs:892
+msgid "Delete"
+msgstr "Удалить"
+
+#: src/ui/pages/partitions.rs:1110
+msgid "Enter the new partition size"
+msgstr "Введите новый размер раздела"
