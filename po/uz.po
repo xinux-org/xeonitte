@@ -256,4 +256,52 @@ msgstr "Internet yo‘q"
 
 #: src/ui/window.rs:339
 msgid "Please connect to the Internet to continue"
-msgstr "Davom etish uchun Internetga ulaning"
+msgstr "Davom etish uchun internetga ulaning"
+
+#: src/ui/pages/partitions.rs:1021
+msgid "Total"
+msgstr "Jami"
+
+#: src/ui/pages/partitions.rs:1034
+msgid "Free"
+msgstr "Boʻsh"
+
+#: src/ui/pages/partitions.rs:1391
+msgid "Encryption"
+msgstr "Shifrlash"
+
+#: src/ui/pages/partitions.rs:1394
+msgid "Enable Disk Encryption"
+msgstr "Disk shifrlashni yoqish"
+
+#: src/ui/pages/partitions.rs:1396
+msgid "Encrypt your disk with LUKS"
+msgstr "Diskni LUKS bilan shifrlash"
+
+#: src/ui/pages/partitions.rs:1405
+msgid "Encryption Password"
+msgstr "Shifr paroli"
+
+#: src/ui/pages/partitions.rs:1425
+msgid "Passwords do not match"
+msgstr "Parollar mos kelmadi"
+
+#: src/ui/pages/partitions.rs:1432
+msgid "Password is required"
+msgstr "Parol talab qilinadi"
+
+#: src/ui/pages/partitions.rs:876
+msgid "Encrypt"
+msgstr "Shifrlash"
+
+#: src/ui/pages/partitions.rs:878
+msgid "Encrypt this partition with LUKS"
+msgstr "Boʻlakni LUKS bilan shifrlash"
+
+#: src/ui/pages/partitions.rs:892
+msgid "Delete"
+msgstr "Oʻchirish"
+
+#: src/ui/pages/partitions.rs:1110
+msgid "Enter the new partition size"
+msgstr "Yangi boʻlak hajmini kiriting"

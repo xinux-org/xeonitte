@@ -8,14 +8,15 @@ use crate::{
         },
         window::{AppMsg, UserConfig},
     },
+    utils::disko::{Devices, LUKS_PASSWORD_FILE},
 };
 use anyhow::{Context, Result, anyhow};
 use log::{debug, error, info};
 use relm4::*;
 use std::{
     collections::HashMap,
-    fs,
-    io::{BufRead, BufReader, Write},
+    fs::{self},
+    io::Write,
     process::{Command, Stdio},
 };
 
@@ -38,6 +39,7 @@ pub enum InstallAsyncMsg {
         HashMap<String, HashMap<String, Choice>>, // Listconfig
         ConfigType,
         bool,
+        Devices,
     ),
     FinishInstall(
         Option<String>, //timezone,
@@ -73,6 +75,7 @@ impl Worker for InstallAsyncModel {
                 listconfig,
                 configtype,
                 imperative_timezone,
+                disko_config,
             ) => {
                 self.username = user.as_ref().as_ref().map(|u| u.username.clone());
                 self.password = user.as_ref().as_ref().map(|u| u.password.clone());
@@ -118,12 +121,12 @@ impl Worker for InstallAsyncModel {
                 }
 
                 // Step 1: Setup and mount partitions
-                info!("Step 1: Setup and mount partitions");
-                if let Err(e) = partition(*partitions.clone()) {
-                    error!("Failed to partition: {}", e);
-                    let _ = sender.output(AppMsg::Error);
-                    return;
-                }
+                // info!("Step 1: Setup and mount partitions");
+                // if let Err(e) = partition(*partitions.clone()) {
+                //     error!("Failed to partition: {}", e);
+                //     let _ = sender.output(AppMsg::Error);
+                //     return;
+                // }
 
                 // Step 2: Generate base config
                 let Ok(_) = Command::new("pkexec")
@@ -194,21 +197,21 @@ impl Worker for InstallAsyncModel {
                 // Step 3: Make configuration base on language, timezone, keyboard, and user
                 info!("Step 3: Make configuration");
 
-                let mut mbrdisk = None;
-                if let Some(partitions) = partitions.as_ref() {
-                    match partitions {
-                        PartitionSchema::FullDisk(disk) => {
-                            mbrdisk = Some(disk.device.clone());
-                        }
-                        PartitionSchema::Custom(options) => {
-                            for part in options.partitions.values() {
-                                if part.mountpoint == Some("/".to_string()) {
-                                    mbrdisk = Some(part.device.to_string());
-                                }
-                            }
-                        }
-                    }
-                }
+                // let mut mbrdisk = None;
+                // if let Some(partitions) = partitions.as_ref() {
+                //     match partitions {
+                //         PartitionSchema::FullDisk(disk) => {
+                //             mbrdisk = Some(disk.device.clone());
+                //         }
+                //         PartitionSchema::Custom(options) => {
+                //             for part in options.partitions.values() {
+                //                 if part.mountpoint == Some("/".to_string()) {
+                //                     mbrdisk = Some(part.device.to_string());
+                //                 }
+                //             }
+                //         }
+                //     }
+                // }
 
                 if let Err(e) = makeconfig(MakeConfig {
                     id,
@@ -217,8 +220,9 @@ impl Worker for InstallAsyncModel {
                     keyboard,
                     user: *user.clone(),
                     list: listconfig,
-                    bootdisk: mbrdisk,
+                    // bootdisk: mbrdisk,
                     imperative_timezone,
+                    disko: disko_config.to_nix_module(),
                 }) {
                     error!("Failed to make config: {}", e);
                     let _ = sender.output(AppMsg::Error);
@@ -262,11 +266,58 @@ impl Worker for InstallAsyncModel {
                     let flake_dir = format!("{}/etc/nixos", TMPDIR);
                     let flake_uri = format!("{}#{}", flake_dir, hostname);
 
-                    // TODO: make better way to write this shell command
-                    let cmd = format!(
-                        "nix flake lock {} && nixos-install --no-root-passwd --no-channel-copy --root /nix/var/nix/builds/xeonitte --option build-dir /nix/var/nix/builds/xeonitte --flake {} --show-trace",
-                        flake_dir, flake_uri
+                    let disko_path = format!(
+                        "{}/etc/nixos/systems/{}-linux/{}/disko.nix",
+                        TMPDIR, arch, hostname
                     );
+
+                    let luks_passphrase =
+                        partitions
+                            .as_ref()
+                            .as_ref()
+                            .and_then(|schema| match schema {
+                                PartitionSchema::FullDisk(opts) => opts.passphrase.clone(),
+                                PartitionSchema::Custom(opts) => opts.passphrase.clone(),
+                            });
+                    if let Some(passphrase) = &luks_passphrase {
+                        info!("Step 4.1: Write LUKS key file");
+                        fn write_luks_key(passphrase: &str) -> Result<()> {
+                            let mut child = Command::new("pkexec")
+                                .arg(format!("{}/xeonitte-helper", LIBEXECDIR))
+                                .arg("write-luks-key")
+                                .arg("--path")
+                                .arg(LUKS_PASSWORD_FILE)
+                                .stdin(Stdio::piped())
+                                .spawn()?;
+                            child
+                                .stdin
+                                .as_mut()
+                                .context("Failed to open helper stdin")?
+                                .write_all(passphrase.as_bytes())?;
+                            if !child.wait()?.success() {
+                                return Err(anyhow!("xeonitte-helper write-luks-key failed"));
+                            }
+                            Ok(())
+                        }
+                        if let Err(e) = write_luks_key(passphrase) {
+                            error!("Failed to write LUKS key file: {}", e);
+                            sender.output(AppMsg::Error);
+                            return;
+                        }
+                    }
+
+                    // TODO: make better way to write this shell command
+                    let cmd = if luks_passphrase.is_some() {
+                        format!(
+                            "swapoff -a || true; nix run https://git.oss.uzinfocom.uz/mirrors/disko/archive/latest.tar.gz -- --mode destroy,format,mount {disko_path} --yes-wipe-all-disks; disko_rc=$?; shred -u -z -n 0 {key}; [ \"$disko_rc\" -eq 0 ] && nix flake lock {flake_dir} && nixos-install --no-root-passwd --no-channel-copy --root /mnt --option build-dir /nix/var/nix/builds/xeonitte --flake {flake_uri}",
+                            key = LUKS_PASSWORD_FILE,
+                        )
+                    } else {
+                        format!(
+                            "swapoff -a || true; nix run https://git.oss.uzinfocom.uz/mirrors/disko/archive/latest.tar.gz -- --mode destroy,format,mount {disko_path} --yes-wipe-all-disks && nix flake lock {} && nixos-install --no-root-passwd --no-channel-copy --root /mnt --option build-dir /nix/var/nix/builds/xeonitte --flake {}",
+                            flake_dir, flake_uri
+                        )
+                    };
                     INSTALL_BROKER.send(InstallMsg::Install(vec![
                         "/usr/bin/env".to_string(),
                         "pkexec".to_string(),
@@ -286,7 +337,7 @@ impl Worker for InstallAsyncModel {
                     let mut passwdcmd = Command::new("pkexec")
                         .arg("nixos-enter")
                         .arg("--root")
-                        .arg(TMPDIR)
+                        .arg("/mnt")
                         .arg("-c")
                         .arg("chpasswd -c SHA512")
                         .stdin(Stdio::piped())
@@ -373,50 +424,12 @@ impl Worker for InstallAsyncModel {
                     "pkexec".to_string(),
                     "nixos-enter".to_string(),
                     "--root".to_string(),
-                    TMPDIR.to_string(),
+                    "/mnt".to_string(),
                     "-c".to_string(),
                     active,
                 ]));
             }
         }
-    }
-}
-
-fn partition(partitions: Option<PartitionSchema>) -> Result<()> {
-    let partitions = partitions.context("No partitions specified")?;
-    let partjson = serde_json::to_string(&partitions)?;
-    let mut out = Command::new("pkexec")
-        .arg(format!("{}/xeonitte-helper", LIBEXECDIR))
-        .arg("partition")
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()?;
-
-    out.stdin
-        .take()
-        .context("Failed to write to stdin")?
-        .write_all(partjson.as_bytes())?;
-    let mut stdout = BufReader::new(out.stdout.as_mut().context("Failed to get stdout")?);
-    let mut line = String::new();
-    while stdout.read_line(&mut line)? > 0 {
-        debug!("PARTITION OUTPUT: {}", line.trim());
-        line.clear();
-    }
-    let output = out
-        .wait_with_output()
-        .context("Failed to wait for output")?;
-    if output.status.success() {
-        Ok(())
-    } else {
-        error!(
-            "Partitioning failed: {}",
-            String::from_utf8_lossy(&output.stderr)
-        );
-        Err(anyhow!(
-            "Partitioning failed: {}",
-            String::from_utf8_lossy(&output.stderr)
-        ))
     }
 }
 
@@ -427,8 +440,9 @@ pub struct MakeConfig {
     pub keyboard: Option<String>,
     pub user: Option<UserConfig>,
     pub list: HashMap<String, HashMap<String, Choice>>,
-    pub bootdisk: Option<String>,
+    // pub bootdisk: Option<String>,
     pub imperative_timezone: bool,
+    pub disko: String,
 }
 
 pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
@@ -443,6 +457,7 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
         @AUTOLOGIN@ - Autologin config
         @PACKAGES@ - Packages to install
         @STATEVERSION@ - NixOS State version
+        @DISKO@ - Disko configuration
     */
 
     /* Value keys:
@@ -490,23 +505,12 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
 
                 config = config.replace("@ARCH@", &format!("{}-linux", arch));
 
+                config = config.replace("@DISKO@", &makeconfig.disko);
+
                 if efi {
                     config = config.replace("@BOOTLOADER@", "");
                     config =
                         config.replace("@BOOTLOADER_MODULE@", "xinux-modules.nixosModules.efiboot")
-                } else {
-                    config = config.replace(
-                        "@BOOTLOADER@",
-                        &format!(
-                            r#"  boot.loader.grub.device = "{}";"#,
-                            makeconfig
-                                .bootdisk
-                                .as_ref()
-                                .context("Failed to get bootloader disk")?
-                        ),
-                    );
-                    config =
-                        config.replace("@BOOTLOADER_MODULE@", "xinux-modules.nixosModules.biosboot")
                 }
 
                 config = config.replace(
@@ -747,7 +751,7 @@ fn init_libreoffice_config(username: String) -> Result<()> {
         .arg("-p")
         .arg(format!(
             "{}/home/{}/.config/libreoffice/4/user/uno_packages/cache",
-            TMPDIR, username
+            "/mnt", username
         ))
         .output()?;
 
@@ -756,7 +760,7 @@ fn init_libreoffice_config(username: String) -> Result<()> {
         .arg("-p")
         .arg(format!(
             "{}/home/{}/.config/libreoffice/4/user/",
-            TMPDIR, username
+            "/mnt", username
         ))
         .output()?;
 
@@ -767,7 +771,7 @@ fn init_libreoffice_config(username: String) -> Result<()> {
         .arg(format!("{}/xeonitte/configcopy/uno_packages", SYSCONFDIR))
         .arg(format!(
             "{}/home/{}/.config/libreoffice/4/user/uno_packages/cache/",
-            TMPDIR, username
+            "/mnt", username
         ))
         .output()?;
 
@@ -775,7 +779,7 @@ fn init_libreoffice_config(username: String) -> Result<()> {
         .arg("rm")
         .arg(format!(
             "{}/home/{}/.config/libreoffice/4/user/registrymodifications.xcu",
-            TMPDIR, username
+            "/mnt", username
         ))
         .output()?;
 
@@ -788,7 +792,7 @@ fn init_libreoffice_config(username: String) -> Result<()> {
         ))
         .arg(format!(
             "{}/home/{}/.config/libreoffice/4/user/",
-            TMPDIR, username
+            "/mnt", username
         ))
         .output()?;
     Ok(())
