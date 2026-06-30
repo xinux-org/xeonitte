@@ -126,12 +126,17 @@ impl Worker for InstallAsyncModel {
                 }
 
                 // Step 2: Generate base config
-                Command::new("pkexec")
+                let Ok(_) = Command::new("pkexec")
                     .arg("mkdir")
                     .arg("-p")
                     .arg(format!("{}/etc/nixos", TMPDIR))
                     .output()
-                    .expect("cannot create etc/nixos");
+                    .context("cannot create etc/nixos")
+                else {
+                    error!("Cannot create directorty /etc/nixos");
+                    let _ = sender.output(AppMsg::Error);
+                    return;
+                };
 
                 info!("Step 2: Generate base config");
                 if let Err(e) = Command::new("pkexec")
@@ -147,7 +152,7 @@ impl Worker for InstallAsyncModel {
 
                 if configtype == ConfigType::Xinux {
                     // Move /nix/var/nix/builds/xeonitte/etc/nixos/hardware-configuration.nix to /nix/var/nix/builds/xeonitte/etc/nixos/systems/{ARCH}-linux/{HOSTNAME}/hardware.nix
-                    Command::new("pkexec")
+                    let Ok(_) = Command::new("pkexec")
                         .arg("mkdir")
                         .arg("-p")
                         .arg(format!(
@@ -155,8 +160,12 @@ impl Worker for InstallAsyncModel {
                             TMPDIR, arch, hostname
                         ))
                         .output()
-                        .unwrap();
-                    Command::new("pkexec")
+                    else {
+                        error!("Failed to create nixos config directory");
+                        let _ = sender.output(AppMsg::Error);
+                        return;
+                    };
+                    let Ok(_) = Command::new("pkexec")
                         .arg("mv")
                         .arg(format!("{}/etc/nixos/hardware-configuration.nix", TMPDIR))
                         .arg(format!(
@@ -164,14 +173,22 @@ impl Worker for InstallAsyncModel {
                             TMPDIR, arch, hostname
                         ))
                         .output()
-                        .unwrap();
+                    else {
+                        error!("Failed to move nixos hardware config file");
+                        let _ = sender.output(AppMsg::Error);
+                        return;
+                    };
 
                     // Remove /tmp/xeonitte/etc/nixos/configuration.nix
-                    Command::new("pkexec")
+                    let Ok(_) = Command::new("pkexec")
                         .arg("rm")
                         .arg(format!("{}/etc/nixos/configuration.nix", TMPDIR))
                         .output()
-                        .unwrap();
+                    else {
+                        error!("Failed to move nixos config file");
+                        let _ = sender.output(AppMsg::Error);
+                        return;
+                    };
                 }
 
                 // Step 3: Make configuration base on language, timezone, keyboard, and user
@@ -321,15 +338,19 @@ impl Worker for InstallAsyncModel {
                         format!("ln -sf ../etc/zoneinfo/{} /etc/localtime", timezone),
                     );
                 }
+                let Some(username) = self.username.clone() else {
+                    error!("Username is not set");
+                    let _ = sender.output(AppMsg::Error);
+                    return;
+                };
                 commands.push(format!(
                     "chown -R {}:users /home/{}/.config", // path relative to chroot
-                    &self.username.clone().unwrap(),
-                    &self.username.clone().unwrap()
+                    &username, &username,
                 ));
 
                 // Step 6.1: Set libreoffice config
                 info!("Step 6.1: Set libreoffice config");
-                if let Err(e) = init_libreoffice_config(self.username.clone().unwrap()) {
+                if let Err(e) = init_libreoffice_config(username.clone()) {
                     error!("Failed to create libre office config: {}", e);
                     let _ = sender.output(AppMsg::Error);
                     return;

@@ -64,9 +64,20 @@ impl SimpleComponent for TimeZoneModel {
                         shorttzbox -> gtk::ListBox {
                             add_css_class: "boxed-list",
                             set_selection_mode: gtk::SelectionMode::None,
-                            connect_row_activated => move |_, row| {
-                                let checkbutton = row.child().unwrap().downcast::<gtk::Box>().unwrap().last_child().unwrap().downcast::<gtk::CheckButton>().unwrap();
-                                checkbutton.set_active(true);
+                            connect_row_activated[sender] => move |_, row| {
+                                row
+                                    .child()
+                                    .and_then(|w| w.downcast::<gtk::Box>().ok())
+                                    .and_then(|b| b.last_child())
+                                    .and_then(|w| w.downcast::<gtk::CheckButton>().ok())
+                                    .map_or_else(
+                                        || {
+                                            trace!("CheckButton can't be found");
+                                            let _ = sender.output(AppMsg::Error);
+                                        },
+                                        |checkbutton| {
+                                            checkbutton.set_active(true);
+                                        });
                             },
                         }
                     },
@@ -240,25 +251,33 @@ impl SimpleComponent for TimeZoneModel {
                 }
                 expander
                     .first_child()
-                    .unwrap()
-                    .last_child()
-                    .unwrap()
-                    .first_child()
-                    .unwrap()
-                    .downcast::<gtk::ListBox>()
-                    .unwrap()
-                    .connect_row_activated(move |_, x| {
-                        let checkbutton = x
-                            .child()
-                            .unwrap()
-                            .downcast::<gtk::Box>()
-                            .unwrap()
-                            .last_child()
-                            .unwrap()
-                            .downcast::<gtk::CheckButton>()
-                            .unwrap();
-                        checkbutton.set_active(true);
-                    });
+                    .and_then(|w| w.last_child())
+                    .and_then(|w| w.first_child())
+                    .and_then(|w| w.downcast::<gtk::ListBox>().ok())
+                    .map_or_else(
+                        || {
+                            trace!("ListBox can't be found");
+                            let _ = sender.output(AppMsg::Error);
+                        },
+                        |lb| {
+                            let sender = sender.clone();
+                            lb.connect_row_activated(move |_, x| {
+                                x.child()
+                                    .and_then(|w| w.downcast::<gtk::Box>().ok())
+                                    .and_then(|b| b.last_child())
+                                    .and_then(|w| w.downcast::<gtk::CheckButton>().ok())
+                                    .map_or_else(
+                                        || {
+                                            trace!("CheckButton can't be found");
+                                            let _ = sender.output(AppMsg::Error);
+                                        },
+                                        |checkbutton| {
+                                            checkbutton.set_active(true);
+                                        },
+                                    );
+                            });
+                        },
+                    );
                 expander.add_row(&row);
                 model.timelist.insert(tz.clone(), timelabel);
             }

@@ -19,7 +19,6 @@
   pango,
   parted,
   pkg-config,
-  polkit,
   rust-analyzer,
   rustc,
   rustfmt,
@@ -56,7 +55,6 @@ mkShell {
     pango
     parted
     pkg-config
-    polkit
     rust-analyzer
     rustc
     rustfmt

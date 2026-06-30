@@ -1,5 +1,6 @@
 use crate::{config::SYSCONFDIR, ui::window::AppMsg, utils::parse::parse_branding};
 use adw::prelude::*;
+use anyhow::Context;
 use gettextrs::gettext;
 use gtk::gio;
 use log::{debug, error};
@@ -235,10 +236,15 @@ impl SimpleComponent for InstallModel {
             InstallMsg::VTEOutput(status) => {
                 debug!("VTE command exited with status: {}", status);
 
-                Command::new("touch")
+                let Ok(_) = Command::new("touch")
                     .arg("/tmp/xeonitte-term.log")
                     .output()
-                    .expect("Cannot create /tmp/xeonitte-term.log");
+                    .context("Cannot create /tmp/xeonitte-term.log")
+                else {
+                    error!("Cannot create /tmp/xeonitte-term.log");
+                    let _ = sender.output(AppMsg::Error);
+                    return;
+                };
 
                 if let Ok(file) = File::create("/tmp/xeonitte-term.log") {
                     let output = gio::WriteOutputStream::new(file);
