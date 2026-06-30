@@ -13,9 +13,11 @@
 
   @NETWORK@
 
-@TIMEZONE@
+  @LOCALE@
 
-@KEYBOARD@
+  @TIMEZONE@
+
+  @KEYBOARD@
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users."@USERNAME@" = {
@@ -42,6 +44,6 @@
     enable = true;
     systemconfig = "/etc/nixos/systems/@ARCH@/@HOSTNAME@/default.nix";
     flake = "/etc/nixos/flake.nix";
-    flakearg = "@HOSTNAME@";
+    hostname = "@HOSTNAME@";
   };
 }

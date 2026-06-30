@@ -24,7 +24,7 @@ pub struct SummaryModel {
     showhostname: bool,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum SummaryMsg {
     SetConfig(
         Option<String>,
@@ -230,9 +230,21 @@ impl SimpleComponent for SummaryModel {
                     user.rootpassword = user.rootpassword.map(|_| "*****".to_string());
                     user
                 });
+
+                let debugpartition = match partitionconfig.clone() {
+                    Some(PartitionSchema::FullDisk(mut x)) => {
+                        x.passphrase = Some("*****".to_string());
+                        Some(PartitionSchema::FullDisk(x))
+                    }
+                    Some(PartitionSchema::Custom(mut x)) => {
+                        x.passphrase = Some("*****".to_string());
+                        Some(PartitionSchema::Custom(x))
+                    }
+                    None => None,
+                };
                 debug!(
                     "SetConfig: {:?}, {:?}, {:?}, {:?}, {:?}",
-                    languageconfig, keyboardconfig, timezoneconfig, partitionconfig, debuguser
+                    languageconfig, keyboardconfig, timezoneconfig, debugpartition, debuguser
                 );
                 self.languageconfig = languageconfig;
                 self.keyboardconfig = keyboardconfig;

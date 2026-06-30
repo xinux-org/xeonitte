@@ -2,6 +2,7 @@ use anyhow::{Context, Result, anyhow};
 use clap::{self, FromArgMatches, Subcommand};
 use disk_types::{BlockDeviceExt, FileSystem, PartitionTable, PartitionType, Sector, SectorExt};
 use distinst_disks::{DiskExt, PartitionBuilder, PartitionFlag};
+use log::{error, info};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
@@ -14,14 +15,14 @@ use std::{
 
 const TMPDIR: &str = "/nix/var/nix/builds/xeonitte";
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 struct Disk {
     name: String,
     size: u64,
     partitions: Vec<Partition>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 struct Partition {
     name: String,
     format: String,
@@ -81,7 +82,7 @@ fn main() {
         .unwrap();
 
     if uzers::get_effective_uid() != 0 {
-        eprintln!("xeonitte-helper must be run as root");
+        error!("xeonitte-helper must be run as root");
         std::process::exit(1);
     }
 
@@ -168,7 +169,7 @@ fn main() {
                 .arg(TMPDIR)
                 .output()
             {
-                eprintln!("Failed to unmount: {}", e);
+                error!("Failed to unmount: {}", e);
                 std::process::exit(1);
             }
         }

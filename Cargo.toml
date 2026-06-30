@@ -21,7 +21,6 @@ tracker = "0.2.2"
 serde_json = "1.0.150"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_yaml = "0.9.34"
-log = "0.4.30"
 simplelog = "0.12.2"
 anyhow = "1.0.102"
 isolang = "2.4.0"
@@ -30,6 +29,7 @@ distinst-disks = { git = "https://git.oss.uzinfocom.uz/xinux/distinst" }
 reqwest = { version = "0.13.4", features = ["blocking"] }
 gettext-rs = { version = "0.7.7", features = ["gettext-system"] }
 regex = "1.12.3"
+log = "0.4.30"
 
 [workspace]
 members = [".", "xeonitte-helper"]
