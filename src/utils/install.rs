@@ -15,9 +15,8 @@ use log::{debug, error, info};
 use relm4::*;
 use std::{
     collections::HashMap,
-    fmt::format,
-    fs::{self, File},
-    io::{BufRead, BufReader, Write},
+    fs::{self},
+    io::Write,
     process::{Command, Stdio},
 };
 
@@ -256,12 +255,14 @@ impl Worker for InstallAsyncModel {
                         TMPDIR, arch, hostname
                     );
 
-                    let luks_passphrase = partitions.as_ref().as_ref().and_then(|schema| {
-                        match schema {
-                            PartitionSchema::FullDisk(opts) => opts.passphrase.clone(),
-                            PartitionSchema::Custom(opts) => opts.passphrase.clone(),
-                        }
-                    });
+                    let luks_passphrase =
+                        partitions
+                            .as_ref()
+                            .as_ref()
+                            .and_then(|schema| match schema {
+                                PartitionSchema::FullDisk(opts) => opts.passphrase.clone(),
+                                PartitionSchema::Custom(opts) => opts.passphrase.clone(),
+                            });
                     if let Some(passphrase) = &luks_passphrase {
                         info!("Step 4.1: Write LUKS key file");
                         fn write_luks_key(passphrase: &str) -> Result<()> {
@@ -491,20 +492,6 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
                     config =
                         config.replace("@BOOTLOADER_MODULE@", "xinux-modules.nixosModules.efiboot")
                 }
-                // else {
-                //     config = config.replace(
-                //         "@BOOTLOADER@",
-                //         &format!(
-                //             r#"  boot.loader.grub.device = "{}";"#,
-                //             makeconfig
-                //                 .bootdisk
-                //                 .as_ref()
-                //                 .context("Failed to get bootloader disk")?
-                //         ),
-                //     );
-                //     config =
-                //         config.replace("@BOOTLOADER_MODULE@", "xinux-modules.nixosModules.biosboot")
-                // }
 
                 config = config.replace(
                     "@NETWORK@",
