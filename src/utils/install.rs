@@ -320,7 +320,7 @@ impl Worker for InstallAsyncModel {
                     let mut passwdcmd = Command::new("pkexec")
                         .arg("nixos-enter")
                         .arg("--root")
-                        .arg(TMPDIR)
+                        .arg("/mnt")
                         .arg("-c")
                         .arg("chpasswd -c SHA512")
                         .stdin(Stdio::piped())
@@ -403,7 +403,7 @@ impl Worker for InstallAsyncModel {
                     "pkexec".to_string(),
                     "nixos-enter".to_string(),
                     "--root".to_string(),
-                    TMPDIR.to_string(),
+                    "/mnt".to_string(),
                     "-c".to_string(),
                     active,
                 ]));
@@ -744,7 +744,7 @@ fn init_libreoffice_config(username: String) -> Result<()> {
         .arg("-p")
         .arg(format!(
             "{}/home/{}/.config/libreoffice/4/user/uno_packages/cache",
-            TMPDIR, username
+            "/mnt", username
         ))
         .output()?;
 
@@ -753,7 +753,7 @@ fn init_libreoffice_config(username: String) -> Result<()> {
         .arg("-p")
         .arg(format!(
             "{}/home/{}/.config/libreoffice/4/user/",
-            TMPDIR, username
+            "/mnt", username
         ))
         .output()?;
 
@@ -764,7 +764,7 @@ fn init_libreoffice_config(username: String) -> Result<()> {
         .arg(format!("{}/xeonitte/configcopy/uno_packages", SYSCONFDIR))
         .arg(format!(
             "{}/home/{}/.config/libreoffice/4/user/uno_packages/cache/",
-            TMPDIR, username
+            "/mnt", username
         ))
         .output()?;
 
@@ -772,7 +772,7 @@ fn init_libreoffice_config(username: String) -> Result<()> {
         .arg("rm")
         .arg(format!(
             "{}/home/{}/.config/libreoffice/4/user/registrymodifications.xcu",
-            TMPDIR, username
+            "/mnt", username
         ))
         .output()?;
 
@@ -785,7 +785,7 @@ fn init_libreoffice_config(username: String) -> Result<()> {
         ))
         .arg(format!(
             "{}/home/{}/.config/libreoffice/4/user/",
-            TMPDIR, username
+            "/mnt", username
         ))
         .output()?;
     Ok(())
