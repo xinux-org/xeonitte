@@ -1,5 +1,8 @@
 use serde::{Deserialize, Serialize};
+use size::Size;
 use std::collections::BTreeMap;
+
+use crate::{get_memory_size, get_storage_size, get_storage_size_for_disko};
 
 pub type Attrs<T> = BTreeMap<String, T>;
 
@@ -405,10 +408,28 @@ fn indent(s: &str, levels: usize) -> String {
 }
 
 // nix version: https://gist.github.com/lambdajon/1946c9585c997a2615f5386a5f222c6f
-pub fn luks_encrypted(device: impl Into<String>, password_file: impl Into<String>) -> Devices {
+pub fn luks_encrypted(device: String, password_file: impl Into<String>) -> Devices {
     // Shared by the swap and LUKS containers
     let password_file = password_file.into();
     let mut partitions = Attrs::new();
+    let storage_size: Option<u64> = get_storage_size(&device, 512);
+    let memory_size = get_memory_size();
+    let swap_size: Option<String> = match (storage_size, memory_size) {
+        (Some(256_000..), Some(memory_size)) => Some(get_storage_size_for_disko(
+            Size::from_kib(memory_size).bytes() as u64,
+        )),
+        (Some(128_000..256_000), _) => Some(get_storage_size_for_disko(
+            Size::from_gigabytes(8).bytes() as u64,
+        )),
+        (Some(64_000..128_000), _) => Some(get_storage_size_for_disko(
+            Size::from_gigabytes(4).bytes() as u64,
+        )),
+        _ => None,
+    };
+
+    println!("storage size: {:?}", storage_size);
+    println!("memory size: {:?}", memory_size);
+    println!("swap size: {:?}", swap_size);
 
     partitions.insert(
         "BOOT".into(),
@@ -429,23 +450,25 @@ pub fn luks_encrypted(device: impl Into<String>, password_file: impl Into<String
     luks_settings.insert("allowDiscards".into(), NixValue::Bool(true));
 
     // Encrypt swap with the same passphrase as LUKS
-    partitions.insert(
-        "SWAP".into(),
-        Partition {
-            size: Some("12G".into()),
-            content: Some(PartitionContent::Luks(Luks {
-                name: "cryptswap".into(),
-                password_file: Some(password_file.clone()),
-                settings: luks_settings.clone(),
-                content: Some(Box::new(DeviceContent::Swap(Swap {
-                    resume_device: Some(true),
+    if swap_size.is_some() {
+        partitions.insert(
+            "SWAP".into(),
+            Partition {
+                size: swap_size,
+                content: Some(PartitionContent::Luks(Luks {
+                    name: "cryptswap".into(),
+                    password_file: Some(password_file.clone()),
+                    settings: luks_settings.clone(),
+                    content: Some(Box::new(DeviceContent::Swap(Swap {
+                        resume_device: Some(true),
+                        ..Default::default()
+                    }))),
                     ..Default::default()
-                }))),
+                })),
                 ..Default::default()
-            })),
-            ..Default::default()
-        },
-    );
+            },
+        );
+    }
 
     partitions.insert(
         "luks".into(),
@@ -470,7 +493,7 @@ pub fn luks_encrypted(device: impl Into<String>, password_file: impl Into<String
     disk.insert(
         "main".into(),
         Disk {
-            device: device.into(),
+            device: device,
             content: Some(DeviceContent::Gpt(Gpt {
                 partitions,
                 ..Default::default()
@@ -485,8 +508,23 @@ pub fn luks_encrypted(device: impl Into<String>, password_file: impl Into<String
     }
 }
 
-pub fn canonical(device: impl Into<String>) -> Devices {
+pub fn canonical(device: String) -> Devices {
     let mut partitions = Attrs::new();
+
+    let storage_size: Option<u64> = get_storage_size(&device, 512);
+    let memory_size = get_memory_size();
+    let swap_size: Option<String> = match (storage_size, memory_size) {
+        (Some(256_000..), Some(memory_size)) => Some(get_storage_size_for_disko(
+            Size::from_kib(memory_size).bytes() as u64,
+        )),
+        (Some(128_000..256_000), _) => Some(get_storage_size_for_disko(
+            Size::from_gigabytes(8).bytes() as u64,
+        )),
+        (Some(64_000..128_000), _) => Some(get_storage_size_for_disko(
+            Size::from_gigabytes(4).bytes() as u64,
+        )),
+        _ => None,
+    };
     partitions.insert(
         "ESP".into(),
         Partition {
@@ -501,17 +539,20 @@ pub fn canonical(device: impl Into<String>) -> Devices {
             ..Default::default()
         },
     );
-    partitions.insert(
-        "swap".into(),
-        Partition {
-            size: Some("8G".into()),
-            content: Some(PartitionContent::Swap(Swap {
-                resume_device: Some(true),
+
+    if swap_size.is_some() {
+        partitions.insert(
+            "swap".into(),
+            Partition {
+                size: swap_size,
+                content: Some(PartitionContent::Swap(Swap {
+                    resume_device: Some(true),
+                    ..Default::default()
+                })),
                 ..Default::default()
-            })),
-            ..Default::default()
-        },
-    );
+            },
+        );
+    }
     partitions.insert(
         "root".into(),
         Partition {
@@ -529,7 +570,7 @@ pub fn canonical(device: impl Into<String>) -> Devices {
     disk.insert(
         "main".into(),
         Disk {
-            device: device.into(),
+            device: device,
             content: Some(DeviceContent::Gpt(Gpt {
                 partitions,
                 ..Default::default()

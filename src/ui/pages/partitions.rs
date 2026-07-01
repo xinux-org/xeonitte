@@ -1,7 +1,8 @@
 use crate::{
     config::LIBEXECDIR,
+    format_size,
     ui::{
-        util::{SizeType, format_size, represent},
+        util::{SizeType, represent},
         window::AppMsg,
     },
     utils::i18n::i18n_f,
@@ -1098,19 +1099,19 @@ impl FactoryComponent for PartitionGroup {
                                 set_valign: gtk::Align::Center,
                                 set_spacing: 12,
 
-                                gtk::Box {
-                                    set_orientation: gtk::Orientation::Horizontal,
-                                    add_css_class: "linked",
+                                // gtk::Box {
+                                //     set_orientation: gtk::Orientation::Horizontal,
+                                //     add_css_class: "linked",
 
-                                    gtk::Button {
-                                        set_icon_name: "edit-undo",
-                                        add_css_class: "raised",
-                                    },
-                                    gtk::Button {
-                                        set_icon_name: "edit-redo",
-                                        add_css_class: "raised"
-                                    }
-                                },
+                                //     gtk::Button {
+                                //         set_icon_name: "edit-undo",
+                                //         add_css_class: "raised",
+                                //     },
+                                //     gtk::Button {
+                                //         set_icon_name: "edit-redo",
+                                //         add_css_class: "raised"
+                                //     }
+                                // },
 
                                 #[name = "add_partition_button"]
                                 gtk::Button {
@@ -1573,21 +1574,4 @@ impl Component for Hibernation {
             }
         }
     }
-}
-
-pub fn get_storage_size_for_disko(size: u64) -> String {
-    let size = format_size(Size::from_bytes(size));
-
-    let mut ssize = size.split_ascii_whitespace().map(|x| {
-        if let Some(y) = x.find(".") {
-            &x[0..y]
-        } else {
-            x
-        }
-    });
-    format!(
-        "{}{}",
-        ssize.next().unwrap(),
-        ssize.next().unwrap().chars().nth(0).unwrap_or_default()
-    )
 }

@@ -10,6 +10,7 @@ use super::pages::{
     welcome::WelcomeMsg,
 };
 use crate::{
+    get_storage_size_for_disko,
     ui::{
         pages::{
             error::ErrorMsg,
@@ -17,7 +18,7 @@ use crate::{
             list::{ListInit, ListMsg},
             partitions::{
                 self, CustomOptions, CustomPartition, FullDiskOptions, PARTITION_BROKER,
-                PartitionModel, get_storage_size_for_disko,
+                PartitionModel,
             },
             timezone::TimeZoneModel,
             user::UserMsg,
@@ -469,7 +470,7 @@ impl Component for AppModel {
             userconfig: None,
             installworker,
             tracker: 0,
-            diskoconfig: canonical("/dev/sda"),
+            diskoconfig: canonical("/dev/sda".into()),
         };
 
         let main_carousel = &model.carousel;
