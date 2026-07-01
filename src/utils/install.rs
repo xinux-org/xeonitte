@@ -120,14 +120,6 @@ impl Worker for InstallAsyncModel {
                     return;
                 }
 
-                // Step 1: Setup and mount partitions
-                // info!("Step 1: Setup and mount partitions");
-                // if let Err(e) = partition(*partitions.clone()) {
-                //     error!("Failed to partition: {}", e);
-                //     let _ = sender.output(AppMsg::Error);
-                //     return;
-                // }
-
                 // Step 2: Generate base config
                 let Ok(_) = Command::new("pkexec")
                     .arg("mkdir")
@@ -197,21 +189,21 @@ impl Worker for InstallAsyncModel {
                 // Step 3: Make configuration base on language, timezone, keyboard, and user
                 info!("Step 3: Make configuration");
 
-                // let mut mbrdisk = None;
-                // if let Some(partitions) = partitions.as_ref() {
-                //     match partitions {
-                //         PartitionSchema::FullDisk(disk) => {
-                //             mbrdisk = Some(disk.device.clone());
-                //         }
-                //         PartitionSchema::Custom(options) => {
-                //             for part in options.partitions.values() {
-                //                 if part.mountpoint == Some("/".to_string()) {
-                //                     mbrdisk = Some(part.device.to_string());
-                //                 }
-                //             }
-                //         }
-                //     }
-                // }
+                let mut mbrdisk = None;
+                if let Some(partitions) = partitions.as_ref() {
+                    match partitions {
+                        PartitionSchema::FullDisk(disk) => {
+                            mbrdisk = Some(disk.device.clone());
+                        }
+                        PartitionSchema::Custom(options) => {
+                            for part in options.partitions.values() {
+                                if part.mountpoint == Some("/".to_string()) {
+                                    mbrdisk = Some(part.device.to_string());
+                                }
+                            }
+                        }
+                    }
+                }
 
                 if let Err(e) = makeconfig(MakeConfig {
                     id,
@@ -220,7 +212,7 @@ impl Worker for InstallAsyncModel {
                     keyboard,
                     user: *user.clone(),
                     list: listconfig,
-                    // bootdisk: mbrdisk,
+                    bootdisk: mbrdisk,
                     imperative_timezone,
                     disko: disko_config.to_nix_module(),
                 }) {
@@ -439,7 +431,7 @@ pub struct MakeConfig {
     pub keyboard: Option<String>,
     pub user: Option<UserConfig>,
     pub list: HashMap<String, HashMap<String, Choice>>,
-    // pub bootdisk: Option<String>,
+    pub bootdisk: Option<String>,
     pub imperative_timezone: bool,
     pub disko: String,
 }
@@ -510,7 +502,21 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
                     config = config.replace("@BOOTLOADER@", "");
                     config =
                         config.replace("@BOOTLOADER_MODULE@", "xinux-modules.nixosModules.efiboot")
+                } else {
+                    config = config.replace(
+                        "@BOOTLOADER@",
+                        &format!(
+                            r#"  boot.loader.grub.device = "{}";"#,
+                            makeconfig
+                                .bootdisk
+                                .as_ref()
+                                .context("Failed to get bootloader disk")?
+                        ),
+                    );
+                    config =
+                        config.replace("@BOOTLOADER_MODULE@", "xinux-modules.nixosModules.biosboot")
                 }
+
 
                 config = config.replace(
                     "@NETWORK@",
