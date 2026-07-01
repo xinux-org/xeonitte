@@ -14,7 +14,7 @@ use size::Size;
 use std::{
     collections::HashMap,
     convert::identity,
-    ops::{AddAssign, Sub, SubAssign},
+    ops::{AddAssign, SubAssign},
     process::Command,
 };
 
@@ -25,7 +25,9 @@ pub struct PartitionModel {
     diskgroupbtn: gtk::CheckButton,
     schema: Option<PartitionSchema>,
     efi: bool,
+    encryption_enabled: bool,
     luks_password: Controller<LuksPasswordComponent>,
+    hibernation: Controller<Hibernation>,
 }
 
 #[derive(Debug)]
@@ -39,6 +41,7 @@ pub enum PartitionMsg {
     AddPartition(String, CustomPartition),
     SetEncryption,
     SetPartitionEncryption(String, String, u64, bool),
+    SetHibernation(bool),
     SetPassphrase,
     SetPassphraseConfirm,
     CheckSelected,
@@ -47,7 +50,7 @@ pub enum PartitionMsg {
 
 pub static PARTITION_BROKER: MessageBroker<PartitionMsg> = MessageBroker::new();
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum PartitionMethod {
     Basic,
     Advanced,
@@ -57,6 +60,7 @@ pub enum PartitionMethod {
 pub struct FullDiskOptions {
     pub device: String,
     pub encryption: bool,
+    pub hibernation: bool,
     pub passphrase: Option<String>,
     pub disk_size: u64,
 }
@@ -100,7 +104,7 @@ impl SimpleComponent for PartitionModel {
                     set_vexpand: true,
                     set_valign: gtk::Align::Center,
                     set_orientation: gtk::Orientation::Vertical,
-                    set_spacing: 20,
+                    // set_spacing: 20,
                     set_margin_start: 30,
                     set_margin_end: 30,
                     set_margin_top: 20,
@@ -127,10 +131,6 @@ impl SimpleComponent for PartitionModel {
                                 set_hexpand: true,
                                 set_selection_mode: gtk::SelectionMode::None,
                             },
-
-                            // Encryption settings group for Basic mode
-                            model.luks_password.widget(),
-
                             gtk::Box {
                                 set_orientation: gtk::Orientation::Horizontal,
                                 set_spacing: 20,
@@ -235,9 +235,6 @@ impl SimpleComponent for PartitionModel {
                                 set_spacing: 20,
                             },
 
-                            // Encryption settings for Advanced mode
-                            model.luks_password.widget(),
-
                             gtk::Box {
                                 set_orientation: gtk::Orientation::Horizontal,
                                 set_spacing: 20,
@@ -268,6 +265,18 @@ impl SimpleComponent for PartitionModel {
                             }
                         }
                     },
+
+                    // Encryption settings group
+                    #[local_ref]
+                    luksbox -> adw::PreferencesGroup {
+                        #[watch]
+                        set_visible: model.encryption_enabled,
+                    },
+
+                    #[local_ref]
+                    hibernationbox -> adw::PreferencesGroup {
+                        set_visible: false
+                    },
                 }
             }
         }
@@ -282,6 +291,10 @@ impl SimpleComponent for PartitionModel {
             .launch(())
             .forward(sender.input_sender(), identity);
 
+        let hibernation_model = Hibernation::builder()
+            .launch(())
+            .forward(sender.input_sender(), identity);
+
         let model = PartitionModel {
             disks: FactoryVecDeque::builder().launch_default().detach(),
             method: PartitionMethod::Basic,
@@ -292,12 +305,16 @@ impl SimpleComponent for PartitionModel {
             schema: None,
             efi: distinst_disks::Bootloader::detect() == distinst_disks::Bootloader::Efi,
             luks_password: luks_model,
+            hibernation: hibernation_model,
+            encryption_enabled: true,
         };
 
         sender.input(PartitionMsg::Refresh);
 
         let diskbox = model.disks.widget();
         let partitionbox = model.partition_groups.widget();
+        let luksbox = model.luks_password.widget();
+        let hibernationbox = model.hibernation.widget();
 
         let widgets = view_output!();
         widgets.liststack.set_vhomogeneous(false);
@@ -397,10 +414,13 @@ impl SimpleComponent for PartitionModel {
                 disks_guard.drop();
                 partition_groups_guard.drop();
                 self.schema = None;
+                self.encryption_enabled = self.method == PartitionMethod::Basic;
+                let _ = sender.output(AppMsg::SetCanGoForward(false));
             }
             PartitionMsg::SetMethod(method) => {
                 self.method = method;
                 self.schema = None;
+                self.encryption_enabled = false;
                 self.diskgroupbtn.set_active(true);
                 let _ = sender.output(AppMsg::SetCanGoForward(false));
                 sender.input(PartitionMsg::Refresh);
@@ -410,6 +430,7 @@ impl SimpleComponent for PartitionModel {
                 self.schema = Some(PartitionSchema::FullDisk(FullDiskOptions {
                     device,
                     disk_size: size,
+                    hibernation: self.hibernation.model().enabled,
                     encryption: self.luks_password.model().encryption_enabled,
                     passphrase: if self.luks_password.model().encryption_enabled
                         && !self.luks_password.model().passphrase.is_empty()
@@ -452,6 +473,8 @@ impl SimpleComponent for PartitionModel {
             }
             PartitionMsg::SetPartitionEncryption(name, device, size, encrypt) => {
                 trace!("SetPartitionEncryption {} {}", name, encrypt);
+                self.encryption_enabled = encrypt;
+
                 if let Some(PartitionSchema::Custom(opts)) = &mut self.schema {
                     opts.partitions
                         .entry(name)
@@ -520,6 +543,9 @@ impl SimpleComponent for PartitionModel {
                 trace!("SetPassphraseConfirm");
                 // self.luks_password.model().passphrase_confirm = pass;
                 sender.input(PartitionMsg::CheckSelected);
+            }
+            PartitionMsg::SetHibernation(x) => {
+                println!("HIBERNATION: {x}");
             }
             PartitionMsg::AddFormatPartition(name, format, device, size) => {
                 trace!("AddFormatPartition");
@@ -1476,6 +1502,60 @@ impl SimpleComponent for LuksPasswordComponent {
             LuksPasswordMsg::SetPassphraseConfirm(entry) => {
                 self.passphrase_confirm = entry;
                 let _ = sender.output(PartitionMsg::SetPassphraseConfirm);
+            }
+        }
+    }
+}
+
+struct Hibernation {
+    enabled: bool,
+}
+
+#[derive(Debug)]
+enum HibernationMsg {
+    SetHybernation(bool),
+}
+
+#[relm4::component(pub)]
+impl Component for Hibernation {
+    type Input = HibernationMsg;
+    type Output = PartitionMsg;
+    type Init = ();
+    type CommandOutput = ();
+
+    view! {
+        adw::PreferencesGroup {
+            #[watch]
+            set_title: &gettext("Hibernation"),
+            adw::SwitchRow {
+                #[watch]
+                set_title: &gettext("Enable Hibernation"),
+                // #[watch]
+                // set_subtitle: &gettext("Encrypt your disk with "),
+                #[watch]
+                set_active: model.enabled,
+                connect_active_notify[sender] => move |switch| {
+                    sender.input(HibernationMsg::SetHybernation(switch.is_active()));
+                }
+            },
+        },
+    }
+
+    fn init(
+        _init: Self::Init,
+        root: Self::Root,
+        sender: ComponentSender<Self>,
+    ) -> ComponentParts<Self> {
+        let model = Hibernation { enabled: false };
+        let widgets = view_output!();
+
+        ComponentParts { model, widgets }
+    }
+    fn update(&mut self, message: Self::Input, sender: ComponentSender<Self>, _root: &Self::Root) {
+        match message {
+            HibernationMsg::SetHybernation(switch) => {
+                self.enabled = switch;
+                let _ = sender.output(PartitionMsg::SetHibernation(switch));
             }
         }
     }

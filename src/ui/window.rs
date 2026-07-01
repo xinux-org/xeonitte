@@ -27,8 +27,8 @@ use crate::{
     },
     utils::{
         disko::{
-            Attrs, DeviceContent, Devices, Disk, Filesystem, Gpt, Luks,
-            NixValue, Partition, PartitionContent, Swap, canonical, luks_encrypted, LUKS_PASSWORD_FILE,
+            Attrs, DeviceContent, Devices, Disk, Filesystem, Gpt, LUKS_PASSWORD_FILE, Luks,
+            NixValue, Partition, PartitionContent, Swap, canonical, luks_encrypted,
         },
         i18n::i18n_f,
         install::{InstallAsyncModel, InstallAsyncMsg},
@@ -774,11 +774,12 @@ impl Component for AppModel {
                 let mut devices = Devices { disk: Attrs::new() };
                 partition.clone().map(|x| {
                     let _ = match x {
-                        PartitionSchema::FullDisk(FullDiskOptions{
+                        PartitionSchema::FullDisk(FullDiskOptions {
                             device,
                             encryption,
                             passphrase,
-                            disk_size
+                            disk_size,
+                            hibernation,
                         }) => {
                             devices = if encryption {
                                 luks_encrypted(device, LUKS_PASSWORD_FILE)
@@ -786,7 +787,7 @@ impl Component for AppModel {
                                 canonical(device)
                             };
                             self.diskoconfig = devices.clone();
-                        } ,
+                        }
                         PartitionSchema::Custom(CustomOptions {
                             partitions,
                             encryption,
@@ -803,9 +804,7 @@ impl Component for AppModel {
                                             name: luks_name,
                                             password_file: Some(LUKS_PASSWORD_FILE.into()),
                                             settings: luks_settings.clone(),
-                                            content: Some(Box::new(DeviceContent::Filesystem(
-                                                fs,
-                                            ))),
+                                            content: Some(Box::new(DeviceContent::Filesystem(fs))),
                                             ..Default::default()
                                         })
                                     } else {
@@ -820,63 +819,63 @@ impl Component for AppModel {
                                     name.rsplit('/').next().unwrap_or(name.as_str()).to_string();
                                 let encrypt = encryption && part.encrypt;
 
-                                let (type_code, content) = match (
-                                    part.mountpoint.as_deref(),
-                                    part.format.as_deref(),
-                                ) {
-                                    (Some("/boot"), fmt) => (
-                                        Some("EF00".to_string()),
-                                        PartitionContent::Filesystem(Filesystem {
-                                            format: fmt.unwrap_or("vfat").into(),
-                                            mountpoint: Some("/boot".into()),
-                                            mount_options: vec!["umask=0077".into()],
-                                            ..Default::default()
-                                        }),
-                                    ),
-                                    (None, Some("swap")) => {
-                                        let swap = Swap {
-                                            resume_device: Some(true),
-                                            ..Default::default()
-                                        };
-                                        // if luks on swap also take it
-                                        let content = if encryption {
-                                            PartitionContent::Luks(Luks {
-                                                name: format!("crypted-{}", part_key),
-                                                password_file: Some(LUKS_PASSWORD_FILE.into()),
-                                                settings: luks_settings.clone(),
-                                                content: Some(Box::new(DeviceContent::Swap(swap))),
+                                let (type_code, content) =
+                                    match (part.mountpoint.as_deref(), part.format.as_deref()) {
+                                        (Some("/boot"), fmt) => (
+                                            Some("EF00".to_string()),
+                                            PartitionContent::Filesystem(Filesystem {
+                                                format: fmt.unwrap_or("vfat").into(),
+                                                mountpoint: Some("/boot".into()),
+                                                mount_options: vec!["umask=0077".into()],
                                                 ..Default::default()
-                                            })
-                                        } else {
-                                            PartitionContent::Swap(swap)
-                                        };
-                                        (None, content)
-                                    }
-                                    (Some(mount), fmt) => (
-                                        None,
-                                        make_fs_content(
-                                            Filesystem {
-                                                format: fmt.unwrap_or("ext4").into(),
-                                                mountpoint: Some(mount.to_string()),
-                                                ..Default::default()
-                                            },
-                                            encrypt,
-                                            format!("crypted-{}", part_key),
+                                            }),
                                         ),
-                                    ),
-                                    (None, Some(fmt)) => (
-                                        None,
-                                        make_fs_content(
-                                            Filesystem {
-                                                format: fmt.into(),
+                                        (None, Some("swap")) => {
+                                            let swap = Swap {
+                                                resume_device: Some(true),
                                                 ..Default::default()
-                                            },
-                                            encrypt,
-                                            format!("crypted-{}", part_key),
+                                            };
+                                            // if luks on swap also take it
+                                            let content = if encryption {
+                                                PartitionContent::Luks(Luks {
+                                                    name: format!("crypted-{}", part_key),
+                                                    password_file: Some(LUKS_PASSWORD_FILE.into()),
+                                                    settings: luks_settings.clone(),
+                                                    content: Some(Box::new(DeviceContent::Swap(
+                                                        swap,
+                                                    ))),
+                                                    ..Default::default()
+                                                })
+                                            } else {
+                                                PartitionContent::Swap(swap)
+                                            };
+                                            (None, content)
+                                        }
+                                        (Some(mount), fmt) => (
+                                            None,
+                                            make_fs_content(
+                                                Filesystem {
+                                                    format: fmt.unwrap_or("ext4").into(),
+                                                    mountpoint: Some(mount.to_string()),
+                                                    ..Default::default()
+                                                },
+                                                encrypt,
+                                                format!("crypted-{}", part_key),
+                                            ),
                                         ),
-                                    ),
-                                    (None, None) => continue,
-                                };
+                                        (None, Some(fmt)) => (
+                                            None,
+                                            make_fs_content(
+                                                Filesystem {
+                                                    format: fmt.into(),
+                                                    ..Default::default()
+                                                },
+                                                encrypt,
+                                                format!("crypted-{}", part_key),
+                                            ),
+                                        ),
+                                        (None, None) => continue,
+                                    };
 
                                 let disko_partition = Partition {
                                     type_code,
@@ -891,12 +890,11 @@ impl Component for AppModel {
                                     .next()
                                     .unwrap_or(part.device.as_str())
                                     .to_string();
-                                let disk =
-                                    disk_disko.entry(disk_key).or_insert_with(|| Disk {
-                                        device: part.device.clone(),
-                                        content: Some(DeviceContent::Gpt(Gpt::default())),
-                                        ..Default::default()
-                                    });
+                                let disk = disk_disko.entry(disk_key).or_insert_with(|| Disk {
+                                    device: part.device.clone(),
+                                    content: Some(DeviceContent::Gpt(Gpt::default())),
+                                    ..Default::default()
+                                });
                                 if let Some(DeviceContent::Gpt(gpt)) = disk.content.as_mut() {
                                     gpt.partitions.insert(part_key, disko_partition);
                                 }
