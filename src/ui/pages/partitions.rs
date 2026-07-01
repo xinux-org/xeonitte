@@ -295,8 +295,21 @@ impl SimpleComponent for PartitionModel {
             .launch(())
             .forward(sender.input_sender(), identity);
 
+        // filter disks that is not zram
+        let mut disks: FactoryVecDeque<WholeDisk> =
+            FactoryVecDeque::builder().launch_default().detach();
+        let temp = disks
+            .iter()
+            .filter(|x| !x.name.contains("zram"))
+            .cloned()
+            .collect::<Vec<_>>();
+
+        disks.guard().clear();
+        let _ = temp
+            .iter()
+            .map(|x| disks.guard().push_back(x.clone().clone()));
+
         let model = PartitionModel {
-            disks: FactoryVecDeque::builder().launch_default().detach(),
             method: PartitionMethod::Basic,
             partition_groups: FactoryVecDeque::builder()
                 .launch(gtk::Box::new(gtk::Orientation::Vertical, 20))
@@ -307,6 +320,7 @@ impl SimpleComponent for PartitionModel {
             luks_password: luks_model,
             hibernation: hibernation_model,
             encryption_enabled: true,
+            disks,
         };
 
         sender.input(PartitionMsg::Refresh);
