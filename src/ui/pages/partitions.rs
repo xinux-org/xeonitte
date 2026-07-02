@@ -1035,50 +1035,41 @@ impl FactoryComponent for PartitionGroup {
 
     view! {
         adw::PreferencesGroup {
-
             gtk::Box {
                 set_hexpand: true,
                 set_orientation: gtk::Orientation::Horizontal,
                 set_spacing: 8,
-
                 gtk::Box {
                     set_hexpand: true,
                     set_orientation: gtk::Orientation::Vertical,
                     set_spacing: 6,
-
                     gtk::Box {
                         set_hexpand: true,
                         set_orientation: gtk::Orientation::Horizontal,
                         set_spacing: 6,
                         set_margin_bottom: 6,
-
                         gtk::Label {
                             set_text: &self.name,
                             set_margin_all: 6,
                             add_css_class: "heading"
                         },
-
                         gtk::Box {
                             set_hexpand: true,
                             set_halign: gtk::Align::End,
                             set_spacing: 12,
-
                             gtk::Box {
                                 set_orientation: gtk::Orientation::Horizontal,
                                 set_spacing: 2,
-
                                 gtk::Label {
                                     #[watch]
                                     set_text: &format!("{}: ", gettext("Total")),
                                     add_css_class: "heading"
                                 },
-
                                 gtk::Label {
                                     #[watch]
                                     set_text: &size::Size::from_bytes::<u64>(self.total_size).to_string(),
                                 },
                             },
-
                             gtk::Box {
                                 set_orientation: gtk::Orientation::Horizontal,
                                 set_spacing: 2,
@@ -1092,17 +1083,14 @@ impl FactoryComponent for PartitionGroup {
                                     set_text: &format_size(self.free_space),
                                 },
                             },
-
                             gtk::Box {
                                 set_orientation: gtk::Orientation::Horizontal,
                                 set_halign: gtk::Align::End,
                                 set_valign: gtk::Align::Center,
                                 set_spacing: 12,
-
                                 // gtk::Box {
                                 //     set_orientation: gtk::Orientation::Horizontal,
                                 //     add_css_class: "linked",
-
                                 //     gtk::Button {
                                 //         set_icon_name: "edit-undo",
                                 //         add_css_class: "raised",
@@ -1112,7 +1100,6 @@ impl FactoryComponent for PartitionGroup {
                                 //         add_css_class: "raised"
                                 //     }
                                 // },
-
                                 #[name = "add_partition_button"]
                                 gtk::Button {
                                     #[watch]
@@ -1125,7 +1112,6 @@ impl FactoryComponent for PartitionGroup {
                             },
                         },
                     },
-
                    // TODO: make the logic better
                     #[local_ref]
                     testbox -> gtk::ListBox {
@@ -1147,17 +1133,14 @@ impl FactoryComponent for PartitionGroup {
                         },
                     },
                    // TODO: closing
-
                     #[name = "new_partition_box"]
                     gtk::Box {
+                        #[watch]
+                        set_visible: self.creating_partition,
                         set_orientation: gtk::Orientation::Horizontal,
                         set_valign: gtk::Align::Center,
                         set_spacing: 12,
                         set_margin_top: 6,
-
-                        #[watch]
-                        set_visible: self.creating_partition,
-
                         #[name = "size_entry"]
                         adw::EntryRow {
                             #[watch]
@@ -1170,7 +1153,6 @@ impl FactoryComponent for PartitionGroup {
                             #[iterate]
                             add_css_class: ["focused", "frame"],
                             inline_css: "padding-top: 6px; padding-bottom: 6px; border-radius: 12px;",
-
                             connect_changed[sender] => move |x| {
                                 sender.input(PartitionGroupMsg::Input({
                                     let text = x.text();
@@ -1182,7 +1164,6 @@ impl FactoryComponent for PartitionGroup {
                                 }));
                             }
                         },
-
                         #[name = "dropdown"]
                         gtk::DropDown {
                             set_valign: gtk::Align::Center,
@@ -1197,28 +1178,22 @@ impl FactoryComponent for PartitionGroup {
                                 sender.input(PartitionGroupMsg::SetSizeType(t));
                             },
                         },
-
                         gtk::Button {
                            set_icon_name: "value-decrease",
                            #[iterate]
                            add_css_class: ["raised", "circular", "destructive-action"],
                            set_valign: gtk::Align::Center,
-
                            connect_clicked => PartitionGroupMsg::CloseEntry,
                         },
-
-
                         #[name = "apply_button"]
                         gtk::Button {
                             set_icon_name: "adw-entry-apply-symbolic",
                             set_valign: gtk::Align::Center,
                             #[iterate]
                             add_css_class: ["suggested-action", "circular", "apply-button", "image-button", "disabled"],
-
                             connect_activate => PartitionGroupMsg::Apply,
                             connect_clicked => PartitionGroupMsg::Apply,
                         },
-
                     },
                 },
             },
@@ -1316,12 +1291,14 @@ impl FactoryComponent for PartitionGroup {
                 widgets.apply_button.set_can_target(true);
                 widgets.apply_button.remove_css_class("dimmed");
             }
+
             PartitionGroupMsg::CloseEntry => {
                 self.creating_partition = false;
                 widgets.size_entry.remove_css_class("focused");
                 widgets.apply_button.set_can_target(false);
                 widgets.apply_button.add_css_class("dimmed");
             }
+
             PartitionGroupMsg::Input(x) => {
                 let x = x.unwrap_or_default();
                 match x.parse::<f64>() {
@@ -1341,7 +1318,11 @@ impl FactoryComponent for PartitionGroup {
                     }
                 }
             }
+
             PartitionGroupMsg::Apply => {
+                if self.new_partition_size.ge(&Size::from_gibibytes(1)) {
+                    self.new_partition_size.sub_assign(Size::from_mebibytes(20));
+                }
                 if self.new_partition_size.bytes().is_positive() {
                     let index = self.partitions.len() + 1;
                     let device = self
@@ -1369,12 +1350,12 @@ impl FactoryComponent for PartitionGroup {
                             device,
                         }
                     });
-
                     self.free_space.sub_assign(self.new_partition_size);
                     sender.input(PartitionGroupMsg::CloseEntry);
                 }
                 sender.input(PartitionGroupMsg::Validate);
             }
+
             PartitionGroupMsg::Delete(name) => {
                 let (index, x) = self
                     .partitions
@@ -1387,6 +1368,7 @@ impl FactoryComponent for PartitionGroup {
                 self.free_space.add_assign(Size::from_bytes(x.size));
                 self.partitions.guard().remove(index.clone());
             }
+
             PartitionGroupMsg::SetSizeType(x) => {
                 let new_size = represent(
                     x,
@@ -1405,6 +1387,7 @@ impl FactoryComponent for PartitionGroup {
                 }
                 widgets.size_entry.add_css_class("focused");
             }
+
             PartitionGroupMsg::Validate => {
                 if self.free_space.ge(&self.new_partition_size) {
                     widgets.size_entry.remove_css_class("error");

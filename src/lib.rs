@@ -42,12 +42,11 @@ pub fn format_size(s: Size) -> String {
     };
 
     let s = format!("{}", bytes as f64 / the as f64).to_string();
-
     let main = match s.find(|x| x == '.') {
         Some(x) => s[..(x + 3)].to_string(),
         None => s,
     };
-    format!("{} {tip}", main)
+    format!("{main} {tip}")
 }
 
 pub fn get_storage_size(device: &str, logical_block_size: u64) -> Option<u64> {
