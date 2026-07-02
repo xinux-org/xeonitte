@@ -1,0 +1,7 @@
+# Relago report configuration for xeonitte installer
+# Used to generate and upload error reports during installation
+
+parallel_compression = 4
+tmp_dir = "/tmp/xeonitte-report"
+data_dir = "/tmp/xeonitte-report/data"
+server = "https://cocomelon.uz"

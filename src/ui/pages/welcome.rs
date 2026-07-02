@@ -1,4 +1,5 @@
 use crate::{ui::window::AppMsg, utils::language::get_languages};
+use crate::utils::report::ErrorPhase;
 use adw::prelude::*;
 use gettextrs::gettext;
 use log::{info, trace};
@@ -61,8 +62,10 @@ impl SimpleComponent for WelcomeModel {
                                     .and_then(|w| w.downcast::<gtk::CheckButton>().ok())
                                     .map_or_else(
                                         || {
-                                            trace!("CheckButton can't be found");
-                                            let _ = sender.output(AppMsg::Error);
+                                            sender.output(AppMsg::error(
+                                                ErrorPhase::Setup,
+                                                "Language check button widget not found",
+                                            ));
                                         },
                                         |checkbutton| checkbutton.set_active(true)
                                     );
@@ -81,8 +84,10 @@ impl SimpleComponent for WelcomeModel {
                                     .and_then(|b| b.downcast::<gtk::CheckButton>().ok())
                                     .map_or_else(
                                         || {
-                                            trace!("CheckButton can't be found");
-                                            let _ = sender.output(AppMsg::Error);
+                                            sender.output(AppMsg::error(
+                                                ErrorPhase::Setup,
+                                                "Language check button widget not found",
+                                            ));
                                         },
                                         |checkbutton| checkbutton.set_active(true)
                                     );
@@ -218,8 +223,10 @@ impl SimpleComponent for WelcomeModel {
                         .and_then(|w| w.downcast::<gtk::ListBox>().ok())
                         .map_or_else(
                             || {
-                                trace!("ExpanderRow or its children can't be found");
-                                let _ = sender.output(AppMsg::Error);
+                                sender.output(AppMsg::error(
+                                    ErrorPhase::Setup,
+                                    "Language expander row widget not found",
+                                ));
                             },
                             |lb| {
                                 let sender = sender.clone();
@@ -230,8 +237,10 @@ impl SimpleComponent for WelcomeModel {
                                         .and_then(|w| w.downcast::<gtk::CheckButton>().ok())
                                         .map_or_else(
                                             || {
-                                                trace!("CheckButton can't be found");
-                                                let _ = sender.output(AppMsg::Error);
+                                                sender.output(AppMsg::error(
+                                                    ErrorPhase::Setup,
+                                                    "Language check button widget not found",
+                                                ));
                                             },
                                             |checkbutton| checkbutton.set_active(true),
                                         );

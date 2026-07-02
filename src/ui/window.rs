@@ -35,6 +35,7 @@ use crate::{
         install::{InstallAsyncModel, InstallAsyncMsg},
         language::{get_country, get_lang},
         parse::{Choice, ChoiceEnum, InstallationConfig, StepType, XeonitteConfig, parse_config},
+        report::ErrorPhase,
     },
 };
 use adw::prelude::*;
@@ -134,7 +135,15 @@ pub enum AppMsg {
     RunNextCommand,
 
     Finished,
-    Error,
+    Error(ErrorPhase, String),
+}
+
+impl AppMsg {
+    pub fn error(phase: ErrorPhase, message: impl Into<String>) -> Self {
+        let message = message.into();
+        error!("{message}");
+        AppMsg::Error(phase, message)
+    }
 }
 
 #[derive(Debug)]
@@ -791,12 +800,14 @@ impl Component for AppModel {
                         }
                         PartitionSchema::Custom(CustomOptions {
                             partitions,
-                            encryption,
+                            encryption: _,
                             passphrase: _,
                             disk_size: _,
                         }) => {
                             let mut luks_settings = Attrs::new();
                             luks_settings.insert("allowDiscards".into(), NixValue::Bool(true));
+
+                            let any_encrypted = partitions.values().any(|p| p.encrypt);
 
                             let make_fs_content =
                                 |fs: Filesystem, encrypt: bool, luks_name: String| {
@@ -818,7 +829,7 @@ impl Component for AppModel {
                             for (name, part) in partitions.iter() {
                                 let part_key =
                                     name.rsplit('/').next().unwrap_or(name.as_str()).to_string();
-                                let encrypt = encryption && part.encrypt;
+                                let encrypt = part.encrypt;
 
                                 let (type_code, content) =
                                     match (part.mountpoint.as_deref(), part.format.as_deref()) {
@@ -837,7 +848,7 @@ impl Component for AppModel {
                                                 ..Default::default()
                                             };
                                             // if luks on swap also take it
-                                            let content = if encryption {
+                                            let content = if any_encrypted {
                                                 PartitionContent::Luks(Luks {
                                                     name: format!("crypted-{}", part_key),
                                                     password_file: Some(LUKS_PASSWORD_FILE.into()),
@@ -955,10 +966,10 @@ impl Component for AppModel {
                 debug!("Finished!");
                 self.page = StackPage::Finished;
             }
-            AppMsg::Error => {
-                debug!("Error!");
+            AppMsg::Error(phase, message) => {
+                error!("Error in {phase} phase: {message}");
                 self.page = StackPage::Error;
-                self.error.emit(ErrorMsg::Show);
+                self.error.emit(ErrorMsg::Show(phase, message));
             }
         }
     }

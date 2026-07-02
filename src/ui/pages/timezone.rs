@@ -1,4 +1,5 @@
 use crate::ui::window::AppMsg;
+use crate::utils::report::ErrorPhase;
 use adw::prelude::*;
 use gettextrs::gettext;
 use gnome_desktop::{self, WallClockExt};
@@ -72,8 +73,10 @@ impl SimpleComponent for TimeZoneModel {
                                     .and_then(|w| w.downcast::<gtk::CheckButton>().ok())
                                     .map_or_else(
                                         || {
-                                            trace!("CheckButton can't be found");
-                                            let _ = sender.output(AppMsg::Error);
+                                            sender.output(AppMsg::error(
+                                                ErrorPhase::Setup,
+                                                "Timezone check button widget not found",
+                                            ));
                                         },
                                         |checkbutton| {
                                             checkbutton.set_active(true);
@@ -256,8 +259,10 @@ impl SimpleComponent for TimeZoneModel {
                     .and_then(|w| w.downcast::<gtk::ListBox>().ok())
                     .map_or_else(
                         || {
-                            trace!("ListBox can't be found");
-                            let _ = sender.output(AppMsg::Error);
+                            sender.output(AppMsg::error(
+                                ErrorPhase::Setup,
+                                "Timezone list box widget not found",
+                            ));
                         },
                         |lb| {
                             let sender = sender.clone();
@@ -268,8 +273,10 @@ impl SimpleComponent for TimeZoneModel {
                                     .and_then(|w| w.downcast::<gtk::CheckButton>().ok())
                                     .map_or_else(
                                         || {
-                                            trace!("CheckButton can't be found");
-                                            let _ = sender.output(AppMsg::Error);
+                                            sender.output(AppMsg::error(
+                                                ErrorPhase::Setup,
+                                                "Timezone check button widget not found",
+                                            ));
                                         },
                                         |checkbutton| {
                                             checkbutton.set_active(true);

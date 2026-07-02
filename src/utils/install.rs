@@ -1,4 +1,5 @@
 use super::parse::{Choice, ConfigType};
+use super::report::ErrorPhase;
 use crate::{
     config::{LIBEXECDIR, SYSCONFDIR, TMPDIR},
     ui::{
@@ -92,8 +93,10 @@ impl Worker for InstallAsyncModel {
                 {
                     Ok(o) => o,
                     Err(e) => {
-                        error!("Failed to get architecture: {}", e);
-                        let _ = sender.output(AppMsg::Error);
+                        sender.output(AppMsg::error(
+                            ErrorPhase::Setup,
+                            format!("Failed to get architecture: {e}"),
+                        ));
                         return;
                     }
                 };
@@ -115,8 +118,10 @@ impl Worker for InstallAsyncModel {
                     Ok(())
                 }
                 if let Err(e) = clear() {
-                    error!("Failed to clear {}: {}", TMPDIR, e);
-                    let _ = sender.output(AppMsg::Error);
+                    sender.output(AppMsg::error(
+                        ErrorPhase::Setup,
+                        format!("Failed to clear {TMPDIR}: {e}"),
+                    ));
                     return;
                 }
 
@@ -128,8 +133,10 @@ impl Worker for InstallAsyncModel {
                     .output()
                     .context("cannot create etc/nixos")
                 else {
-                    error!("Cannot create directorty /etc/nixos");
-                    let _ = sender.output(AppMsg::Error);
+                    sender.output(AppMsg::error(
+                        ErrorPhase::Configuration,
+                        format!("Failed to create {TMPDIR}/etc/nixos directory"),
+                    ));
                     return;
                 };
 
@@ -140,8 +147,10 @@ impl Worker for InstallAsyncModel {
                     .arg(TMPDIR)
                     .output()
                 {
-                    error!("Failed to generate base config: {}", e);
-                    let _ = sender.output(AppMsg::Error);
+                    sender.output(AppMsg::error(
+                        ErrorPhase::Configuration,
+                        format!("Failed to generate base config: {e}"),
+                    ));
                     return;
                 }
 
@@ -156,8 +165,10 @@ impl Worker for InstallAsyncModel {
                         ))
                         .output()
                     else {
-                        error!("Failed to create nixos config directory");
-                        let _ = sender.output(AppMsg::Error);
+                        sender.output(AppMsg::error(
+                            ErrorPhase::Configuration,
+                            "Failed to create nixos config directory",
+                        ));
                         return;
                     };
                     let Ok(_) = Command::new("pkexec")
@@ -169,8 +180,10 @@ impl Worker for InstallAsyncModel {
                         ))
                         .output()
                     else {
-                        error!("Failed to move nixos hardware config file");
-                        let _ = sender.output(AppMsg::Error);
+                        sender.output(AppMsg::error(
+                            ErrorPhase::Configuration,
+                            "Failed to move nixos hardware config file",
+                        ));
                         return;
                     };
 
@@ -180,8 +193,10 @@ impl Worker for InstallAsyncModel {
                         .arg(format!("{}/etc/nixos/configuration.nix", TMPDIR))
                         .output()
                     else {
-                        error!("Failed to move nixos config file");
-                        let _ = sender.output(AppMsg::Error);
+                        sender.output(AppMsg::error(
+                            ErrorPhase::Configuration,
+                            "Failed to remove default configuration.nix",
+                        ));
                         return;
                     };
                 }
@@ -216,15 +231,19 @@ impl Worker for InstallAsyncModel {
                     imperative_timezone,
                     disko: disko_config.to_nix_module(),
                 }) {
-                    error!("Failed to make config: {}", e);
-                    let _ = sender.output(AppMsg::Error);
+                    sender.output(AppMsg::error(
+                        ErrorPhase::Configuration,
+                        format!("Failed to make config: {e}"),
+                    ));
                     return;
                 }
 
                 info!("Step 3.1: Backup xeonitte");
                 if let Err(e) = backup_and_update_flake() {
-                    error!("Failed to create backup /flakes: {}", e);
-                    let _ = sender.output(AppMsg::Error);
+                    sender.output(AppMsg::error(
+                        ErrorPhase::Configuration,
+                        format!("Failed to create backup flake: {e}"),
+                    ));
                     return;
                 }
                 // Step 4: Install NixOS
@@ -292,8 +311,10 @@ impl Worker for InstallAsyncModel {
                             Ok(())
                         }
                         if let Err(e) = write_luks_key(passphrase) {
-                            error!("Failed to write LUKS key file: {}", e);
-                            sender.output(AppMsg::Error);
+                            sender.output(AppMsg::error(
+                                ErrorPhase::Installation,
+                                format!("Failed to write LUKS key file: {e}"),
+                            ));
                             return;
                         }
                     }
@@ -317,8 +338,10 @@ impl Worker for InstallAsyncModel {
                         cmd,
                     ]));
                 } else {
-                    error!("No hostname found");
-                    let _ = sender.output(AppMsg::Error);
+                    sender.output(AppMsg::error(
+                        ErrorPhase::Installation,
+                        "No hostname found",
+                    ));
                 }
             }
             InstallAsyncMsg::FinishInstall(timezone, imperative_timezone, mut commands) => {
@@ -358,8 +381,10 @@ impl Worker for InstallAsyncModel {
                     Ok(())
                 }
                 if let Err(e) = setuserpasswd(self.username.clone(), self.password.clone()) {
-                    error!("Failed to set user password: {}", e);
-                    let _ = sender.output(AppMsg::Error);
+                    sender.output(AppMsg::error(
+                        ErrorPhase::PostInstall,
+                        format!("Failed to set user password: {e}"),
+                    ));
                     return;
                 }
 
@@ -369,8 +394,10 @@ impl Worker for InstallAsyncModel {
                     && let Err(e) =
                         setuserpasswd(Some("root".to_string()), Some(rootpasswd.clone()))
                 {
-                    error!("Failed to set root password: {}", e);
-                    let _ = sender.output(AppMsg::Error);
+                    sender.output(AppMsg::error(
+                        ErrorPhase::PostInstall,
+                        format!("Failed to set root password: {e}"),
+                    ));
                     return;
                 }
 
@@ -381,8 +408,10 @@ impl Worker for InstallAsyncModel {
                     );
                 }
                 let Some(username) = self.username.clone() else {
-                    error!("Username is not set");
-                    let _ = sender.output(AppMsg::Error);
+                    sender.output(AppMsg::error(
+                        ErrorPhase::PostInstall,
+                        "Username is not set",
+                    ));
                     return;
                 };
                 commands.push(format!(
@@ -393,8 +422,10 @@ impl Worker for InstallAsyncModel {
                 // Step 6.1: Set libreoffice config
                 info!("Step 6.1: Set libreoffice config");
                 if let Err(e) = init_libreoffice_config(username.clone()) {
-                    error!("Failed to create libre office config: {}", e);
-                    let _ = sender.output(AppMsg::Error);
+                    sender.output(AppMsg::error(
+                        ErrorPhase::PostInstall,
+                        format!("Failed to create libreoffice config: {e}"),
+                    ));
                     return;
                 }
 

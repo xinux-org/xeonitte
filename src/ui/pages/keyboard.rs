@@ -1,4 +1,5 @@
 use crate::ui::window::AppMsg;
+use crate::utils::report::ErrorPhase;
 use adw::prelude::*;
 use gettextrs::gettext;
 use gnome_desktop::{self, XkbInfo, XkbInfoExt};
@@ -80,8 +81,10 @@ impl SimpleComponent for KeyboardModel {
                                     .and_then(|w| w.downcast::<gtk::CheckButton>().ok())
                                     .map_or_else(
                                         || {
-                                            trace!("CheckButton can't be found");
-                                            let _ = sender.output(AppMsg::Error);
+                                            sender.output(AppMsg::error(
+                                                ErrorPhase::Setup,
+                                                "Keyboard check button widget not found",
+                                            ));
                                         }, |checkbutton| {
                                             checkbutton.set_active(true);
                                         }
@@ -246,16 +249,20 @@ impl SimpleComponent for KeyboardModel {
                                 .and_then(|w| w.downcast::<gtk::CheckButton>().ok())
                                 .map_or_else(
                                     || {
-                                        trace!("CheckButton can't be found");
-                                        let _ = sender.output(AppMsg::Error);
+                                        sender.output(AppMsg::error(
+                                            ErrorPhase::Setup,
+                                            "Keyboard check button widget not found",
+                                        ));
                                     },
                                     |checkbutton| checkbutton.set_active(true),
                                 );
                         });
                     })
                     .unwrap_or_else(|| {
-                        trace!("ExpanderRow or its children can't be found");
-                        let _ = sender.output(AppMsg::Error);
+                        sender.output(AppMsg::error(
+                            ErrorPhase::Setup,
+                            "Keyboard expander row widget not found",
+                        ));
                     });
                 expander.add_row(&row);
             }

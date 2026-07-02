@@ -27,6 +27,7 @@ fn main() -> Result<()> {
     ])
     .context("Failed to initialize loggers")?;
     gtk::init().context("Failed to initialize GTK")?;
+    xeonitte::utils::report::init();
     setup_gettext().context("Failed to setup gettext")?;
     glib::set_application_name(&gettext("Xeonitte Installer"));
     if let Ok(res) = gio::Resource::load(RESOURCES_FILE) {

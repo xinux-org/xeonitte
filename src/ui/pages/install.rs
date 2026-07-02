@@ -1,4 +1,8 @@
-use crate::{config::SYSCONFDIR, ui::window::AppMsg, utils::parse::parse_branding};
+use crate::{
+    config::SYSCONFDIR,
+    ui::window::AppMsg,
+    utils::{parse::parse_branding, report::ErrorPhase},
+};
 use adw::prelude::*;
 use anyhow::Context;
 use gettextrs::gettext;
@@ -241,8 +245,10 @@ impl SimpleComponent for InstallModel {
                     .output()
                     .context("Cannot create /tmp/xeonitte-term.log")
                 else {
-                    error!("Cannot create /tmp/xeonitte-term.log");
-                    let _ = sender.output(AppMsg::Error);
+                    sender.output(AppMsg::error(
+                        ErrorPhase::Installation,
+                        "Failed to create /tmp/xeonitte-term.log",
+                    ));
                     return;
                 };
 
@@ -263,15 +269,21 @@ impl SimpleComponent for InstallModel {
                         let _ = sender.output(AppMsg::FinishInstall);
                     } else {
                         debug!("Installation Failed!");
-                        let _ = sender.output(AppMsg::Error);
+                        sender.output(AppMsg::error(
+                            ErrorPhase::Installation,
+                            format!("Installation failed (exit status {status})"),
+                        ));
                     }
                 } else {
                     if status == 0 {
                         debug!("Post install command success!");
-                        let _ = sender.output(AppMsg::RunNextCommand);
+                        sender.output(AppMsg::RunNextCommand);
                     } else {
                         debug!("Post install command failed!");
-                        let _ = sender.output(AppMsg::Error);
+                        sender.output(AppMsg::error(
+                            ErrorPhase::PostInstall,
+                            format!("Post-install command failed (exit status {status})"),
+                        ));
                     }
                 }
             }
