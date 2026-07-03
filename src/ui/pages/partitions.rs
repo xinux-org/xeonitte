@@ -434,6 +434,8 @@ impl SimpleComponent for PartitionModel {
             }
             PartitionMsg::SetMethod(method) => {
                 self.method = method;
+                self.luks_password
+                    .emit(LuksPasswordMsg::SetAdvanced(self.method == PartitionMethod::Advanced));
                 self.schema = None;
                 self.encryption_enabled = false;
                 self.diskgroupbtn.set_active(true);
@@ -488,7 +490,6 @@ impl SimpleComponent for PartitionModel {
             }
             PartitionMsg::SetPartitionEncryption(name, device, size, encrypt) => {
                 trace!("SetPartitionEncryption {} {}", name, encrypt);
-                self.encryption_enabled = encrypt;
 
                 if let Some(PartitionSchema::Custom(opts)) = &mut self.schema {
                     opts.partitions
@@ -516,16 +517,23 @@ impl SimpleComponent for PartitionModel {
                     self.schema = Some(PartitionSchema::Custom(CustomOptions {
                         partitions,
                         disk_size: size,
-                        encryption: self.luks_password.model().encryption_enabled,
-                        passphrase: if self.luks_password.model().encryption_enabled
-                            && !self.luks_password.model().passphrase.is_empty()
-                        {
-                            Some(self.luks_password.model().passphrase.clone())
-                        } else {
-                            None
-                        },
+                        encryption: false,
+                        passphrase: None,
                     }));
                 }
+
+                let mut any_encrypted = false;
+                if let Some(PartitionSchema::Custom(opts)) = &mut self.schema {
+                    any_encrypted = opts.partitions.values().any(|p| p.encrypt);
+                    opts.encryption = any_encrypted;
+                    let passphrase = self.luks_password.model().passphrase.clone();
+                    opts.passphrase = if any_encrypted && !passphrase.is_empty() {
+                        Some(passphrase)
+                    } else {
+                        None
+                    };
+                }
+                self.encryption_enabled = any_encrypted;
                 sender.input(PartitionMsg::CheckSelected);
             }
             PartitionMsg::SetPassphrase => {
@@ -542,10 +550,10 @@ impl SimpleComponent for PartitionModel {
                         };
                     }
                     Some(PartitionSchema::Custom(opts)) => {
-                        opts.passphrase = if self.luks_password.model().encryption_enabled
-                            && !self.luks_password.model().passphrase.is_empty()
-                        {
-                            Some(self.luks_password.model().passphrase.clone())
+                        let any_encrypted = opts.partitions.values().any(|p| p.encrypt);
+                        let passphrase = self.luks_password.model().passphrase.clone();
+                        opts.passphrase = if any_encrypted && !passphrase.is_empty() {
+                            Some(passphrase)
                         } else {
                             None
                         };
@@ -758,6 +766,11 @@ impl SimpleComponent for PartitionModel {
                         }
 
                         let partitions_valid = root && bootefi;
+                        let any_encrypted = schema.values().any(|p| p.encrypt);
+                        let password_valid = !any_encrypted
+                            || (!self.luks_password.model().passphrase.is_empty()
+                                && self.luks_password.model().passphrase
+                                    == self.luks_password.model().passphrase_confirm);
                         let can_proceed = partitions_valid && password_valid;
 
                         let _ = sender.output(AppMsg::SetCanGoForward(can_proceed));
@@ -1406,6 +1419,7 @@ impl FactoryComponent for PartitionGroup {
 
 struct LuksPasswordComponent {
     encryption_enabled: bool,
+    advanced: bool,
     passphrase: String,
     passphrase_confirm: String,
 }
@@ -1415,6 +1429,7 @@ enum LuksPasswordMsg {
     SetEncryption(bool),
     SetPassphrase(String),
     SetPassphraseConfirm(String),
+    SetAdvanced(bool),
 }
 
 #[relm4::component(pub)]
@@ -1429,6 +1444,8 @@ impl SimpleComponent for LuksPasswordComponent {
             set_title: &gettext("Encryption"),
             adw::SwitchRow {
                 #[watch]
+                set_visible: !model.advanced,
+                #[watch]
                 set_title: &gettext("Enable Disk Encryption"),
                 #[watch]
                 set_subtitle: &gettext("Encrypt your disk with LUKS"),
@@ -1442,7 +1459,7 @@ impl SimpleComponent for LuksPasswordComponent {
                 #[watch]
                 set_title: &gettext("Encryption Password"),
                 #[watch]
-                set_visible: model.encryption_enabled,
+                set_visible: model.encryption_enabled || model.advanced,
                 connect_changed[sender] => move |entry| {
                     sender.input(LuksPasswordMsg::SetPassphrase(entry.text().to_string()));
                 }
@@ -1451,21 +1468,21 @@ impl SimpleComponent for LuksPasswordComponent {
                 #[watch]
                 set_title: &gettext("Confirm Password"),
                 #[watch]
-                set_visible: model.encryption_enabled,
+                set_visible: model.encryption_enabled || model.advanced,
                 connect_changed[sender] => move |entry| {
                     sender.input(LuksPasswordMsg::SetPassphraseConfirm(entry.text().to_string()));
                 }
             },
             gtk::Label {
                 #[watch]
-                set_visible: model.encryption_enabled && !model.passphrase.is_empty() && model.passphrase != model.passphrase_confirm,
+                set_visible: (model.encryption_enabled || model.advanced) && !model.passphrase.is_empty() && model.passphrase != model.passphrase_confirm,
                 #[watch]
                 set_label: &gettext("Passwords do not match"),
                 add_css_class: "error",
             },
             gtk::Label {
                 #[watch]
-                set_visible: model.encryption_enabled && model.passphrase.is_empty(),
+                set_visible: (model.encryption_enabled || model.advanced) && model.passphrase.is_empty(),
                 #[watch]
                 set_label: &gettext("Password is required"),
                 add_css_class: "warning",
@@ -1480,6 +1497,7 @@ impl SimpleComponent for LuksPasswordComponent {
     ) -> ComponentParts<Self> {
         let model = LuksPasswordComponent {
             encryption_enabled: false,
+            advanced: false,
             passphrase: String::new(),
             passphrase_confirm: String::new(),
         };
@@ -1500,6 +1518,10 @@ impl SimpleComponent for LuksPasswordComponent {
             LuksPasswordMsg::SetPassphraseConfirm(entry) => {
                 self.passphrase_confirm = entry;
                 let _ = sender.output(PartitionMsg::SetPassphraseConfirm);
+            }
+            LuksPasswordMsg::SetAdvanced(advanced) => {
+                self.advanced = advanced;
+                self.encryption_enabled = false;
             }
         }
     }

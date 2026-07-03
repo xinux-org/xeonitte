@@ -29,6 +29,9 @@
   util-linux,
   dosfstools,
   e2fsprogs,
+  systemd,
+  dbus,
+  zlib,
   nixd,
   statix,
   deadnix,
@@ -65,6 +68,9 @@ mkShell {
     util-linux
     dosfstools
     e2fsprogs
+    systemd.dev
+    dbus.dev
+    zlib
     nixd
     statix
     deadnix
