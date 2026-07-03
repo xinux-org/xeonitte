@@ -56,7 +56,10 @@ pub fn get_storage_size(device: &str, logical_block_size: u64) -> Option<u64> {
         device
     };
     let contents = std::fs::read_to_string(format!("/sys/class/block/{}/size", device))
-        .expect("Couldnʻt read the /sys/class/block/{}/size file.")
+        .expect(&format!(
+            "Couldnʻt read the /sys/class/block/{}/size file.",
+            device
+        ))
         .trim()
         .to_string();
 
