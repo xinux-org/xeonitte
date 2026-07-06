@@ -15,7 +15,7 @@ use size::Size;
 use std::{
     collections::HashMap,
     convert::identity,
-    ops::{AddAssign, SubAssign},
+    ops::{AddAssign, Sub, SubAssign},
     process::Command,
 };
 
@@ -1352,8 +1352,12 @@ impl FactoryComponent for PartitionGroup {
                         })
                         .device
                         .clone();
-                    let new_size =
+                    let mut new_size =
                         Size::from_str(&format_size(self.new_partition_size)).unwrap_or_default();
+                    // fix partitioning bugs from removing 20MB
+                    if new_size.ge(&Size::from_gb(1)) {
+                        new_size.sub_assign(Size::from_mb(20));
+                    }
                     self.partitions.guard().push_back({
                         PartitionInit {
                             name: format!("{device}{index}"),
