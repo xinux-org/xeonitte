@@ -891,7 +891,11 @@ impl Component for AppModel {
 
                                 let disko_partition = Partition {
                                     type_code,
-                                    size: Some(get_storage_size_for_disko(part.size)),
+                                    size: if part.is_full {
+                                        Some("100%".into())
+                                    } else {
+                                        Some(get_storage_size_for_disko(part.size))
+                                    },
                                     content: Some(content),
                                     ..Default::default()
                                 };

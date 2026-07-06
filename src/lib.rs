@@ -42,10 +42,13 @@ pub fn format_size(s: Size) -> String {
     };
 
     let s = format!("{}", bytes as f64 / the as f64).to_string();
-    let main = match s.find(|x| x == '.') {
+    let mut main = match s.find(|x| x == '.') {
         Some(x) => s[..(x + 3)].to_string(),
         None => s,
     };
+    if main.contains("NaN") {
+        main = "0".to_string();
+    }
     format!("{main} {tip}")
 }
 
