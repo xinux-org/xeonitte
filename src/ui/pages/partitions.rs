@@ -105,7 +105,6 @@ impl SimpleComponent for PartitionModel {
                     set_vexpand: true,
                     set_valign: gtk::Align::Center,
                     set_orientation: gtk::Orientation::Vertical,
-                    // set_spacing: 20,
                     set_margin_start: 30,
                     set_margin_end: 30,
                     set_margin_top: 20,
@@ -434,8 +433,9 @@ impl SimpleComponent for PartitionModel {
             }
             PartitionMsg::SetMethod(method) => {
                 self.method = method;
-                self.luks_password
-                    .emit(LuksPasswordMsg::SetAdvanced(self.method == PartitionMethod::Advanced));
+                self.luks_password.emit(LuksPasswordMsg::SetAdvanced(
+                    self.method == PartitionMethod::Advanced,
+                ));
                 self.schema = None;
                 self.encryption_enabled = false;
                 self.diskgroupbtn.set_active(true);
@@ -1086,6 +1086,7 @@ impl FactoryComponent for PartitionGroup {
                             gtk::Box {
                                 set_orientation: gtk::Orientation::Horizontal,
                                 set_spacing: 2,
+                                add_css_class: "success",
                                 gtk::Label {
                                     #[watch]
                                     set_text: &format!("{}: ", gettext("Free")),
@@ -1142,6 +1143,7 @@ impl FactoryComponent for PartitionGroup {
                             set_title: "Free space",
                             #[watch]
                             set_subtitle: &format_size(self.free_space),
+                            set_selectable: false,
                             set_activatable: false,
                         },
                     },
@@ -1333,9 +1335,6 @@ impl FactoryComponent for PartitionGroup {
             }
 
             PartitionGroupMsg::Apply => {
-                if self.new_partition_size.ge(&Size::from_gibibytes(1)) {
-                    self.new_partition_size.sub_assign(Size::from_mebibytes(20));
-                }
                 if self.new_partition_size.bytes().is_positive() {
                     let index = self.partitions.len() + 1;
                     let device = self
