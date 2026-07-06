@@ -434,7 +434,7 @@ pub fn luks_encrypted(device: String, password_file: impl Into<String>) -> Devic
     partitions.insert(
         "BOOT".into(),
         Partition {
-            type_code: Some("EF00".into()),
+            type_code: Some("EF02".into()),
             size: Some("1000M".into()),
             content: Some(PartitionContent::Filesystem(Filesystem {
                 format: "vfat".into(),
@@ -528,7 +528,7 @@ pub fn canonical(device: String) -> Devices {
     partitions.insert(
         "ESP".into(),
         Partition {
-            type_code: Some("EF00".into()),
+            type_code: Some("EF02".into()),
             size: Some("512M".into()),
             content: Some(PartitionContent::Filesystem(Filesystem {
                 format: "vfat".into(),
