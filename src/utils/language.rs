@@ -22,10 +22,20 @@ pub fn get_languages() -> HashMap<String, HashMap<String, String>> {
 
             Some((
                 language_from_code.to_string(),
-                HashMap::from([(locale.to_string(), language_from_locale.to_string())]),
+                locale.to_string(),
+                language_from_locale.to_string(),
             ))
         })
-        .collect();
+        .fold(
+            HashMap::new(),
+            |mut hm, (language_from_code, locale, language_from_locale)| {
+                hm.entry(language_from_code)
+                    .or_default()
+                    .insert(locale, language_from_locale);
+
+                hm
+            },
+        );
 
     languages
 }
