@@ -432,14 +432,6 @@ pub fn luks_encrypted(device: String, password_file: impl Into<String>) -> Devic
     println!("swap size: {:?}", swap_size);
 
     partitions.insert(
-        "BOOT".into(),
-        Partition {
-            type_code: Some("EF02".into()),
-            size: Some("1M".into()),
-            ..Default::default()
-        },
-    );
-    partitions.insert(
         "ESP".into(),
         Partition {
             type_code: Some("EF00".into()),
