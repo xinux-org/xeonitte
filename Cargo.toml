@@ -31,8 +31,8 @@ gettext-rs = { version = "0.7.7", features = ["gettext-system"] }
 regex = "1.12.3"
 log = "0.4.30"
 
-report = { git = "https://git.oss.uzinfocom.uz/xinux/relago.git", branch = "rc-26-05" }
-utils = { git = "https://git.oss.uzinfocom.uz/xinux/relago.git", branch = "rc-26-05" }
+report = { git = "https://git.oss.uzinfocom.uz/xinux/relago.git", branch = "release-26.05" }
+utils = { git = "https://git.oss.uzinfocom.uz/xinux/relago.git", branch = "release-26.05" }
 
 [workspace]
 members = [".", "xeonitte-helper"]
