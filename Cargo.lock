@@ -5921,7 +5921,7 @@ dependencies = [
 
 [[package]]
 name = "xeonitte"
-version = "0.0.4"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "distinst-disks",
