@@ -1142,14 +1142,14 @@ impl FactoryComponent for PartitionGroup {
                     #[local_ref]
                     testbox -> gtk::ListBox {
                         #[watch]
-                        set_visible: self.partitions.len() > 0,
+                        set_visible: !self.partitions.is_empty(),
                         set_hexpand: true,
                         set_selection_mode: gtk::SelectionMode::None,
                         add_css_class: "boxed-list",
                     },
                     gtk::ListBox {
                         #[watch]
-                        set_visible: self.partitions.len() <= 0,
+                        set_visible: self.partitions.is_empty(),
                         add_css_class: "boxed-list",
                         adw::ActionRow {
                             set_title: "Free space",

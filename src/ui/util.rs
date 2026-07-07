@@ -22,9 +22,9 @@ impl From<SizeType> for String {
 impl From<String> for SizeType {
     fn from(value: String) -> Self {
         match value.to_lowercase().as_str() {
-            "TiB" => SizeType::TB,
-            "GiB" => SizeType::GB,
-            "MiB" => SizeType::MB,
+            "tib" => SizeType::TB,
+            "gib" => SizeType::GB,
+            "mib" => SizeType::MB,
             _ => SizeType::KB,
         }
     }
