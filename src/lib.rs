@@ -5,8 +5,10 @@ pub mod ui;
 pub mod utils;
 
 pub fn get_memory_size() -> Option<u64> {
-    let contents =
-        std::fs::read_to_string("/proc/meminfo").expect("Couldnʻt read the /proc/meminfo file.");
+    let contents = std::fs::read_to_string("/proc/meminfo").unwrap_or_else(|e| {
+        eprintln!("Couldnʻt read the /proc/meminfo file: {e}");
+        "".to_string()
+    });
 
     contents
         .lines()
@@ -58,11 +60,11 @@ pub fn get_storage_size(device: &str, logical_block_size: u64) -> Option<u64> {
     } else {
         device
     };
-    let contents = std::fs::read_to_string(format!("/sys/class/block/{}/size", device))
-        .expect(&format!(
-            "Couldnʻt read the /sys/class/block/{}/size file.",
-            device
-        ))
+    let contents = std::fs::read_to_string(format!("/sys/class/block/{device}/size"))
+        .unwrap_or_else(|e| {
+            eprintln!("Couldnʻt read the /sys/class/block/{device}/size file: {e}",);
+            "".to_string()
+        })
         .trim()
         .to_string();
 
@@ -84,7 +86,12 @@ pub fn get_storage_size_for_disko(size: u64) -> String {
     });
     format!(
         "{}{}",
-        ssize.next().unwrap(),
-        ssize.next().unwrap().chars().nth(0).unwrap_or_default()
+        ssize.next().unwrap_or_default(),
+        ssize
+            .next()
+            .unwrap_or_default()
+            .chars()
+            .nth(0)
+            .unwrap_or_default()
     )
 }
