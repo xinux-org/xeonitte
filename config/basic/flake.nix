@@ -7,7 +7,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     xinux-modules = {
-      url = "git+https://git.oss.uzinfocom.uz/xinux/modules?ref=rc-26.05&shallow=1";
+      url = "git+https://git.oss.uzinfocom.uz/xinux/modules?ref=release-26.05&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-data = {
@@ -22,7 +22,7 @@
       url = "git+https://git.oss.uzinfocom.uz/mirrors/disko?ref=master&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    relago.url = "git+https://git.oss.uzinfocom.uz/xinux/relago?ref=rc-26-05";
+    relago.url = "git+https://git.oss.uzinfocom.uz/xinux/relago?ref=release-26.05";
   };
 
   outputs = inputs:
