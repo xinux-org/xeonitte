@@ -40,17 +40,14 @@ pub fn format_size(s: Size) -> String {
         "GiB" => 1024_u64.pow(3),
         "MiB" => 1024_u64.pow(2),
         "KiB" => 1024,
-        _ => 0,
+        _ => 1, // byte
     };
 
     let s = format!("{}", bytes as f64 / the as f64).to_string();
-    let mut main = match s.find(|x| x == '.') {
+    let main = match s.find(|x| x == '.') {
         Some(x) => s[..(x + 3)].to_string(),
         None => s,
     };
-    if main.contains("NaN") {
-        main = "0".to_string();
-    }
     format!("{main} {tip}")
 }
 
