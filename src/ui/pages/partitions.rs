@@ -1050,6 +1050,7 @@ impl FactoryComponent for PartitionGroup {
     view! {
         adw::PreferencesGroup {
             gtk::Box {
+                set_visible: !self.name.contains("zram"),
                 set_hexpand: true,
                 set_orientation: gtk::Orientation::Horizontal,
                 set_spacing: 8,
@@ -1142,7 +1143,7 @@ impl FactoryComponent for PartitionGroup {
                         set_visible: self.partitions.is_empty(),
                         add_css_class: "boxed-list",
                         adw::ActionRow {
-                            set_title: "Free space",
+                            set_title: &gettext("Free space"),
                             #[watch]
                             set_subtitle: &format_size(self.free_space),
                             set_selectable: false,
