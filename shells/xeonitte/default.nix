@@ -19,7 +19,6 @@
   pango,
   parted,
   pkg-config,
-  polkit,
   rust-analyzer,
   rustc,
   rustfmt,
@@ -30,10 +29,14 @@
   util-linux,
   dosfstools,
   e2fsprogs,
+  systemd,
+  dbus,
+  zlib,
   nixd,
   statix,
   deadnix,
   nixfmt,
+  polkit,
   ...
 }:
 mkShell {
@@ -56,7 +59,6 @@ mkShell {
     pango
     parted
     pkg-config
-    polkit
     rust-analyzer
     rustc
     rustfmt
@@ -67,10 +69,14 @@ mkShell {
     util-linux
     dosfstools
     e2fsprogs
+    systemd.dev
+    dbus.dev
+    zlib
     nixd
     statix
     deadnix
     nixfmt
+    polkit
   ];
 
   # Set Environment Variables

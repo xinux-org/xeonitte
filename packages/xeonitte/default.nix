@@ -27,6 +27,9 @@
   util-linux,
   dosfstools,
   e2fsprogs,
+  systemd,
+  dbus,
+  zlib,
 }: let
   convertyml = internal.convertyml;
 in
@@ -38,7 +41,7 @@ in
 
     cargoDeps = rustPlatform.fetchCargoVendor {
       src = ../..;
-	    hash = "sha256-gI9njQbwJEy+t/Jm67bJ0NTj8VZTcj8qT0fhWCGNT4M=";
+	    hash = "sha256-ykn13C2eEajzPWPSF7H6IoQNYxRvorO+PfoOrjrZzfM=";
     };
 
     nativeBuildInputs = [
@@ -71,6 +74,9 @@ in
       rustPlatform.bindgenHook
       vte-gtk4
       cryptsetup
+      systemd.dev
+      dbus.dev
+      zlib
     ];
 
     postFixup = ''

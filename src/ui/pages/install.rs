@@ -1,5 +1,10 @@
-use crate::{config::SYSCONFDIR, ui::window::AppMsg, utils::parse::parse_branding};
+use crate::{
+    config::SYSCONFDIR,
+    ui::window::AppMsg,
+    utils::{parse::parse_branding, report::ErrorPhase},
+};
 use adw::prelude::*;
+use anyhow::Context;
 use gettextrs::gettext;
 use gtk::gio;
 use log::{debug, error};
@@ -235,10 +240,17 @@ impl SimpleComponent for InstallModel {
             InstallMsg::VTEOutput(status) => {
                 debug!("VTE command exited with status: {}", status);
 
-                Command::new("touch")
+                let Ok(_) = Command::new("touch")
                     .arg("/tmp/xeonitte-term.log")
                     .output()
-                    .expect("Cannot create /tmp/xeonitte-term.log");
+                    .context("Cannot create /tmp/xeonitte-term.log")
+                else {
+                    sender.output(AppMsg::error(
+                        ErrorPhase::Installation,
+                        "Failed to create /tmp/xeonitte-term.log",
+                    ));
+                    return;
+                };
 
                 if let Ok(file) = File::create("/tmp/xeonitte-term.log") {
                     let output = gio::WriteOutputStream::new(file);
@@ -257,15 +269,21 @@ impl SimpleComponent for InstallModel {
                         let _ = sender.output(AppMsg::FinishInstall);
                     } else {
                         debug!("Installation Failed!");
-                        let _ = sender.output(AppMsg::Error);
+                        sender.output(AppMsg::error(
+                            ErrorPhase::Installation,
+                            format!("Installation failed (exit status {status})"),
+                        ));
                     }
                 } else {
                     if status == 0 {
                         debug!("Post install command success!");
-                        let _ = sender.output(AppMsg::RunNextCommand);
+                        sender.output(AppMsg::RunNextCommand);
                     } else {
                         debug!("Post install command failed!");
-                        let _ = sender.output(AppMsg::Error);
+                        sender.output(AppMsg::error(
+                            ErrorPhase::PostInstall,
+                            format!("Post-install command failed (exit status {status})"),
+                        ));
                     }
                 }
             }

@@ -1,17 +1,21 @@
-use crate::{config::LIBEXECDIR, ui::window::AppMsg};
+use crate::{
+    config::LIBEXECDIR,
+    ui::window::AppMsg,
+    utils::report::{send_report, ErrorPhase},
+};
 use adw::prelude::*;
-use anyhow::{Context, Result};
 use gettextrs::gettext;
 use log::error;
 use relm4::*;
 use std::process::Command;
-use tokio::io::AsyncWriteExt;
 
 pub struct ErrorModel {
     messegebuffer: gtk::TextBuffer,
     uploadbutton: UploadButton,
     url: String,
     spinner: gtk::Spinner,
+    phase: ErrorPhase,
+    message: String,
 }
 
 #[derive(Debug)]
@@ -23,7 +27,7 @@ pub enum UploadButton {
 
 #[derive(Debug)]
 pub enum ErrorMsg {
-    Show,
+    Show(ErrorPhase, String),
     UploadReport,
     SetUrl(String),
     SetUploadButton(UploadButton),
@@ -119,16 +123,19 @@ impl SimpleComponent for ErrorModel {
             url: String::new(),
             messegebuffer: gtk::TextBuffer::new(None),
             spinner: gtk::Spinner::new(),
+            phase: ErrorPhase::Installation,
+            message: String::new(),
         };
         let spinner = model.spinner.clone();
         let widgets = view_output!();
-        sender.input(ErrorMsg::Show);
         ComponentParts { model, widgets }
     }
 
     fn update(&mut self, msg: Self::Input, sender: ComponentSender<Self>) {
         match msg {
-            ErrorMsg::Show => {
+            ErrorMsg::Show(phase, message) => {
+                self.phase = phase;
+                self.message = message;
                 if let Err(e) = Command::new("pkexec")
                     .arg(format!("{}/xeonitte-helper", LIBEXECDIR))
                     .arg("unmount")
@@ -154,50 +161,34 @@ impl SimpleComponent for ErrorModel {
                 self.messegebuffer.set_text(&outlog);
             }
             ErrorMsg::UploadReport => {
-                let text = self
-                    .messegebuffer
-                    .text(
-                        &self.messegebuffer.start_iter(),
-                        &self.messegebuffer.end_iter(),
-                        true,
-                    )
-                    .to_string();
+                let phase = self.phase;
+                let message = self.message.clone();
                 self.uploadbutton = UploadButton::Loading;
                 self.spinner.set_spinning(false);
                 self.spinner.activate();
                 self.spinner.set_spinning(true);
                 relm4::spawn(async move {
-                    async fn termbin(text: String) -> Result<String> {
-                        let mut response = tokio::process::Command::new("nc")
-                            .arg("termbin.com")
-                            .arg("9999")
-                            .stdin(std::process::Stdio::piped())
-                            .stdout(std::process::Stdio::piped())
-                            .spawn()?;
-
-                        response
-                            .stdin
-                            .take()
-                            .context("Failed to get stdin")?
-                            .write_all(text.as_bytes())
-                            .await
-                            .context("Failed to write to stdin")?;
-                        let url = String::from_utf8(
-                            response
-                                .wait_with_output()
-                                .await
-                                .context("Failed to get output")?
-                                .stdout,
+                    let result = tokio::task::spawn_blocking(move || {
+                        send_report(
+                            phase,
+                            &message,
+                            &["/tmp/xeonitte.log", "/tmp/xeonitte-term.log"],
                         )
-                        .context("Failed to read stdout")?;
-                        Ok(url)
-                    }
-                    match termbin(text).await {
-                        Ok(url) => {
-                            sender.input(ErrorMsg::SetUrl(url.trim().replace(['\0', '\n'], "")));
+                    })
+                    .await;
+                    let rep_file = match result {
+                        Ok(r) => r,
+                        Err(e) => {
+                            error!("Failed to generate report: {e}");
+                            return;
+                        }
+                    };
+                    match rep_file {
+                        Ok(path) => {
+                            sender.input(ErrorMsg::SetUrl(format!("file://{path}")));
                         }
                         Err(e) => {
-                            error!("Failed to upload report: {}", e);
+                            error!("Failed to upload report: {e}");
                             sender.input(ErrorMsg::SetUploadButton(UploadButton::Button));
                         }
                     }

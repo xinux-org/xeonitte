@@ -1,4 +1,5 @@
 use crate::{ui::window::AppMsg, utils::language::get_languages};
+use crate::utils::report::ErrorPhase;
 use adw::prelude::*;
 use gettextrs::gettext;
 use log::{info, trace};
@@ -53,9 +54,21 @@ impl SimpleComponent for WelcomeModel {
                         langbox -> gtk::ListBox {
                             add_css_class: "boxed-list",
                             set_selection_mode: gtk::SelectionMode::None,
-                            connect_row_activated => move |_, row| {
-                                let checkbutton = row.child().unwrap().downcast::<gtk::Box>().unwrap().last_child().unwrap().downcast::<gtk::CheckButton>().unwrap();
-                                checkbutton.set_active(true);
+                            connect_row_activated[sender] => move |_, row| {
+                                row
+                                    .child()
+                                    .and_then(|w| w.downcast::<gtk::Box>().ok())
+                                    .and_then(|b| b.last_child())
+                                    .and_then(|w| w.downcast::<gtk::CheckButton>().ok())
+                                    .map_or_else(
+                                        || {
+                                            sender.output(AppMsg::error(
+                                                ErrorPhase::Setup,
+                                                "Language check button widget not found",
+                                            ));
+                                        },
+                                        |checkbutton| checkbutton.set_active(true)
+                                    );
                             },
                         }
                     } else {
@@ -63,9 +76,21 @@ impl SimpleComponent for WelcomeModel {
                         shortlangbox -> gtk::ListBox {
                             add_css_class: "boxed-list",
                             set_selection_mode: gtk::SelectionMode::None,
-                            connect_row_activated => move |_, row| {
-                                let checkbutton = row.child().unwrap().downcast::<gtk::Box>().unwrap().last_child().unwrap().downcast::<gtk::CheckButton>().unwrap();
-                                checkbutton.set_active(true);
+                            connect_row_activated[sender] => move |_, row| {
+                                row
+                                    .child()
+                                    .and_then(|w| w.downcast::<gtk::Box>().ok())
+                                    .and_then(|b| b.last_child())
+                                    .and_then(|b| b.downcast::<gtk::CheckButton>().ok())
+                                    .map_or_else(
+                                        || {
+                                            sender.output(AppMsg::error(
+                                                ErrorPhase::Setup,
+                                                "Language check button widget not found",
+                                            ));
+                                        },
+                                        |checkbutton| checkbutton.set_active(true)
+                                    );
                             },
                         }
                     },
@@ -193,30 +218,39 @@ impl SimpleComponent for WelcomeModel {
                     };
                     expander
                         .first_child()
-                        .unwrap()
-                        .last_child()
-                        .unwrap()
-                        .first_child()
-                        .unwrap()
-                        .downcast::<gtk::ListBox>()
-                        .unwrap()
-                        .connect_row_activated(move |_, x| {
-                            let checkbutton = x
-                                .child()
-                                .unwrap()
-                                .downcast::<gtk::Box>()
-                                .unwrap()
-                                .last_child()
-                                .unwrap()
-                                .downcast::<gtk::CheckButton>()
-                                .unwrap();
-                            checkbutton.set_active(true);
-                        });
+                        .and_then(|w| w.last_child())
+                        .and_then(|w| w.first_child())
+                        .and_then(|w| w.downcast::<gtk::ListBox>().ok())
+                        .map_or_else(
+                            || {
+                                sender.output(AppMsg::error(
+                                    ErrorPhase::Setup,
+                                    "Language expander row widget not found",
+                                ));
+                            },
+                            |lb| {
+                                let sender = sender.clone();
+                                lb.connect_row_activated(move |_, x| {
+                                    x.child()
+                                        .and_then(|w| w.downcast::<gtk::Box>().ok())
+                                        .and_then(|b| b.last_child())
+                                        .and_then(|w| w.downcast::<gtk::CheckButton>().ok())
+                                        .map_or_else(
+                                            || {
+                                                sender.output(AppMsg::error(
+                                                    ErrorPhase::Setup,
+                                                    "Language check button widget not found",
+                                                ));
+                                            },
+                                            |checkbutton| checkbutton.set_active(true),
+                                        );
+                                });
+                            },
+                        );
                     expander.add_row(&row);
                 }
                 model.expanders.push(expander);
-            } else {
-                let (locale, title) = languages.into_iter().next().unwrap();
+            } else if let Some((locale, title)) = languages.into_iter().next() {
                 view! {
                     row = adw::PreferencesRow {
                         set_title: &locale,

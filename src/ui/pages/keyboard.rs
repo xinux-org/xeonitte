@@ -1,4 +1,5 @@
 use crate::ui::window::AppMsg;
+use crate::utils::report::ErrorPhase;
 use adw::prelude::*;
 use gettextrs::gettext;
 use gnome_desktop::{self, XkbInfo, XkbInfoExt};
@@ -72,9 +73,22 @@ impl SimpleComponent for KeyboardModel {
                         shortkbdbox -> gtk::ListBox {
                             add_css_class: "boxed-list",
                             set_selection_mode: gtk::SelectionMode::None,
-                            connect_row_activated => move |_, row| {
-                                let checkbutton = row.child().unwrap().downcast::<gtk::Box>().unwrap().last_child().unwrap().downcast::<gtk::CheckButton>().unwrap();
-                                checkbutton.set_active(true);
+                            connect_row_activated[sender] => move |_, row| {
+                                row
+                                    .child()
+                                    .and_then(|w| w.downcast::<gtk::Box>().ok())
+                                    .and_then(|b| b.last_child())
+                                    .and_then(|w| w.downcast::<gtk::CheckButton>().ok())
+                                    .map_or_else(
+                                        || {
+                                            sender.output(AppMsg::error(
+                                                ErrorPhase::Setup,
+                                                "Keyboard check button widget not found",
+                                            ));
+                                        }, |checkbutton| {
+                                            checkbutton.set_active(true);
+                                        }
+                                    );
                             },
                         }
                     },
@@ -148,41 +162,21 @@ impl SimpleComponent for KeyboardModel {
         countries.sort_by(|a, b| {
             let aname = gnome_desktop::country_from_code(&a.to_uppercase(), None)
                 .map(|x| x.to_string())
-                .unwrap_or_else(|| {
+                .or_else(|| {
                     model
                         .layouts
                         .iter()
-                        .filter(|(_, v)| &v.2 == a)
-                        .collect::<Vec<_>>()
-                        .first()
-                        .unwrap()
-                        .1
-                        .0
-                        .split('(')
-                        .collect::<Vec<_>>()
-                        .first()
-                        .unwrap()
-                        .trim()
-                        .to_string()
+                        .find(|(_, v)| &v.2 == a)
+                        .and_then(|(_, v)| v.0.split('(').nth(0).map(|s| s.trim().to_string()))
                 });
             let bname = gnome_desktop::country_from_code(&b.to_uppercase(), None)
                 .map(|x| x.to_string())
-                .unwrap_or_else(|| {
+                .or_else(|| {
                     model
                         .layouts
                         .iter()
-                        .filter(|(_, v)| &v.2 == b)
-                        .collect::<Vec<_>>()
-                        .first()
-                        .unwrap()
-                        .1
-                        .0
-                        .split('(')
-                        .collect::<Vec<_>>()
-                        .first()
-                        .unwrap()
-                        .trim()
-                        .to_string()
+                        .find(|(_, v)| &v.2 == b)
+                        .and_then(|(_, v)| v.0.split('(').nth(0).map(|s| s.trim().to_string()))
                 });
             aname.cmp(&bname)
         });
@@ -192,21 +186,16 @@ impl SimpleComponent for KeyboardModel {
             let possible_country = model
                 .layouts
                 .iter()
-                .filter(|(_, v)| &v.2 == country)
-                .collect::<Vec<_>>()
-                .first()
-                .unwrap()
-                .1
-                .0
-                .split('(')
-                .collect::<Vec<_>>()
-                .first()
-                .unwrap()
-                .trim()
-                .to_string();
+                .find(|(_, v)| &v.2 == country)
+                .and_then(|(_, v)| v.0.split('(').nth(0).map(|s| s.trim().to_string()));
             view! {
                 expander = adw::ExpanderRow {
-                    set_title: &gnome_desktop::country_from_code(&country.to_uppercase(), None).map(|x| x.to_string()).unwrap_or_else(|| possible_country),
+                    set_title: &gnome_desktop::country_from_code(&country.to_uppercase(), None)
+                        .map(|x| x.to_string())
+                        .or_else(|| possible_country)
+                        .unwrap_or_else(|| {
+                            trace!("Country name can't be found for {}", country);
+                            String::from("Unknown")}),
                 }
             }
 
@@ -248,24 +237,32 @@ impl SimpleComponent for KeyboardModel {
                 }
                 expander
                     .first_child()
-                    .unwrap()
-                    .last_child()
-                    .unwrap()
-                    .first_child()
-                    .unwrap()
-                    .downcast::<gtk::ListBox>()
-                    .unwrap()
-                    .connect_row_activated(move |_, x| {
-                        let checkbutton = x
-                            .child()
-                            .unwrap()
-                            .downcast::<gtk::Box>()
-                            .unwrap()
-                            .last_child()
-                            .unwrap()
-                            .downcast::<gtk::CheckButton>()
-                            .unwrap();
-                        checkbutton.set_active(true);
+                    .and_then(|w| w.last_child())
+                    .and_then(|w| w.first_child())
+                    .and_then(|w| w.downcast::<gtk::ListBox>().ok())
+                    .map(|lb| {
+                        let sender = sender.clone();
+                        lb.connect_row_activated(move |_, x| {
+                            x.child()
+                                .and_then(|w| w.downcast::<gtk::Box>().ok())
+                                .and_then(|b| b.last_child())
+                                .and_then(|w| w.downcast::<gtk::CheckButton>().ok())
+                                .map_or_else(
+                                    || {
+                                        sender.output(AppMsg::error(
+                                            ErrorPhase::Setup,
+                                            "Keyboard check button widget not found",
+                                        ));
+                                    },
+                                    |checkbutton| checkbutton.set_active(true),
+                                );
+                        });
+                    })
+                    .unwrap_or_else(|| {
+                        sender.output(AppMsg::error(
+                            ErrorPhase::Setup,
+                            "Keyboard expander row widget not found",
+                        ));
                     });
                 expander.add_row(&row);
             }
