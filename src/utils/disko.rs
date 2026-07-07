@@ -434,6 +434,14 @@ pub fn luks_encrypted(device: String, password_file: impl Into<String>) -> Devic
     partitions.insert(
         "BOOT".into(),
         Partition {
+            type_code: Some("EF02".into()),
+            size: Some("1M".into()),
+            ..Default::default()
+        },
+    );
+    partitions.insert(
+        "ESP".into(),
+        Partition {
             type_code: Some("EF00".into()),
             size: Some("1000M".into()),
             content: Some(PartitionContent::Filesystem(Filesystem {
@@ -526,6 +534,14 @@ pub fn canonical(device: String) -> Devices {
         _ => None,
     };
     partitions.insert(
+        "BOOT".into(),
+        Partition {
+            type_code: Some("EF02".into()),
+            size: Some("1M".into()),
+            ..Default::default()
+        },
+    );
+    partitions.insert(
         "ESP".into(),
         Partition {
             type_code: Some("EF00".into()),
@@ -539,7 +555,6 @@ pub fn canonical(device: String) -> Devices {
             ..Default::default()
         },
     );
-
     if swap_size.is_some() {
         partitions.insert(
             "swap".into(),

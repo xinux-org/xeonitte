@@ -826,6 +826,7 @@ impl Component for AppModel {
 
                             let mut disk_disko: BTreeMap<String, Disk> = Attrs::new();
 
+                            // TODO: improve pattern match with custom names and write it simpler
                             for (name, part) in partitions.iter() {
                                 let part_key =
                                     name.rsplit('/').next().unwrap_or(name.as_str()).to_string();
