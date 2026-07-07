@@ -297,19 +297,8 @@ impl SimpleComponent for PartitionModel {
             .launch(())
             .forward(sender.input_sender(), identity);
 
-        // filter disks that is not zram
-        let mut disks: FactoryVecDeque<WholeDisk> =
+        let disks: FactoryVecDeque<WholeDisk> =
             FactoryVecDeque::builder().launch_default().detach();
-        let temp = disks
-            .iter()
-            .filter(|x| !x.name.contains("zram"))
-            .cloned()
-            .collect::<Vec<_>>();
-
-        disks.guard().clear();
-        let _ = temp
-            .iter()
-            .map(|x| disks.guard().push_back(x.clone().clone()));
 
         let model = PartitionModel {
             method: PartitionMethod::Basic,
@@ -812,6 +801,7 @@ impl FactoryComponent for WholeDisk {
 
     view! {
         adw::ActionRow {
+            set_visible: !self.name.contains("zram"),
             set_title: &self.name,
             #[watch]
             // Translators: Do NOT translate the '{}'
