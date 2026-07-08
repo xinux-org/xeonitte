@@ -107,7 +107,7 @@ pub fn upload_report(
         .file("report", file_path)
         .context("Failed to read report file")?;
 
-    let url = format!("{}/upload/on-boot", &server);
+    let url = format!("{}/upload/installation", &server);
     reqwest::blocking::Client::new()
         .post(&url)
         .multipart(form)
