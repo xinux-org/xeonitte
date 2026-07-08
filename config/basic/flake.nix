@@ -22,7 +22,6 @@
       url = "git+https://git.oss.uzinfocom.uz/mirrors/disko?ref=master&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    relago.url = "git+https://git.oss.uzinfocom.uz/xinux/relago?ref=main";
   };
 
   outputs = inputs:
@@ -32,7 +31,6 @@
 
       channels-config.allowUnfree = true;
       systems.modules.nixos = with inputs; [
-        relago.nixosModules.relago
         disko.nixosModules.disko
         nix-data.nixosModules.nix-data
         @BOOTLOADER_MODULE@
