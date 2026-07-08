@@ -35,13 +35,13 @@
 in
   stdenv.mkDerivation rec {
     pname = "xeonitte";
-    version = "0.0.4";
+    version = "0.1.0";
 
     src = [../..];
 
     cargoDeps = rustPlatform.fetchCargoVendor {
       src = ../..;
-	    hash = "sha256-36jEJaaCmnrqAUT0qemYI5sCmYjlLcBMBYtKQiOf1J4=";
+	    hash = "sha256-FaCRpIZGG7Q4bTotV3i0cdyuWpTwriawtUbPmFkmVVs=";
     };
 
     nativeBuildInputs = [

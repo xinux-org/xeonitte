@@ -15,12 +15,15 @@ pub struct Devices {
 }
 
 impl Devices {
-    pub fn to_json(&self) -> String {
-        serde_json::to_string_pretty(self).expect("Devices serialization is total")
+    pub fn to_json(&self) -> Result<String, serde_json::Error> {
+        serde_json::to_string_pretty(self)
     }
 
     pub fn to_nix_devices(&self) -> String {
-        let v = serde_json::to_value(self).expect("total");
+        let v = serde_json::to_value(self).unwrap_or_else(|e| {
+            eprintln!("Can't convert to nix code: {:?}", e);
+            serde_json::Value::Object(serde_json::Map::new())
+        });
         nix::render(&v, 0)
     }
 
@@ -314,9 +317,9 @@ impl From<String> for NixValue {
     }
 }
 
-pub fn to_nix<T: Serialize>(value: &T) -> String {
-    let v = serde_json::to_value(value).expect("serialization is total");
-    nix::render(&v, 0)
+pub fn to_nix<T: Serialize>(value: &T) -> Result<String, serde_json::Error> {
+    let v = serde_json::to_value(value)?;
+    Ok(nix::render(&v, 0))
 }
 
 mod nix {
@@ -432,7 +435,7 @@ pub fn luks_encrypted(device: String, password_file: impl Into<String>) -> Devic
     println!("swap size: {:?}", swap_size);
 
     partitions.insert(
-        "BOOT".into(),
+        "ESP".into(),
         Partition {
             type_code: Some("EF00".into()),
             size: Some("1000M".into()),
@@ -526,6 +529,14 @@ pub fn canonical(device: String) -> Devices {
         _ => None,
     };
     partitions.insert(
+        "BOOT".into(),
+        Partition {
+            type_code: Some("EF02".into()),
+            size: Some("1M".into()),
+            ..Default::default()
+        },
+    );
+    partitions.insert(
         "ESP".into(),
         Partition {
             type_code: Some("EF00".into()),
@@ -539,7 +550,6 @@ pub fn canonical(device: String) -> Devices {
             ..Default::default()
         },
     );
-
     if swap_size.is_some() {
         partitions.insert(
             "swap".into(),

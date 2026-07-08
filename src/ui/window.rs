@@ -826,6 +826,7 @@ impl Component for AppModel {
 
                             let mut disk_disko: BTreeMap<String, Disk> = Attrs::new();
 
+                            // TODO: improve pattern match with custom names and write it simpler
                             for (name, part) in partitions.iter() {
                                 let part_key =
                                     name.rsplit('/').next().unwrap_or(name.as_str()).to_string();
@@ -891,7 +892,11 @@ impl Component for AppModel {
 
                                 let disko_partition = Partition {
                                     type_code,
-                                    size: Some(get_storage_size_for_disko(part.size)),
+                                    size: if part.is_full {
+                                        Some("100%".into())
+                                    } else {
+                                        Some(get_storage_size_for_disko(part.size))
+                                    },
                                     content: Some(content),
                                     ..Default::default()
                                 };

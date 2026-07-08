@@ -7,14 +7,29 @@ pub enum SizeType {
     MB,
     KB,
 }
+impl From<SizeType> for String {
+    fn from(value: SizeType) -> Self {
+        match value {
+            SizeType::TB => "TiB",
+            SizeType::GB => "GiB",
+            SizeType::MB => "MiB",
+            SizeType::KB => "KiB",
+        }
+        .to_string()
+    }
+}
 
-pub fn represent(x: SizeType, y: f64) -> Size {
-    let f = match x {
-        SizeType::TB => "TiB",
-        SizeType::GB => "GiB",
-        SizeType::MB => "MiB",
-        SizeType::KB => "KiB",
-    };
+impl From<String> for SizeType {
+    fn from(value: String) -> Self {
+        match value.to_lowercase().as_str() {
+            "tib" => SizeType::TB,
+            "gib" => SizeType::GB,
+            "mib" => SizeType::MB,
+            _ => SizeType::KB,
+        }
+    }
+}
 
-    Size::from_str(&format!("{} {}", y, f)).unwrap_or_default()
+pub fn represent(size_type: SizeType, bytes: f64) -> Size {
+    Size::from_str(&format!("{} {}", bytes, String::from(size_type))).unwrap_or_default()
 }

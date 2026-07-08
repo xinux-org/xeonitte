@@ -174,39 +174,3 @@ fn main() {
         }
     }
 }
-fn get_memory_size() -> Option<u64> {
-    let contents =
-        std::fs::read_to_string("/proc/meminfo").expect("Couldnʻt read the /proc/meminfo file.");
-
-    contents
-        .lines()
-        .filter(|line| line.contains("MemTotal"))
-        .map(|x| {
-            x.chars()
-                .filter(|c| c.is_ascii_digit())
-                .collect::<String>()
-                .parse::<u64>()
-                .ok()
-        })
-        .collect::<Vec<_>>()
-        .first()
-        .copied()
-        .flatten()
-}
-
-fn get_storage_size(device: &str, logical_block_size: u64) -> Option<u64> {
-    let device = if device.contains("/dev/") {
-        &device[5..]
-    } else {
-        device
-    };
-    let contents = std::fs::read_to_string(format!("/sys/class/block/{}/size", device))
-        .expect("Couldnʻt read the /sys/class/block/{}/size file.")
-        .trim()
-        .to_string();
-
-    contents
-        .parse::<u64>()
-        .ok()
-        .map(|x| x * logical_block_size / 1_000_000)
-}

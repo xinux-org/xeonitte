@@ -1,7 +1,7 @@
 project(
   'xeonitte',
   'rust',
-  version: '0.0.4',
+  version: '0.1.0',
   meson_version: '>= 1.9',
   license: 'GPL-3.0',
 )

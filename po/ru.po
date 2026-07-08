@@ -306,3 +306,7 @@ msgstr "Удалить"
 #: src/ui/pages/partitions.rs:1110
 msgid "Enter the new partition size"
 msgstr "Введите новый размер раздела"
+
+#: src/ui/pages/partitions.rs:1145
+msgid "Free space"
+msgstr "Свободное место"
