@@ -435,10 +435,18 @@ pub fn luks_encrypted(device: String, password_file: impl Into<String>) -> Devic
     println!("swap size: {:?}", swap_size);
 
     partitions.insert(
+        "BOOT".into(),
+        Partition {
+            type_code: Some("EF02".into()),
+            size: Some("1M".into()),
+            ..Default::default()
+        },
+    );
+    partitions.insert(
         "ESP".into(),
         Partition {
             type_code: Some("EF00".into()),
-            size: Some("1000M".into()),
+            size: Some("2G".into()),
             content: Some(PartitionContent::Filesystem(Filesystem {
                 format: "vfat".into(),
                 mountpoint: Some("/boot".into()),
@@ -540,7 +548,7 @@ pub fn canonical(device: String) -> Devices {
         "ESP".into(),
         Partition {
             type_code: Some("EF00".into()),
-            size: Some("512M".into()),
+            size: Some("2G".into()),
             content: Some(PartitionContent::Filesystem(Filesystem {
                 format: "vfat".into(),
                 mountpoint: Some("/boot".into()),
@@ -591,5 +599,24 @@ pub fn canonical(device: String) -> Devices {
     Devices {
         disk,
         ..Default::default()
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_add() {
+        let res = canonical("sda1".to_string());
+        let luksed = luks_encrypted("sda1".to_string(), LUKS_PASSWORD_FILE);
+        let nixed = res.to_nix_devices();
+        let nixe = res.to_nix_module();
+        dbg!("RES: ", res);
+        println!("NIXED: {:#?}", nixed);
+        println!("NIXE: {:#?}", nixe);
+        println!("LUKSED: {:#?}", luksed);
+        println!("TEST");
     }
 }
