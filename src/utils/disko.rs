@@ -127,10 +127,11 @@ pub struct Partition {
     pub content: Option<PartitionContent>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub enum FsFormat {
     Ext2,
     Ext3,
+    #[default]
     Ext4,
     Vfat,
     Xfs,
@@ -167,12 +168,6 @@ impl FsFormat {
         vec![
             "ext2", "ext3", "ext4", "vfat", "xfs", "btrfs", "f2fs", "bcachefs", "exfat", "ntfs",
         ]
-    }
-}
-
-impl Default for FsFormat {
-    fn default() -> Self {
-        FsFormat::Ext4
     }
 }
 
@@ -480,14 +475,13 @@ pub fn luks_encrypted(device: String, password_file: impl Into<String>) -> Devic
             },
         );
     }
-
     partitions.insert(
         "luks".into(),
         Partition {
             size: Some("100%".into()),
             content: Some(PartitionContent::Luks(Luks {
                 name: "crypted".into(),
-                password_file: Some(password_file.into()),
+                password_file: Some(password_file),
                 settings: luks_settings,
                 content: Some(Box::new(DeviceContent::Filesystem(Filesystem {
                     format: "ext4".into(),
@@ -504,7 +498,7 @@ pub fn luks_encrypted(device: String, password_file: impl Into<String>) -> Devic
     disk.insert(
         "main".into(),
         Disk {
-            device: device,
+            device,
             content: Some(DeviceContent::Gpt(Gpt {
                 partitions,
                 ..Default::default()
@@ -513,10 +507,7 @@ pub fn luks_encrypted(device: String, password_file: impl Into<String>) -> Devic
         },
     );
 
-    Devices {
-        disk,
-        ..Default::default()
-    }
+    Devices { disk }
 }
 
 pub fn canonical(device: String) -> Devices {
@@ -588,7 +579,7 @@ pub fn canonical(device: String) -> Devices {
     disk.insert(
         "main".into(),
         Disk {
-            device: device,
+            device,
             content: Some(DeviceContent::Gpt(Gpt {
                 partitions,
                 ..Default::default()
@@ -596,10 +587,7 @@ pub fn canonical(device: String) -> Devices {
             ..Default::default()
         },
     );
-    Devices {
-        disk,
-        ..Default::default()
-    }
+    Devices { disk }
 }
 
 
