@@ -249,31 +249,6 @@ impl Worker for InstallAsyncModel {
                 // Step 4: Install NixOS
                 info!("Step 4: Install NixOS");
                 if let Some(hostname) = user.as_ref().as_ref().map(|u| u.hostname.clone()) {
-                    // INSTALL_BROKER.send(InstallMsg::Install(
-                    //     vec![
-                    //         "/usr/bin/env",
-                    //         "pkexec",
-                    //         "nixos-install",
-                    //         "--no-root-passwd",
-                    //         "--no-channel-copy",
-                    //         "--root",
-                    //         "/nix/var/nix/builds/xeonitte",
-                    //         // Nix requires its build directory to have no
-                    //         // # world-writable parent directories. The chroot store that
-                    //         // # nixos-install uses will use the state dir in the chroot
-                    //         // # for the build-dir, but the chroot is under /tmp, which
-                    //         // # is writable. It doesn't have to be in the chroot though,
-                    //         // # so we can just realign it with the host state dir.
-                    //         "--option",
-                    //         "build-dir",
-                    //         "/nix/var/nix/builds/xeonitte",
-                    //         "--flake",
-                    //         &format!("{}/etc/nixos#{}", TMPDIR, hostname),
-                    //     ]
-                    //     .into_iter()
-                    //     .map(|s| s.to_string())
-                    //     .collect(),
-                    // ));
                     let flake_dir = format!("{}/etc/nixos", TMPDIR);
                     let flake_uri = format!("{}#{}", flake_dir, hostname);
 

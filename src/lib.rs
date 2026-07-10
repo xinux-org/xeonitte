@@ -88,7 +88,7 @@ pub fn get_storage_size_for_disko(size: u64) -> String {
             .next()
             .unwrap_or_default()
             .chars()
-            .nth(0)
+            .next()
             .unwrap_or_default()
     )
 }

@@ -23,7 +23,6 @@
   rustPlatform,
   vte-gtk4,
   wrapGAppsHook4,
-  cryptsetup,
   util-linux,
   dosfstools,
   e2fsprogs,
@@ -57,7 +56,6 @@ in
       rustc
       rustPlatform.cargoSetupHook
       wrapGAppsHook4
-      cryptsetup
     ];
 
     buildInputs = [
@@ -73,7 +71,6 @@ in
       parted
       rustPlatform.bindgenHook
       vte-gtk4
-      cryptsetup
       systemd.dev
       dbus.dev
       zlib
@@ -82,7 +79,6 @@ in
     postFixup = ''
       wrapProgram $out/libexec/xeonitte-helper \
         --prefix PATH : ${lib.makeBinPath [
-        cryptsetup
         dosfstools
         e2fsprogs
         parted
