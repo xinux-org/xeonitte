@@ -86,7 +86,7 @@ impl Worker for InstallAsyncModel {
                     .as_ref()
                     .map(|u| u.hostname.clone())
                     .unwrap_or_else(|| "nixos".to_string());
-                let archout = match Command::new("uname")
+                let archout = match Command::new("unname")
                     .arg("-m")
                     .output()
                     .context("Failed to get architecture")
@@ -203,7 +203,6 @@ impl Worker for InstallAsyncModel {
 
                 // Step 3: Make configuration base on language, timezone, keyboard, and user
                 info!("Step 3: Make configuration");
-
                 let mut mbrdisk = None;
                 if let Some(partitions) = partitions.as_ref() {
                     match partitions {
@@ -338,10 +337,7 @@ impl Worker for InstallAsyncModel {
                         cmd,
                     ]));
                 } else {
-                    sender.output(AppMsg::error(
-                        ErrorPhase::Installation,
-                        "No hostname found",
-                    ));
+                    sender.output(AppMsg::error(ErrorPhase::Installation, "No hostname found"));
                 }
             }
             InstallAsyncMsg::FinishInstall(timezone, imperative_timezone, mut commands) => {
@@ -547,7 +543,6 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
                     config =
                         config.replace("@BOOTLOADER_MODULE@", "xinux-modules.nixosModules.biosboot")
                 }
-
 
                 config = config.replace(
                     "@NETWORK@",
