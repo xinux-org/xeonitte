@@ -1,13 +1,13 @@
 use crate::{
     config::LIBEXECDIR,
     ui::window::AppMsg,
-    utils::report::{send_report, ErrorPhase},
+    utils::report::{ErrorPhase, send_report},
 };
 use adw::prelude::*;
 use gettextrs::gettext;
 use log::error;
 use relm4::*;
-use std::process::Command;
+use std::{process::Command, rc::Rc};
 
 pub struct ErrorModel {
     messegebuffer: gtk::TextBuffer,
@@ -19,10 +19,15 @@ pub struct ErrorModel {
 }
 
 #[derive(Debug)]
+pub enum Code {}
+
+#[derive(Debug)]
 pub enum UploadButton {
     Button,
     Loading,
     Url,
+    Success,
+    Fail,
 }
 
 #[derive(Debug)]
@@ -89,12 +94,47 @@ impl SimpleComponent for ErrorModel {
                                 }
                             }
                         },
+                        UploadButton::Fail => {
+                            gtk::Box{
+                                set_spacing: 2,
+                                gtk::Label {
+                                    set_text:  &gettext("Failed"),
+                                    #[iterate]
+                                    add_css_class: ["title-4", "error"],
+                                },
+                                gtk::Button{
+                                    set_icon_name: "process-stop-symbolic"
+                                }
+                            }
+                        },
+                        UploadButton::Success => {
+                            gtk::Box{
+                                set_spacing: 2,
+                                gtk::Label {
+                                    set_text:  &gettext("Successfull"),
+                                    #[iterate]
+                                    add_css_class: ["title-4", "success"],
+                                },
+                                gtk::Button{
+                                    set_icon_name: "object-select-symbolic.svg"
+                                }
+                            }
+                        },
                         UploadButton::Loading => {
-                            #[local]
-                            spinner -> gtk::Spinner {
-                                set_spinning: true,
-                                set_halign: gtk::Align::Center,
-                                set_size_request: (48, 48),
+                            gtk::Box{
+                                set_orientation: gtk::Orientation::Vertical,
+                                set_spacing: 6,
+                                #[local]
+                                spinner -> gtk::Spinner {
+                                    set_spinning: true,
+                                    set_halign: gtk::Align::Center,
+                                    set_size_request: (48, 48),
+                                },
+
+                                gtk::Label{
+                                    set_text: &gettext("Processing..."),
+                                    add_css_class: "heading",
+                                },
                             }
                         },
                         UploadButton::Url => {
@@ -180,16 +220,18 @@ impl SimpleComponent for ErrorModel {
                         Ok(r) => r,
                         Err(e) => {
                             error!("Failed to generate report: {e}");
+                            sender.input(ErrorMsg::SetUploadButton(UploadButton::Fail));
                             return;
                         }
                     };
                     match rep_file {
                         Ok(path) => {
                             sender.input(ErrorMsg::SetUrl(format!("file://{path}")));
+                            sender.input(ErrorMsg::SetUploadButton(UploadButton::Success));
                         }
                         Err(e) => {
                             error!("Failed to upload report: {e}");
-                            sender.input(ErrorMsg::SetUploadButton(UploadButton::Button));
+                            sender.input(ErrorMsg::SetUploadButton(UploadButton::Fail));
                         }
                     }
                 });
