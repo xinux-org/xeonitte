@@ -30,13 +30,12 @@ use crate::{
         },
         i18n::i18n_f,
         install::{InstallAsyncModel, InstallAsyncMsg},
-        language::{self, get_country, get_lang},
+        language::{get_country, get_lang},
         parse::{Choice, ChoiceEnum, InstallationConfig, StepType, XeonitteConfig, parse_config},
         report::ErrorPhase,
     },
 };
 use adw::prelude::*;
-use anyhow::anyhow;
 use gettextrs::gettext;
 use log::{debug, error, info, trace, warn};
 use relm4::*;
@@ -414,16 +413,15 @@ impl Component for AppModel {
             .forward(sender.input_sender(), identity);
         println!("Quit dialog launched");
 
-        let res = reqwest::blocking::get(&config.internet_check_url);
-        let startpage = if let Ok(res) = res {
-            if res.status().is_success() {
-                StackPage::FrontPage
-            } else {
-                StackPage::NoInternet
-            }
-        } else {
-            StackPage::NoInternet
-        };
+        let startpage = reqwest::blocking::get(&config.internet_check_url)
+            .map(|res| res.status().is_success())
+            .map_or(StackPage::NoInternet, |status| {
+                if status {
+                    StackPage::FrontPage
+                } else {
+                    StackPage::NoInternet
+                }
+            });
 
         if startpage == StackPage::NoInternet {
             debug!("Waiting for internet connection…");
@@ -840,8 +838,8 @@ impl Component for AppModel {
 
 impl AppModel {
     fn set_partition_config(&mut self, partition: &Option<PartitionSchema>, mut devices: Devices) {
-        if let Some(x) = partition.clone() {
-            match x {
+        if let Some(partition_schema) = partition.clone() {
+            match partition_schema {
                 PartitionSchema::FullDisk(FullDiskOptions {
                     device,
                     encryption,
