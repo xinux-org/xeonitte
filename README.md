@@ -21,10 +21,14 @@ This application has Linux-only dependencies.
 ```bash
 # download dependencies
 nix develop
-meson setup builddir --prefix=~/.local --reconfigure --buildtype=debug -Dprofile=development
 
-# Build and run
-meson install -C builddir
+# Generate configuration file
+just setup
+
+# Build
+just install
+
+# Run
 # Avoid pkexec must be root error on devShell
 cd ..
  ~/.local/bin/xeonitte

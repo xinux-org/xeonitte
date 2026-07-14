@@ -37,6 +37,8 @@
   deadnix,
   nixfmt,
   polkit,
+  just,
+  bacon,
   ...
 }:
 mkShell {
@@ -77,6 +79,8 @@ mkShell {
     deadnix
     nixfmt
     polkit
+    just
+    bacon
   ];
 
   # Set Environment Variables
