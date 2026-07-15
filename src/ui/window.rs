@@ -39,6 +39,7 @@ use adw::prelude::*;
 use gettextrs::gettext;
 use log::{debug, error, info, trace, warn};
 use relm4::*;
+use size::Size;
 use std::{
     collections::{BTreeMap, HashMap},
     convert::identity,
@@ -947,7 +948,7 @@ impl AppModel {
                             size: if part.is_full {
                                 Some("100%".into())
                             } else {
-                                Some(get_storage_size_for_disko(part.size))
+                                Some(get_storage_size_for_disko(Size::from_bytes(part.size)))
                             },
                             content: Some(content),
                             ..Default::default()
