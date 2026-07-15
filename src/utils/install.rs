@@ -104,6 +104,9 @@ impl Worker for InstallAsyncModel {
 
                 // Step 0: Clear TMPDIR
                 info!("Step 0: Clear {}", TMPDIR);
+                INSTALL_BROKER.send(InstallMsg::ProgressbarTitle(
+                    "Step 0: clearing up /nix/var/nix/builds/xeonitte folder".to_string(),
+                ));
                 fn clear() -> Result<()> {
                     Command::new("pkexec")
                         .arg("umount")
@@ -141,6 +144,9 @@ impl Worker for InstallAsyncModel {
                 };
 
                 info!("Step 2: Generate base config");
+                INSTALL_BROKER.send(InstallMsg::ProgressbarTitle(
+                    "Step 2: Generate base config".to_string(),
+                ));
                 if let Err(e) = Command::new("pkexec")
                     .arg("nixos-generate-config")
                     .arg("--root")
@@ -203,7 +209,9 @@ impl Worker for InstallAsyncModel {
 
                 // Step 3: Make configuration base on language, timezone, keyboard, and user
                 info!("Step 3: Make configuration");
-
+                INSTALL_BROKER.send(InstallMsg::ProgressbarTitle(
+                    "Step 3: Make configuration".to_string(),
+                ));
                 let mut mbrdisk = None;
                 if let Some(partitions) = partitions.as_ref() {
                     match partitions {
@@ -239,6 +247,9 @@ impl Worker for InstallAsyncModel {
                 }
 
                 info!("Step 3.1: Backup xeonitte");
+                INSTALL_BROKER.send(InstallMsg::ProgressbarTitle(
+                    "Step 3.1: Backup xeonitte generated configs into /xeonitte".to_string(),
+                ));
                 if let Err(e) = backup_and_update_flake() {
                     sender.output(AppMsg::error(
                         ErrorPhase::Configuration,
@@ -247,7 +258,10 @@ impl Worker for InstallAsyncModel {
                     return;
                 }
                 // Step 4: Install NixOS
-                info!("Step 4: Install NixOS");
+                info!("Step 4: Install Xinux");
+                INSTALL_BROKER.send(InstallMsg::ProgressbarTitle(
+                    "Step 4: Install Xinux".to_string(),
+                ));
                 if let Some(hostname) = user.as_ref().as_ref().map(|u| u.hostname.clone()) {
                     let flake_dir = format!("{}/etc/nixos", TMPDIR);
                     let flake_uri = format!("{}#{}", flake_dir, hostname);
@@ -313,15 +327,16 @@ impl Worker for InstallAsyncModel {
                         cmd,
                     ]));
                 } else {
-                    sender.output(AppMsg::error(
-                        ErrorPhase::Installation,
-                        "No hostname found",
-                    ));
+                    sender.output(AppMsg::error(ErrorPhase::Installation, "No hostname found"));
                 }
             }
             InstallAsyncMsg::FinishInstall(timezone, imperative_timezone, mut commands) => {
                 // Step 5: Set user passwords
                 info!("Step 5: Set user passwords");
+                INSTALL_BROKER.send(InstallMsg::ProgressbarTitle(
+                    "Step 5: Set user passwords".to_string(),
+                ));
+
                 fn setuserpasswd(username: Option<String>, password: Option<String>) -> Result<()> {
                     let mut passwdcmd = Command::new("pkexec")
                         .arg("nixos-enter")
@@ -365,6 +380,9 @@ impl Worker for InstallAsyncModel {
 
                 // Step 6: Set root password
                 info!("Step 6: Set root password if specified");
+                INSTALL_BROKER.send(InstallMsg::ProgressbarTitle(
+                    "Step 6: Set root password if specified".to_string(),
+                ));
                 if let Some(rootpasswd) = &self.rootpassword
                     && let Err(e) =
                         setuserpasswd(Some("root".to_string()), Some(rootpasswd.clone()))
@@ -396,6 +414,9 @@ impl Worker for InstallAsyncModel {
 
                 // Step 6.1: Set libreoffice config
                 info!("Step 6.1: Set libreoffice config");
+                INSTALL_BROKER.send(InstallMsg::ProgressbarTitle(
+                    "Step 6.1: Set libreoffice config".to_string(),
+                ));
                 if let Err(e) = init_libreoffice_config(username.clone()) {
                     sender.output(AppMsg::error(
                         ErrorPhase::PostInstall,
@@ -407,8 +428,13 @@ impl Worker for InstallAsyncModel {
                 self.postinstall_commands = commands;
                 sender.input(InstallAsyncMsg::RunNextCommand);
             }
-            // Step 7: Run commands
             InstallAsyncMsg::RunNextCommand => {
+                // Step 7: Run commands
+                info!("Step 7: Run commands");
+                INSTALL_BROKER.send(InstallMsg::ProgressbarTitle(
+                    "Step 7: Almost done!".to_string(),
+                ));
+
                 if self.postinstall_commands.is_empty() {
                     let _ = sender.output(AppMsg::Finished);
                     return;
@@ -522,7 +548,6 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
                     config =
                         config.replace("@BOOTLOADER_MODULE@", "xinux-modules.nixosModules.biosboot")
                 }
-
 
                 config = config.replace(
                     "@NETWORK@",

@@ -14,6 +14,7 @@ use vte::{self, TerminalExt, TerminalExtManual};
 
 pub struct InstallModel {
     terminal: vte::Terminal,
+    progressbar_title: String,
     progressbar: gtk::ProgressBar,
     showterminal: bool,
     installing: bool,
@@ -32,6 +33,7 @@ pub enum InstallMsg {
     SetLocale(Option<String>),
     PostInstall(Vec<String>),
     PreInstall(Vec<String>),
+    ProgressbarTitle(String),
 }
 
 pub static INSTALL_BROKER: MessageBroker<InstallMsg> = MessageBroker::new();
@@ -81,6 +83,11 @@ impl SimpleComponent for InstallModel {
                     }
 
                 },
+                gtk::Label {
+                    #[watch]
+                    set_label: &model.progressbar_title,
+                    set_halign: gtk::Align::Start,
+                },
                 gtk::Box {
                     set_orientation: gtk::Orientation::Horizontal,
                     set_spacing: 20,
@@ -112,6 +119,7 @@ impl SimpleComponent for InstallModel {
         let mut model = InstallModel {
             terminal: vte::Terminal::new(),
             showterminal: false,
+            progressbar_title: String::new(),
             progressbar: gtk::ProgressBar::new(),
             installing: false,
             slides: FactoryVecDeque::builder().launch_default().detach(),
@@ -295,6 +303,7 @@ impl SimpleComponent for InstallModel {
                 }
                 slides_guard.drop();
             }
+            InstallMsg::ProgressbarTitle(title) => self.progressbar_title = title,
         }
     }
 }
