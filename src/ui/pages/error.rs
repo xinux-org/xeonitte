@@ -7,7 +7,7 @@ use adw::prelude::*;
 use gettextrs::gettext;
 use log::error;
 use relm4::*;
-use std::{process::Command, rc::Rc};
+use std::process::Command;
 
 pub struct ErrorModel {
     messegebuffer: gtk::TextBuffer,
@@ -68,7 +68,6 @@ impl SimpleComponent for ErrorModel {
                         gtk::ScrolledWindow {
                             set_height_request: 800,
                             set_width_request: 1000,
-                            // set_default_height: 800,
                             gtk::TextView {
                                 set_editable: false,
                                 set_hexpand: true,
@@ -85,8 +84,10 @@ impl SimpleComponent for ErrorModel {
                     match &model.uploadbutton {
                         UploadButton::Button => {
                             gtk::Button {
-                                add_css_class: "pill",
+                                #[iterate]
+                                add_css_class: ["pill", "suggested-action"],
                                 set_halign: gtk::Align::Center,
+                                set_valign: gtk::Align::Center,
                                 #[watch]
                                 set_label: &gettext("Upload Report"),
                                 connect_clicked[sender] => move |_| {
@@ -143,16 +144,15 @@ impl SimpleComponent for ErrorModel {
                             gtk::Box{
                                 set_orientation: gtk::Orientation::Vertical,
                                 set_spacing: 6,
+                                gtk::Label{
+                                    set_text: &gettext("Processing..."),
+                                    add_css_class: "heading",
+                                },
                                 #[local]
                                 spinner -> gtk::Spinner {
                                     set_spinning: true,
                                     set_halign: gtk::Align::Center,
                                     set_size_request: (48, 48),
-                                },
-
-                                gtk::Label{
-                                    set_text: &gettext("Processing..."),
-                                    add_css_class: "heading",
                                 },
                             }
                         },
@@ -240,7 +240,6 @@ impl SimpleComponent for ErrorModel {
                         Err(e) => {
                             error!("Failed to generate report: {e}");
                             sender.input(ErrorMsg::SetUploadButton(UploadButton::Fail));
-                            // sender.input(ErrorMsg::SetUploadButton(UploadButton::Success));
                             return;
                         }
                     };
@@ -252,7 +251,6 @@ impl SimpleComponent for ErrorModel {
                         Err(e) => {
                             error!("Failed to upload report: {e}");
                             sender.input(ErrorMsg::SetUploadButton(UploadButton::Fail));
-                            // sender.input(ErrorMsg::SetUploadButton(UploadButton::Success));
                         }
                     }
                 });
