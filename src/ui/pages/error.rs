@@ -96,27 +96,46 @@ impl SimpleComponent for ErrorModel {
                         },
                         UploadButton::Fail => {
                             gtk::Box{
-                                set_spacing: 2,
-                                gtk::Label {
-                                    set_text:  &gettext("Failed"),
-                                    #[iterate]
-                                    add_css_class: ["title-4", "error"],
+                                set_orientation: gtk::Orientation::Vertical,
+                                set_halign: gtk::Align::Center,
+                                set_spacing: 4,
+                                gtk::Box {
+                                    gtk::Label {
+                                        set_text:  &gettext("Failed to report"),
+                                        #[iterate]
+                                        add_css_class: ["title-4", "error"],
+                                    },
+                                    gtk::Button{
+                                        set_icon_name: "error-outline-symbolic",
+                                        set_can_target: false,
+                                        #[iterate]
+                                        add_css_class: ["flat", "error"],
+                                    },
                                 },
-                                gtk::Button{
-                                    set_icon_name: "process-stop-symbolic"
+                                gtk::Button {
+                                    add_css_class: "pill",
+                                    set_halign: gtk::Align::Center,
+                                    #[watch]
+                                    set_label: &gettext("Retry"),
+                                    connect_clicked[sender] => move |_| {
+                                        sender.input(ErrorMsg::UploadReport);
+                                    }
                                 }
                             }
                         },
                         UploadButton::Success => {
                             gtk::Box{
-                                set_spacing: 2,
+                                set_halign: gtk::Align::Center,
                                 gtk::Label {
-                                    set_text:  &gettext("Successfull"),
+                                    set_text:  &gettext("Reported"),
                                     #[iterate]
                                     add_css_class: ["title-4", "success"],
                                 },
                                 gtk::Button{
-                                    set_icon_name: "object-select-symbolic.svg"
+                                    set_icon_name: "check-round-outline2-symbolic",
+                                    set_can_target: false,
+                                    #[iterate]
+                                    add_css_class: ["flat", "success"],
                                 }
                             }
                         },
@@ -221,6 +240,7 @@ impl SimpleComponent for ErrorModel {
                         Err(e) => {
                             error!("Failed to generate report: {e}");
                             sender.input(ErrorMsg::SetUploadButton(UploadButton::Fail));
+                            // sender.input(ErrorMsg::SetUploadButton(UploadButton::Success));
                             return;
                         }
                     };
@@ -232,6 +252,7 @@ impl SimpleComponent for ErrorModel {
                         Err(e) => {
                             error!("Failed to upload report: {e}");
                             sender.input(ErrorMsg::SetUploadButton(UploadButton::Fail));
+                            // sender.input(ErrorMsg::SetUploadButton(UploadButton::Success));
                         }
                     }
                 });

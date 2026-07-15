@@ -33,6 +33,10 @@ log = "0.4.30"
 
 report = { git = "https://git.oss.uzinfocom.uz/xinux/relago.git", branch = "release-26.05" }
 utils = { git = "https://git.oss.uzinfocom.uz/xinux/relago.git", branch = "release-26.05" }
+relm4-icons = "0.11.0"
+
+[build-dependencies]
+relm4-icons-build = "0.11.0"
 
 [workspace]
 members = [".", "xeonitte-helper"]
