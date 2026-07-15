@@ -392,8 +392,7 @@ impl SimpleComponent for PartitionModel {
                                 part_guard.drop();
 
                                 let name = disk.name.to_string();
-                                let used =
-                                    part_factoryvec.iter().map(|x| x.size).fold(0, |x, y| x + y);
+                                let used = part_factoryvec.iter().map(|x| x.size).sum::<u64>();
                                 let total_size = disk.size;
                                 let free_space = Size::from_bytes(total_size - used);
 
@@ -440,13 +439,9 @@ impl SimpleComponent for PartitionModel {
                     disk_size: size,
                     hibernation: self.hibernation.model().enabled,
                     encryption: self.luks_password.model().encryption_enabled,
-                    passphrase: if self.luks_password.model().encryption_enabled
-                        && !self.luks_password.model().passphrase.is_empty()
-                    {
-                        Some(self.luks_password.model().passphrase.clone())
-                    } else {
-                        None
-                    },
+                    passphrase: (self.luks_password.model().encryption_enabled
+                        && !self.luks_password.model().passphrase.is_empty())
+                    .then_some(self.luks_password.model().passphrase.clone()),
                 }));
                 sender.input(PartitionMsg::CheckSelected);
                 trace!("Schema: {:?}", self.schema);
@@ -457,23 +452,15 @@ impl SimpleComponent for PartitionModel {
                 match &mut self.schema {
                     Some(PartitionSchema::FullDisk(opts)) => {
                         opts.encryption = self.luks_password.model().encryption_enabled;
-                        opts.passphrase = if self.luks_password.model().encryption_enabled
-                            && !self.luks_password.model().passphrase.is_empty()
-                        {
-                            Some(self.luks_password.model().passphrase.clone())
-                        } else {
-                            None
-                        };
+                        opts.passphrase = (self.luks_password.model().encryption_enabled
+                            && !self.luks_password.model().passphrase.is_empty())
+                        .then_some(self.luks_password.model().passphrase.clone());
                     }
                     Some(PartitionSchema::Custom(opts)) => {
                         opts.encryption = self.luks_password.model().encryption_enabled;
-                        opts.passphrase = if self.luks_password.model().encryption_enabled
-                            && !self.luks_password.model().passphrase.is_empty()
-                        {
-                            Some(self.luks_password.model().passphrase.clone())
-                        } else {
-                            None
-                        };
+                        opts.passphrase = (self.luks_password.model().encryption_enabled
+                            && !self.luks_password.model().passphrase.is_empty())
+                        .then_some(self.luks_password.model().passphrase.clone())
                     }
                     None => {}
                 }
@@ -520,11 +507,8 @@ impl SimpleComponent for PartitionModel {
                     any_encrypted = opts.partitions.values().any(|p| p.encrypt);
                     opts.encryption = any_encrypted;
                     let passphrase = self.luks_password.model().passphrase.clone();
-                    opts.passphrase = if any_encrypted && !passphrase.is_empty() {
-                        Some(passphrase)
-                    } else {
-                        None
-                    };
+                    opts.passphrase =
+                        (any_encrypted && !passphrase.is_empty()).then_some(passphrase);
                 }
                 self.encryption_enabled = any_encrypted;
                 sender.input(PartitionMsg::CheckSelected);
@@ -534,22 +518,15 @@ impl SimpleComponent for PartitionModel {
                 // self.luks_password.model().passphrase = pass;
                 match &mut self.schema {
                     Some(PartitionSchema::FullDisk(opts)) => {
-                        opts.passphrase = if self.luks_password.model().encryption_enabled
-                            && !self.luks_password.model().passphrase.is_empty()
-                        {
-                            Some(self.luks_password.model().passphrase.clone())
-                        } else {
-                            None
-                        };
+                        opts.passphrase = (self.luks_password.model().encryption_enabled
+                            && !self.luks_password.model().passphrase.is_empty())
+                        .then_some(self.luks_password.model().passphrase.clone());
                     }
                     Some(PartitionSchema::Custom(opts)) => {
                         let any_encrypted = opts.partitions.values().any(|p| p.encrypt);
                         let passphrase = self.luks_password.model().passphrase.clone();
-                        opts.passphrase = if any_encrypted && !passphrase.is_empty() {
-                            Some(passphrase)
-                        } else {
-                            None
-                        };
+                        opts.passphrase =
+                            (any_encrypted && !passphrase.is_empty()).then_some(passphrase)
                     }
                     None => {}
                 }
@@ -574,7 +551,7 @@ impl SimpleComponent for PartitionModel {
                             CustomPartition {
                                 format: Some(format),
                                 mountpoint: None,
-                                size: size,
+                                size,
                                 device,
                                 is_full,
                                 encrypt: false,
@@ -588,7 +565,7 @@ impl SimpleComponent for PartitionModel {
                         CustomPartition {
                             format: Some(format),
                             mountpoint: None,
-                            size: size,
+                            size,
                             device,
                             is_full,
                             encrypt: false,
@@ -646,7 +623,7 @@ impl SimpleComponent for PartitionModel {
                             CustomPartition {
                                 format: None,
                                 mountpoint: Some(mount),
-                                size: size,
+                                size,
                                 device,
                                 is_full,
                                 encrypt: false,
@@ -660,7 +637,7 @@ impl SimpleComponent for PartitionModel {
                         CustomPartition {
                             format: None,
                             mountpoint: Some(mount),
-                            size: size,
+                            size,
                             device,
                             is_full,
                             encrypt: false,

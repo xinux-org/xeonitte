@@ -250,7 +250,7 @@ impl Worker for InstallAsyncModel {
                 INSTALL_BROKER.send(InstallMsg::ProgressbarTitle(
                     "Step 3.1: Backup xeonitte generated configs into /xeonitte".to_string(),
                 ));
-                if let Err(e) = backup_and_update_flake() {
+                if let Err(e) = backup_config() {
                     sender.output(AppMsg::error(
                         ErrorPhase::Configuration,
                         format!("Failed to create backup flake: {e}"),
@@ -337,39 +337,6 @@ impl Worker for InstallAsyncModel {
                     "Step 5: Set user passwords".to_string(),
                 ));
 
-                fn setuserpasswd(username: Option<String>, password: Option<String>) -> Result<()> {
-                    let mut passwdcmd = Command::new("pkexec")
-                        .arg("nixos-enter")
-                        .arg("--root")
-                        .arg("/mnt")
-                        .arg("-c")
-                        .arg("chpasswd -c SHA512")
-                        .stdin(Stdio::piped())
-                        .spawn()?;
-                    let passwdstdin = passwdcmd
-                        .stdin
-                        .as_mut()
-                        .context("Failed to get password stdin")?;
-                    passwdstdin.write_all(
-                        format!(
-                            "{}:{}",
-                            username.context("No username found")?,
-                            password.context("No password found")?
-                        )
-                        .as_bytes(),
-                    )?;
-                    match passwdcmd.wait() {
-                        Err(e) => {
-                            error!("Failed to set password: {}", e);
-                        }
-                        Ok(status) => {
-                            if !status.success() {
-                                error!("Failed to set password");
-                            }
-                        }
-                    }
-                    Ok(())
-                }
                 if let Err(e) = setuserpasswd(self.username.clone(), self.password.clone()) {
                     sender.output(AppMsg::error(
                         ErrorPhase::PostInstall,
@@ -525,9 +492,7 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
             } else if file.file_name().to_string_lossy().ends_with(".nix") {
                 let mut config = fs::read_to_string(file.path())?;
                 config = config.replace("@NVIDIAOFFLOAD@", "");
-
                 config = config.replace("@ARCH@", &format!("{}-linux", arch));
-
                 config = config.replace("@DISKO@", &makeconfig.disko);
 
                 if efi {
@@ -834,7 +799,7 @@ fn init_libreoffice_config(username: String) -> Result<()> {
     Ok(())
 }
 
-fn backup_and_update_flake() -> Result<()> {
+fn backup_config() -> Result<()> {
     Command::new("pkexec")
         .arg("rm")
         .arg("-rf")
@@ -854,17 +819,6 @@ fn backup_and_update_flake() -> Result<()> {
         .output()?;
 
     Command::new("pkexec")
-        .arg("touch")
-        .arg(format!("{}/flake.lock", TMPDIR))
-        .output()?;
-
-    Command::new("pkexec")
-        .arg("chmod")
-        .arg("777")
-        .arg(format!("{}/flake.lock", TMPDIR))
-        .output()?;
-
-    Command::new("pkexec")
         .arg("chmod")
         .arg("777")
         .arg("/tmp/xeonitte.log")
@@ -875,11 +829,39 @@ fn backup_and_update_flake() -> Result<()> {
         .arg("777")
         .arg("/tmp/xeonitte-term.log")
         .output()?;
+    Ok(())
+}
 
-    Command::new("pkexec")
-        .arg("chmod")
-        .arg("755")
-        .arg("/nix/var/nix/builds/xeonitte")
-        .output()?;
+fn setuserpasswd(username: Option<String>, password: Option<String>) -> Result<()> {
+    let mut passwdcmd = Command::new("pkexec")
+        .arg("nixos-enter")
+        .arg("--root")
+        .arg("/mnt")
+        .arg("-c")
+        .arg("chpasswd -c SHA512")
+        .stdin(Stdio::piped())
+        .spawn()?;
+    let passwdstdin = passwdcmd
+        .stdin
+        .as_mut()
+        .context("Failed to get password stdin")?;
+    passwdstdin.write_all(
+        format!(
+            "{}:{}",
+            username.context("No username found")?,
+            password.context("No password found")?
+        )
+        .as_bytes(),
+    )?;
+    match passwdcmd.wait() {
+        Err(e) => {
+            error!("Failed to set password: {}", e);
+        }
+        Ok(status) => {
+            if !status.success() {
+                error!("Failed to set password");
+            }
+        }
+    }
     Ok(())
 }
