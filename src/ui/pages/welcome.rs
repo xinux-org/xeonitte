@@ -1,5 +1,6 @@
-use crate::{ui::window::AppMsg, utils::language::get_languages};
+use crate::ui::pages::base::BaseSeparator;
 use crate::utils::report::ErrorPhase;
+use crate::{ui::window::AppMsg, utils::language::get_languages};
 use adw::prelude::*;
 use gettextrs::gettext;
 use log::{info, trace};
@@ -152,10 +153,8 @@ impl SimpleComponent for WelcomeModel {
                                 gtk::Label {
                                     set_label: title,
                                 },
-                                gtk::Separator {
-                                    set_hexpand: true,
-                                    set_opacity: 0.0,
-                                },
+                                #[template]
+                                BaseSeparator,
                                 #[name(rowbtn)]
                                 gtk::CheckButton {
                                     set_halign: gtk::Align::End,
@@ -200,10 +199,8 @@ impl SimpleComponent for WelcomeModel {
                                 gtk::Label {
                                     set_label: title,
                                 },
-                                gtk::Separator {
-                                    set_hexpand: true,
-                                    set_opacity: 0.0,
-                                },
+                                #[template]
+                                BaseSeparator,
                                 gtk::CheckButton {
                                     set_halign: gtk::Align::End,
                                     set_group: Some(&model.selectiongroup),
@@ -266,10 +263,8 @@ impl SimpleComponent for WelcomeModel {
                             gtk::Label {
                                 set_label: &title,
                             },
-                            gtk::Separator {
-                                set_hexpand: true,
-                                set_opacity: 0.0,
-                            },
+                            #[template]
+                            BaseSeparator,
                             gtk::CheckButton {
                                 set_halign: gtk::Align::End,
                                 set_group: Some(&model.selectiongroup),

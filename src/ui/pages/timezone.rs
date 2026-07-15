@@ -1,3 +1,4 @@
+use crate::ui::pages::base::BaseSeparator;
 use crate::ui::window::AppMsg;
 use crate::utils::report::ErrorPhase;
 use adw::prelude::*;
@@ -231,10 +232,8 @@ impl SimpleComponent for TimeZoneModel {
                                 gtk::Label {
                                     set_label: &zone.replace('_', " "),
                                 },
-                                gtk::Separator {
-                                    set_hexpand: true,
-                                    set_opacity: 0.0,
-                                },
+                                #[template]
+                                BaseSeparator,
                                 #[name(timelabel)]
                                 gtk::Label {
                                     set_label: &timestr,
@@ -316,10 +315,8 @@ impl SimpleComponent for TimeZoneModel {
                             gtk::Label {
                                 set_label: zone,
                             },
-                            gtk::Separator {
-                                set_hexpand: true,
-                                set_opacity: 0.0,
-                            },
+                            #[template]
+                            BaseSeparator,
                             #[name(timelabel)]
                             gtk::Label {
                                 set_label: &timestr,

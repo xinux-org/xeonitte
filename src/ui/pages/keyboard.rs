@@ -1,4 +1,4 @@
-use crate::ui::window::AppMsg;
+use crate::ui::{pages::base::BaseSeparator, window::AppMsg};
 use crate::utils::report::ErrorPhase;
 use adw::prelude::*;
 use gettextrs::gettext;
@@ -219,10 +219,8 @@ impl SimpleComponent for KeyboardModel {
                             gtk::Label {
                                 set_label: name,
                             },
-                            gtk::Separator {
-                                set_hexpand: true,
-                                set_opacity: 0.0,
-                            },
+                            #[template]
+                            BaseSeparator,
                             gtk::CheckButton {
                                 set_halign: gtk::Align::End,
                                 set_group: Some(&model.selectiongroup),
@@ -405,10 +403,8 @@ impl SimpleComponent for KeyboardModel {
                                 gtk::Label {
                                     set_label: name,
                                 },
-                                gtk::Separator {
-                                    set_hexpand: true,
-                                    set_opacity: 0.0,
-                                },
+                                #[template]
+                                BaseSeparator,
                                 #[name(rowbtn)]
                                 gtk::CheckButton {
                                     set_halign: gtk::Align::End,
