@@ -71,8 +71,8 @@ pub fn get_storage_size(device: &str, logical_block_size: u64) -> Option<u64> {
         .map(|x| x * logical_block_size / 1_000_000)
 }
 
-pub fn get_storage_size_for_disko(size: u64) -> String {
-    let size = format_size(Size::from_bytes(size));
+pub fn get_storage_size_for_disko(size: Size) -> String {
+    let size = format_size(size);
 
     let mut ssize = size.split_ascii_whitespace().map(|x| {
         if let Some(y) = x.find(".") {
@@ -83,12 +83,12 @@ pub fn get_storage_size_for_disko(size: u64) -> String {
     });
     format!(
         "{}{}",
-        ssize.next().unwrap_or_default(),
+        ssize.next().unwrap_or_default(), // number
         ssize
             .next()
             .unwrap_or_default()
             .chars()
-            .next()
-            .unwrap_or_default()
+            .nth(0)
+            .unwrap_or_default()  // size type, e.g M, G, T
     )
 }

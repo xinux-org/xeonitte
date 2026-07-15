@@ -405,29 +405,26 @@ fn indent(s: &str, levels: usize) -> String {
     }
 }
 
+fn get_swap(device: &str) -> Option<String> {
+    let storage_size: Option<u64> = get_storage_size(device, 512);
+    let memory_size = get_memory_size();
+
+    match (storage_size, memory_size) {
+        (Some(256_000..), Some(memory_size)) => {
+            Some(get_storage_size_for_disko(Size::from_kib(memory_size)))
+        }
+        (Some(128_000..256_000), _) => Some(get_storage_size_for_disko(Size::from_gigabytes(8))),
+        (Some(64_000..128_000), _) => Some(get_storage_size_for_disko(Size::from_gigabytes(4))),
+        _ => None,
+    }
+}
+
 // nix version: https://gist.github.com/lambdajon/1946c9585c997a2615f5386a5f222c6f
 pub fn luks_encrypted(device: String, password_file: impl Into<String>) -> Devices {
     // Shared by the swap and LUKS containers
     let password_file = password_file.into();
     let mut partitions = Attrs::new();
-    let storage_size: Option<u64> = get_storage_size(&device, 512);
-    let memory_size = get_memory_size();
-    let swap_size: Option<String> = match (storage_size, memory_size) {
-        (Some(256_000..), Some(memory_size)) => Some(get_storage_size_for_disko(
-            Size::from_kib(memory_size).bytes() as u64,
-        )),
-        (Some(128_000..256_000), _) => Some(get_storage_size_for_disko(
-            Size::from_gigabytes(8).bytes() as u64,
-        )),
-        (Some(64_000..128_000), _) => Some(get_storage_size_for_disko(
-            Size::from_gigabytes(4).bytes() as u64,
-        )),
-        _ => None,
-    };
-
-    println!("storage size: {:?}", storage_size);
-    println!("memory size: {:?}", memory_size);
-    println!("swap size: {:?}", swap_size);
+    let swap_size = get_swap(&device);
 
     partitions.insert(
         "BOOT".into(),
@@ -512,21 +509,8 @@ pub fn luks_encrypted(device: String, password_file: impl Into<String>) -> Devic
 
 pub fn canonical(device: String) -> Devices {
     let mut partitions = Attrs::new();
+    let swap_size = get_swap(&device);
 
-    let storage_size: Option<u64> = get_storage_size(&device, 512);
-    let memory_size = get_memory_size();
-    let swap_size: Option<String> = match (storage_size, memory_size) {
-        (Some(256_000..), Some(memory_size)) => Some(get_storage_size_for_disko(
-            Size::from_kib(memory_size).bytes() as u64,
-        )),
-        (Some(128_000..256_000), _) => Some(get_storage_size_for_disko(
-            Size::from_gigabytes(8).bytes() as u64,
-        )),
-        (Some(64_000..128_000), _) => Some(get_storage_size_for_disko(
-            Size::from_gigabytes(4).bytes() as u64,
-        )),
-        _ => None,
-    };
     partitions.insert(
         "BOOT".into(),
         Partition {
