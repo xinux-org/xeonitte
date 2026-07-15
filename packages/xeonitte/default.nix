@@ -30,63 +30,66 @@
   systemd,
   dbus,
   zlib,
-}: let
+}:
+let
   convertyml = internal.convertyml;
 in
-  stdenv.mkDerivation rec {
-    pname = "xeonitte";
-    version = "0.1.0";
+stdenv.mkDerivation rec {
+  pname = "xeonitte";
+  version = "0.1.0";
 
-    src = [../..];
+  src = [ ../.. ];
 
-    cargoDeps = rustPlatform.fetchCargoVendor {
-      src = ../..;
-	    hash = "sha256-FaCRpIZGG7Q4bTotV3i0cdyuWpTwriawtUbPmFkmVVs=";
-    };
+  cargoDeps = rustPlatform.fetchCargoVendor {
+    src = ../..;
+    hash = "sha256-Xf/34ND8swUjsFdJdTszgWlChONYJEntP3YWvQUHKz0=";
+  };
 
-    nativeBuildInputs = [
-      appstream-glib
-      meson
-      ninja
-      cargo
-      pkg-config
-      gettext
-      convertyml
-      desktop-file-utils
-      polkit
-      rustc
-      rustPlatform.cargoSetupHook
-      wrapGAppsHook4
-      cryptsetup
-    ];
+  nativeBuildInputs = [
+    appstream-glib
+    meson
+    ninja
+    cargo
+    pkg-config
+    gettext
+    convertyml
+    desktop-file-utils
+    polkit
+    rustc
+    rustPlatform.cargoSetupHook
+    wrapGAppsHook4
+    cryptsetup
+  ];
 
-    buildInputs = [
-      desktop-file-utils
-      gdk-pixbuf
-      glib
-      gnome-desktop
-      adwaita-icon-theme
-      gtk4
-      libadwaita
-      libgweather
-      openssl
-      parted
-      rustPlatform.bindgenHook
-      vte-gtk4
-      cryptsetup
-      systemd.dev
-      dbus.dev
-      zlib
-    ];
+  buildInputs = [
+    desktop-file-utils
+    gdk-pixbuf
+    glib
+    gnome-desktop
+    adwaita-icon-theme
+    gtk4
+    libadwaita
+    libgweather
+    openssl
+    parted
+    rustPlatform.bindgenHook
+    vte-gtk4
+    cryptsetup
+    systemd.dev
+    dbus.dev
+    zlib
+  ];
 
-    postFixup = ''
-      wrapProgram $out/libexec/xeonitte-helper \
-        --prefix PATH : ${lib.makeBinPath [
-        cryptsetup
-        dosfstools
-        e2fsprogs
-        parted
-        util-linux
-      ]}
-    '';
-  }
+  postFixup = ''
+    wrapProgram $out/libexec/xeonitte-helper \
+      --prefix PATH : ${
+        lib.makeBinPath [
+          cryptsetup
+          dosfstools
+          e2fsprogs
+          parted
+          util-linux
+        ]
+      }
+  '';
+}
