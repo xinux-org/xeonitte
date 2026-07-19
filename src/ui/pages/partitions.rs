@@ -15,9 +15,8 @@ use size::Size;
 use std::{
     collections::HashMap,
     convert::identity,
-    ops::{AddAssign, Sub, SubAssign},
+    ops::{AddAssign, SubAssign},
     process::Command,
-    str::FromStr,
 };
 
 pub struct PartitionModel {
@@ -813,8 +812,8 @@ pub struct Partition {
     size: u64,
     mountrow: adw::ComboRow,
     device: String,
-    swap: bool,
-    boot: bool,
+    is_swap: bool,
+    is_boot: bool,
     is_full: bool,
     donotmount: String,
     donotformat: String,
@@ -859,53 +858,48 @@ impl FactoryComponent for Partition {
                 // TODO: When switching language the "Leave as is" option does not update
                 set_model: Some(&gtk::StringList::new(&[&self.donotformat, "btrfs", "ext4", "ext3", "vfat", "ntfs", "xfs", "swap"])),
                 connect_selected_notify[sender, name = self.name.to_string(), device = self.device.to_string(), formatstring = self.donotformat.to_string(), size = self.size, is_full = self.is_full] => move |row| {
-                    if let Some(item) = row.selected_item() {
-                        if let Ok(item) = item.downcast::<gtk::StringObject>() {
-                            if item.string() == formatstring {
-                                PARTITION_BROKER.send(PartitionMsg::RemoveFormatPartition(name.to_string()));
-                            } else {
-                                PARTITION_BROKER.send(PartitionMsg::AddFormatPartition(name.to_string(), item.string().to_string(), device.to_string(), size, is_full));
-                            }
-                            sender.input(PartitionRowMsg::SetSwap(item.string().eq("swap")));
+                    if let Some(item) = row.selected_item() && let Ok(item) = item.downcast::<gtk::StringObject>() {
+                        if item.string() == formatstring {
+                            PARTITION_BROKER.send(PartitionMsg::RemoveFormatPartition(name.to_string()));
+                        } else {
+                            PARTITION_BROKER.send(PartitionMsg::AddFormatPartition(name.to_string(), item.string().to_string(), device.to_string(), size, is_full));
                         }
+                        sender.input(PartitionRowMsg::SetSwap(item.string().eq("swap")));
                     }
                 }
             },
             #[local_ref]
             add_row = mountrow -> adw::ComboRow {
                 #[watch]
-                set_visible: !self.swap,
+                set_visible: !self.is_swap,
                 #[watch]
                 set_title: &gettext("Mount"),
                 // TODO: When switching language the "Do not mount" option does not update
                 set_model: Some(&gtk::StringList::new(&[&self.donotmount, " /", "/boot", "/home", "/opt", "/var", "/nix"])),
                 connect_selected_notify[sender, name = self.name.to_string(), device = self.device.to_string(), mountstring = self.donotmount.to_string(), size = self.size, is_full = self.is_full] => move |row| {
-                    if let Some(item) = row.selected_item() {
-                        if let Ok(item) = item.downcast::<gtk::StringObject>() {
-                            let x = item.string();
-                            if x == mountstring {
-                                PARTITION_BROKER.send(PartitionMsg::RemoveMountPartition(name.to_string()));
-                            } else {
-                                PARTITION_BROKER.send(PartitionMsg::AddMountPartition(name.to_string(), item.string().trim().to_string(), device.to_string(), size, is_full));
-                            }
-                            sender.input(PartitionRowMsg::SetBoot(x.eq("/boot")));
+                    if let Some(item) = row.selected_item() && let Ok(item) = item.downcast::<gtk::StringObject>(){
+                        let x = item.string();
+                        if x == mountstring {
+                            PARTITION_BROKER.send(PartitionMsg::RemoveMountPartition(name.to_string()));
+                        } else {
+                            PARTITION_BROKER.send(PartitionMsg::AddMountPartition(name.to_string(), item.string().trim().to_string(), device.to_string(), size, is_full));
                         }
+                        sender.input(PartitionRowMsg::SetBoot(x.eq("/boot")));
                     }
                 }
             },
             add_row = &adw::ActionRow {
                 #[watch]
-                set_visible: self.swap,
+                set_visible: self.is_swap,
                 #[watch]
                 set_title: &gettext("Mount"),
                 add_suffix = &gtk::Label {
                     set_text: "swap",
                 }
             },
-
             add_row = &adw::SwitchRow {
                 #[watch]
-                set_visible: !self.swap && !self.boot,
+                set_visible: !self.is_swap && !self.is_boot,
                 #[watch]
                 set_title: &gettext("Encrypt"),
                 #[watch]
@@ -920,7 +914,6 @@ impl FactoryComponent for Partition {
                     ));
                 }
             },
-
             add_row = &adw::ActionRow {
                 set_activatable: false,
                 add_suffix = &gtk::Button {
@@ -938,21 +931,19 @@ impl FactoryComponent for Partition {
             },
         }
     }
-
     fn init_model(parent: Self::Init, _index: &DynamicIndex, _sender: FactorySender<Self>) -> Self {
         Partition {
             name: parent.name,
             size: parent.size,
             mountrow: parent.mountrow,
             device: parent.device,
-            swap: false,
-            boot: false,
+            is_swap: false,
+            is_boot: false,
             is_full: false,
             donotmount: gettext("Do not mount"),
             donotformat: gettext("Leave as is"),
         }
     }
-
     fn init_widgets(
         &mut self,
         _index: &DynamicIndex,
@@ -964,23 +955,21 @@ impl FactoryComponent for Partition {
         let widgets = view_output!();
         widgets
     }
-
     fn update(&mut self, msg: Self::Input, _sender: FactorySender<Self>) {
         match msg {
             PartitionRowMsg::Deselect(mount) => {
-                if let Some(item) = self.mountrow.selected_item() {
-                    if let Ok(item) = item.downcast::<gtk::StringObject>() {
-                        if item.string().eq(&mount) {
-                            self.mountrow.set_selected(0);
-                        }
-                    }
+                if let Some(item) = self.mountrow.selected_item()
+                    && let Ok(item) = item.downcast::<gtk::StringObject>()
+                    && item.string().eq(&mount)
+                {
+                    self.mountrow.set_selected(0);
                 }
             }
-            PartitionRowMsg::SetSwap(swap) => {
-                self.swap = swap;
+            PartitionRowMsg::SetSwap(status) => {
+                self.is_swap = status;
             }
-            PartitionRowMsg::SetBoot(boot) => {
-                self.boot = boot;
+            PartitionRowMsg::SetBoot(status) => {
+                self.is_boot = status;
             }
             PartitionRowMsg::Delete => _sender
                 .output(PartitionOut::Delete(self.name.clone()))
@@ -1255,7 +1244,6 @@ impl FactoryComponent for PartitionGroup {
                     .split(" ")
                     .nth(1)
                     .unwrap_or_default()
-                    .as_ref()
                 {
                     "TiB" => {
                         widgets.dropdown.set_selected(0);
@@ -1339,8 +1327,8 @@ impl FactoryComponent for PartitionGroup {
                             size: 0,
                             mountrow: adw::ComboRow::new(),
                             device: self.name.clone(),
-                            swap: false,
-                            boot: false,
+                            is_swap: false,
+                            is_boot: false,
                             is_full,
                             donotmount: "".to_string(),
                             donotformat: "".to_string(),
@@ -1375,7 +1363,7 @@ impl FactoryComponent for PartitionGroup {
                     .unwrap_or_default();
 
                 self.free_space.add_assign(Size::from_bytes(x.size));
-                self.partitions.guard().remove(index.clone());
+                self.partitions.guard().remove(index);
             }
 
             PartitionGroupMsg::SetSizeType(x) => {
