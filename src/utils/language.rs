@@ -9,7 +9,7 @@ pub fn get_languages() -> HashMap<String, HashMap<String, String>> {
     let all = gnome_desktop::functions::all_locales();
 
     let languages: HashMap<String, HashMap<String, String>> = locale_codes
-        .filter_map(|locale| locale.split('/').nth(0))
+        .filter_map(|locale| locale.split('/').next())
         .filter(|locale| all.iter().any(|all_locale| all_locale.eq(locale)))
         .filter_map(|locale| {
             let language_from_locale =
