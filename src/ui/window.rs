@@ -895,7 +895,9 @@ impl Component for AppModel {
                                     size: if part.is_full {
                                         Some("100%".into())
                                     } else {
-                                        Some(get_storage_size_for_disko(part.size))
+                                        Some(get_storage_size_for_disko(Size::from_bytes(
+                                            part.size,
+                                        )))
                                     },
                                     content: Some(content),
                                     ..Default::default()
