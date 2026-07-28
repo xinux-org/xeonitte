@@ -916,7 +916,7 @@ impl FactoryComponent for Partition {
                         sender.input(PartitionRowMsg::ShowCustomMountEntry);
                     }
                 },
-                connect_selected_notify[sender, name = self.name.to_string(), device = self.device.to_string(), mountstring = self.donotmount.to_string(), size = self.size] => move |row| {
+                connect_selected_notify[sender, name = self.name.to_string(), device = self.device.to_string(), mountstring = self.donotmount.to_string(), size = self.size, is_full = self.is_full] => move |row| {
                     if let Some(item) = row.selected_item() {
                         if let Ok(item) = item.downcast::<gtk::StringObject>() {
                             let x = item.string();
@@ -1007,6 +1007,7 @@ impl FactoryComponent for Partition {
             donotformat: gettext("Leave as is"),
             possible_mounts,
             adding_custom_mount: false,
+            is_full: false,
         }
     }
 
@@ -1056,9 +1057,14 @@ impl FactoryComponent for Partition {
                 self.adding_custom_mount = false;
                 self.custom_mount_entry.set_text("");
                 self.mountrow.set_model(Some(&gtk::StringList::new(
-                    &self.possible_mounts.iter().map(|s| s.as_str()).collect::<Vec<_>>(),
+                    &self
+                        .possible_mounts
+                        .iter()
+                        .map(|s| s.as_str())
+                        .collect::<Vec<_>>(),
                 )));
-                self.mountrow.set_selected((self.possible_mounts.len() - 1) as u32);
+                self.mountrow
+                    .set_selected((self.possible_mounts.len() - 1) as u32);
             }
         }
     }
