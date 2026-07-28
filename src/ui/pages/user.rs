@@ -256,27 +256,15 @@ impl SimpleComponent for UserModel {
                 sender.input(UserMsg::CheckSelected);
             }
             UserMsg::UsernameChanged(username) => {
-                self.username = if username.is_empty() {
-                    None
-                } else {
-                    Some(username)
-                };
+                self.username = (!username.is_empty()).then_some(username);
                 sender.input(UserMsg::CheckSelected);
             }
             UserMsg::PasswordChanged(password) => {
-                self.password = if password.is_empty() {
-                    None
-                } else {
-                    Some(password)
-                };
+                self.password = (!password.is_empty()).then_some(password);
                 sender.input(UserMsg::SetPasswordStyle);
             }
             UserMsg::ConfirmPasswordChanged(confirm_password) => {
-                self.confirm_password = if confirm_password.is_empty() {
-                    None
-                } else {
-                    Some(confirm_password)
-                };
+                self.confirm_password = (!confirm_password.is_empty()).then_some(confirm_password);
                 sender.input(UserMsg::SetPasswordStyle);
             }
             UserMsg::SetPasswordStyle => {
@@ -295,34 +283,20 @@ impl SimpleComponent for UserModel {
                 sender.input(UserMsg::CheckSelected);
             }
             UserMsg::HostnameChanged(hostname) => {
-                if let Some(current) = &self.hostname {
-                    if &hostname == current {
-                        debug!("Hostname changed to the same value, ignoring");
-                        return;
-                    }
+                if self.hostname.as_ref() == Some(&hostname) {
+                    debug!("Hostname changed to the same value, ignoring");
+                    return;
                 }
-
-                self.hostname = if hostname.is_empty() {
-                    None
-                } else {
-                    Some(hostname)
-                };
+                self.hostname = (!hostname.is_empty()).then_some(hostname);
                 sender.input(UserMsg::CheckSelected);
             }
             UserMsg::RootPasswordChanged(root_password) => {
-                self.root_password = if root_password.is_empty() {
-                    None
-                } else {
-                    Some(root_password)
-                };
+                self.root_password = (!root_password.is_empty()).then_some(root_password);
                 sender.input(UserMsg::SetRootPasswordStyle);
             }
             UserMsg::ConfirmRootPasswordChanged(confirm_root_password) => {
-                self.confirm_root_password = if confirm_root_password.is_empty() {
-                    None
-                } else {
-                    Some(confirm_root_password)
-                };
+                self.confirm_root_password =
+                    (!confirm_root_password.is_empty()).then_some(confirm_root_password);
                 sender.input(UserMsg::SetRootPasswordStyle);
             }
             UserMsg::SetRootPasswordStyle => {
