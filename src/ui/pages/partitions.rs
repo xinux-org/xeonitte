@@ -900,8 +900,6 @@ impl FactoryComponent for Partition {
                 set_visible: !self.swap,
                 #[watch]
                 set_title: &gettext("Mount"),
-                // TODO: When switching language the "Do not mount" option does not update
-                set_model: Some(&gtk::StringList::new(&[&self.donotmount, " /", "/boot", "/home", "/opt", "/var", "/nix"])),
                 connect_selected_notify[sender, name = self.name.to_string(), device = self.device.to_string(), mountstring = self.donotmount.to_string(), size = self.size, is_full = self.is_full] => move |row| {
                     if let Some(item) = row.selected_item() {
                         if let Ok(item) = item.downcast::<gtk::StringObject>() {
@@ -970,9 +968,9 @@ impl FactoryComponent for Partition {
             device: parent.device,
             swap: false,
             boot: false,
-            is_full: false,
             donotmount: gettext("Do not mount"),
             donotformat: gettext("Leave as is"),
+            is_full: false,
         }
     }
 

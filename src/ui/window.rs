@@ -44,7 +44,6 @@ use libgweather::glib::closure::IntoClosureReturnValue;
 use log::{debug, error, info, trace, warn};
 use relm4::*;
 use size::Size;
-use std::io::prelude::*;
 use std::{
     collections::{BTreeMap, HashMap},
     convert::identity,
@@ -236,20 +235,7 @@ impl Component for AppModel {
                 match model.page {
                     StackPage::FrontPage => {
                         gtk::Box {
-                            set_margin_all: 20,
-                            #[local_ref]
-                            selectbox -> gtk::FlowBox {
-                                set_orientation: gtk::Orientation::Horizontal,
-                                set_halign: gtk::Align::Center,
-                                set_valign: gtk::Align::Center,
-                                set_hexpand: true,
-                                set_column_spacing: 20,
-                                set_row_spacing: 20,
-                                set_selection_mode: gtk::SelectionMode::None,
-                                #[watch]
-                                set_max_children_per_line: selectbox.iter_children().count() as u32,
-                                set_homogeneous: true,
-                            }
+                            append: model.welcome.widget()
                         }
                     },
                     StackPage::Carousel => {
@@ -301,13 +287,13 @@ impl Component for AppModel {
                                     set_height_request: 40,
                                     set_width_request: 40,
                                     #[watch]
-                                    set_css_classes: if model.current_page == main_carousel.n_pages() - 1 { &["circular", "suggested-action"] } else { &["circular"] },
+                                    set_css_classes: if model.current_page.eq(&main_carousel.n_pages().checked_sub(1).unwrap_or_default()) { &["circular", "suggested-action"] } else { &["circular"] },
                                     set_halign: gtk::Align::Start,
                                     set_valign: gtk::Align::Center,
                                     set_icon_name: "go-next-symbolic",
                                     connect_clicked[main_carousel, sender] => move |_| {
                                         let i = adw::Carousel::position(&main_carousel) as u32;
-                                        if i < main_carousel.n_pages() -1 {
+                                        if i < main_carousel.n_pages().checked_sub(1).unwrap_or_default() {
                                             let w = main_carousel.nth_page(i+1);
                                             main_carousel.scroll_to(&w, true);
                                             sender.input(AppMsg::ChangePage(i + 1));
@@ -425,7 +411,7 @@ impl Component for AppModel {
         let res = reqwest::blocking::get(&config.internet_check_url);
         let startpage = if let Ok(res) = res {
             if res.status().is_success() {
-                StackPage::FrontPage
+                StackPage::Carousel
             } else {
                 StackPage::NoInternet
             }
@@ -452,7 +438,7 @@ impl Component for AppModel {
             });
         }
 
-        let model = AppModel {
+        let mut model = AppModel {
             page: startpage,
             config,
             installconfig: None,
@@ -483,84 +469,8 @@ impl Component for AppModel {
         };
 
         let main_carousel = &model.carousel;
-        let selectbox = gtk::FlowBox::new();
-
-        for item in &model.config.choices {
-            match item {
-                ChoiceEnum::Configuration { file: _, config } => {
-                    view! {
-                        button = gtk::Button {
-                            set_width_request: 200,
-                            set_height_request: 200,
-                            set_halign: gtk::Align::Center,
-                            set_valign: gtk::Align::Center,
-                            connect_clicked[sender, config] => move |_| {
-                                sender.input(AppMsg::SetStackPageConfig(StackPage::Carousel, Some(config.clone())));
-                            },
-                            gtk::Box {
-                                set_orientation: gtk::Orientation::Vertical,
-                                set_halign: gtk::Align::Center,
-                                set_valign: gtk::Align::Center,
-                                set_spacing: 10,
-                                set_margin_all: 10,
-                                gtk::Image {
-                                    set_icon_name: Some(&config.config_logo),
-                                    set_pixel_size: 80,
-                                    set_halign: gtk::Align::Center,
-                                    set_valign: gtk::Align::Center,
-                                },
-                                gtk::Label {
-                                    set_label: &gettext(&config.config_name),
-                                    set_halign: gtk::Align::Center,
-                                    set_valign: gtk::Align::Center,
-                                    set_wrap: true,
-                                    set_justify: gtk::Justification::Center,
-                                }
-                            }
-
-                        }
-                    }
-                    selectbox.append(&button);
-                }
-                ChoiceEnum::Live => {
-                    view! {
-                        button = gtk::Button {
-                            set_width_request: 200,
-                            set_height_request: 200,
-                            set_halign: gtk::Align::Center,
-                            set_valign: gtk::Align::Center,
-                            connect_clicked => move |_| {
-                                relm4::main_application().quit();
-                            },
-                            gtk::Box {
-                                set_orientation: gtk::Orientation::Vertical,
-                                set_halign: gtk::Align::Center,
-                                set_valign: gtk::Align::Center,
-                                set_spacing: 10,
-                                set_margin_all: 10,
-                                gtk::Image {
-                                    set_icon_name: Some("preferences-desktop-display-symbolic"),
-                                    set_pixel_size: 80,
-                                    set_halign: gtk::Align::Center,
-                                    set_valign: gtk::Align::Center,
-                                },
-                                gtk::Label {
-                                    // Translators: Do NOT translate the '{}'
-                                    // The string reads "Try {distribution name} live"
-                                    set_label: i18n_f("Try {} live", &[&model.config.distribution_name]).as_str(),
-                                    set_halign: gtk::Align::Center,
-                                    set_valign: gtk::Align::Center,
-                                    set_wrap: true,
-                                    set_justify: gtk::Justification::Center,
-                                }
-                            }
-
-                        }
-                    }
-                    selectbox.append(&button);
-                }
-            }
-        }
+        model.carousel.append(model.welcome.widget());
+        model.carouselpages.insert(0, StepType::Welcome);
 
         let installpage = model.install.widget().clone();
         let errorpage = model.error.widget().clone();
