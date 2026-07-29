@@ -1053,6 +1053,7 @@ impl FactoryComponent for Partition {
                     .into_iter()
                     .all(|x| x.is_alphabetic() || x.eq(&'/'))
                     && !mount.contains("//")
+                    && !mount.ends_with('/')
                 {
                     let mount = if mount.starts_with('/') {
                         mount
