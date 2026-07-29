@@ -1048,8 +1048,12 @@ impl FactoryComponent for Partition {
                 self.adding_custom_mount = true;
             }
             PartitionRowMsg::AddCustomMount(mount) => {
-                let mut iterator = mount.chars().into_iter();
-                if iterator.all(|x| x.is_alphabetic() || x.eq(&'/')) && !mount.contains("//") {
+                if mount
+                    .chars()
+                    .into_iter()
+                    .all(|x| x.is_alphabetic() || x.eq(&'/'))
+                    && !mount.contains("//")
+                {
                     let mount = if mount.starts_with('/') {
                         mount
                     } else {
