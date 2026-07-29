@@ -13,7 +13,7 @@ use relm4::{adw::prelude::*, factory::*, *};
 use serde::{Deserialize, Serialize};
 use size::Size;
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     convert::identity,
     ops::{AddAssign, Sub, SubAssign},
     process::Command,
@@ -844,6 +844,7 @@ pub struct Partition {
     donotformat: String,
     possible_mounts: Vec<String>,
     adding_custom_mount: bool,
+    is_mount_duplicate: bool,
 }
 
 #[derive(Default, Debug, PartialEq, Eq, Clone)]
@@ -935,8 +936,8 @@ impl FactoryComponent for Partition {
             add_row = custom_mount_entry -> adw::EntryRow {
                 #[watch]
                 set_visible: !self.swap && self.adding_custom_mount,
-                #[watch]
                 set_title: &gettext("Custom mount point"),
+
                 connect_entry_activated[sender] => move |entry| {
                     let text = entry.text().trim().to_string();
                     if !text.is_empty() {
@@ -1008,6 +1009,7 @@ impl FactoryComponent for Partition {
             possible_mounts,
             adding_custom_mount: false,
             is_full: false,
+            is_mount_duplicate: false,
         }
     }
 
@@ -1024,8 +1026,13 @@ impl FactoryComponent for Partition {
         widgets
     }
 
-    fn update(&mut self, msg: Self::Input, _sender: FactorySender<Self>) {
-        match msg {
+    fn update_with_view(
+        &mut self,
+        widgets: &mut Self::Widgets,
+        message: Self::Input,
+        sender: FactorySender<Self>,
+    ) {
+        match message {
             PartitionRowMsg::Deselect(mount) => {
                 if let Some(item) = self.mountrow.selected_item() {
                     if let Ok(item) = item.downcast::<gtk::StringObject>() {
@@ -1041,7 +1048,7 @@ impl FactoryComponent for Partition {
             PartitionRowMsg::SetBoot(boot) => {
                 self.boot = boot;
             }
-            PartitionRowMsg::Delete => _sender
+            PartitionRowMsg::Delete => sender
                 .output(PartitionOut::Delete(self.name.clone()))
                 .unwrap(),
             PartitionRowMsg::ShowCustomMountEntry => {
@@ -1060,21 +1067,41 @@ impl FactoryComponent for Partition {
                     } else {
                         format!("/{mount}")
                     };
-                    self.possible_mounts.push(mount);
-                    self.adding_custom_mount = false;
-                    self.custom_mount_entry.set_text("");
-                    self.mountrow.set_model(Some(&gtk::StringList::new(
-                        &self
-                            .possible_mounts
-                            .iter()
-                            .map(|s| s.as_str())
-                            .collect::<Vec<_>>(),
-                    )));
-                    self.mountrow
-                        .set_selected((self.possible_mounts.len() - 1) as u32);
+                    self.is_mount_duplicate = self.possible_mounts.contains(&mount);
+                    if self.is_mount_duplicate {
+                        widgets.custom_mount_entry.add_css_class("error");
+                        widgets
+                            .custom_mount_entry
+                            .set_title(&gettext("Duplicate mountpoint"));
+                    } else {
+                        widgets.custom_mount_entry.remove_css_class("error");
+                        widgets
+                            .custom_mount_entry
+                            .set_title(&gettext("Custom mount point"));
+                    }
+                    if !self.is_mount_duplicate {
+                        self.possible_mounts.push(mount);
+                        self.adding_custom_mount = false;
+                        self.custom_mount_entry.set_text("");
+                        self.mountrow.set_model(Some(&gtk::StringList::new(
+                            &self
+                                .possible_mounts
+                                .iter()
+                                .map(|s| s.as_str())
+                                .collect::<Vec<_>>(),
+                        )));
+                        self.mountrow.set_selected(
+                            (self
+                                .possible_mounts
+                                .len()
+                                .checked_sub(1)
+                                .unwrap_or_default()) as u32,
+                        );
+                    }
                 }
             }
         }
+        self.update_view(widgets, sender);
     }
 }
 
@@ -1434,8 +1461,9 @@ impl FactoryComponent for PartitionGroup {
                             is_full,
                             donotmount: "".to_string(),
                             donotformat: "".to_string(),
-                            possible_mounts: vec![],
+                            possible_mounts: Vec::default(),
                             adding_custom_mount: false,
+                            is_mount_duplicate: false,
                         })
                         .device
                         .clone();
