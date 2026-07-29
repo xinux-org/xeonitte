@@ -1048,23 +1048,26 @@ impl FactoryComponent for Partition {
                 self.adding_custom_mount = true;
             }
             PartitionRowMsg::AddCustomMount(mount) => {
-                let mount = if mount.starts_with('/') {
-                    mount
-                } else {
-                    format!("/{mount}")
-                };
-                self.possible_mounts.push(mount);
-                self.adding_custom_mount = false;
-                self.custom_mount_entry.set_text("");
-                self.mountrow.set_model(Some(&gtk::StringList::new(
-                    &self
-                        .possible_mounts
-                        .iter()
-                        .map(|s| s.as_str())
-                        .collect::<Vec<_>>(),
-                )));
-                self.mountrow
-                    .set_selected((self.possible_mounts.len() - 1) as u32);
+                let mut iterator = mount.chars().into_iter();
+                if iterator.all(|x| x.is_alphabetic() || x.eq(&'/')) && !mount.contains("//") {
+                    let mount = if mount.starts_with('/') {
+                        mount
+                    } else {
+                        format!("/{mount}")
+                    };
+                    self.possible_mounts.push(mount);
+                    self.adding_custom_mount = false;
+                    self.custom_mount_entry.set_text("");
+                    self.mountrow.set_model(Some(&gtk::StringList::new(
+                        &self
+                            .possible_mounts
+                            .iter()
+                            .map(|s| s.as_str())
+                            .collect::<Vec<_>>(),
+                    )));
+                    self.mountrow
+                        .set_selected((self.possible_mounts.len() - 1) as u32);
+                }
             }
         }
     }
