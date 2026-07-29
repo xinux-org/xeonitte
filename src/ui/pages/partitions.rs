@@ -994,7 +994,7 @@ impl FactoryComponent for Partition {
     fn init_model(parent: Self::Init, _index: &DynamicIndex, _sender: FactorySender<Self>) -> Self {
         let donotmount = gettext("Do not mount");
         let possible_mounts = std::iter::once(donotmount.clone())
-            .chain([" /", "/boot", "/home", "/opt", "/var", "/nix"].map(Into::into))
+            .chain(["/", "/boot", "/home", "/opt", "/var", "/nix"].map(Into::into))
             .collect();
         Partition {
             name: parent.name,
