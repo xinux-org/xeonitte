@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-07 10:42-0400\n"
+"POT-Creation-Date: 2026-07-29 20:38+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -120,83 +120,91 @@ msgstr ""
 msgid "Basic"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:881
+#: src/ui/pages/partitions.rs:887
 msgid "Format"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:902 src/ui/pages/partitions.rs:923
+#: src/ui/pages/partitions.rs:908 src/ui/pages/partitions.rs:952
 msgid "Mount"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:933
+#: src/ui/pages/partitions.rs:939 src/ui/pages/partitions.rs:1080
+msgid "Custom mount point"
+msgstr ""
+
+#: src/ui/pages/partitions.rs:962
 msgid "Encrypt"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:935
+#: src/ui/pages/partitions.rs:964
 msgid "Encrypt this partition with LUKS"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:951
+#: src/ui/pages/partitions.rs:980
 msgid "Delete"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:974 src/ui/pages/summary.rs:321
+#: src/ui/pages/partitions.rs:995 src/ui/pages/summary.rs:321
 msgid "Do not mount"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:975
+#: src/ui/pages/partitions.rs:1008
 msgid "Leave as is"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:1079
+#: src/ui/pages/partitions.rs:1075
+msgid "Mount point exists"
+msgstr ""
+
+#: src/ui/pages/partitions.rs:1173
 msgid "Total"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:1093
+#: src/ui/pages/partitions.rs:1187
 msgid "Free"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:1145
+#: src/ui/pages/partitions.rs:1239
 msgid "Free space"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:1164
+#: src/ui/pages/partitions.rs:1258
 msgid "Enter the new partition size"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:1462
+#: src/ui/pages/partitions.rs:1560
 msgid "Encryption"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:1467
+#: src/ui/pages/partitions.rs:1565
 msgid "Enable Disk Encryption"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:1469
+#: src/ui/pages/partitions.rs:1567
 msgid "Encrypt your disk with LUKS"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:1478
+#: src/ui/pages/partitions.rs:1576
 msgid "Encryption Password"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:1487 src/ui/pages/user.rs:118
+#: src/ui/pages/partitions.rs:1585 src/ui/pages/user.rs:118
 msgid "Confirm Password"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:1498
+#: src/ui/pages/partitions.rs:1596
 msgid "Passwords do not match"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:1505
+#: src/ui/pages/partitions.rs:1603
 msgid "Password is required"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:1567
+#: src/ui/pages/partitions.rs:1665
 msgid "Hibernation"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:1570
+#: src/ui/pages/partitions.rs:1668
 msgid "Enable Hibernation"
 msgstr ""
 

@@ -1072,7 +1072,7 @@ impl FactoryComponent for Partition {
                         widgets.custom_mount_entry.add_css_class("error");
                         widgets
                             .custom_mount_entry
-                            .set_title(&gettext("Duplicate mountpoint"));
+                            .set_title(&gettext("Mount point exists"));
                     } else {
                         widgets.custom_mount_entry.remove_css_class("error");
                         widgets
