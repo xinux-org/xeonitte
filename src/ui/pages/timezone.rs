@@ -349,13 +349,12 @@ impl SimpleComponent for TimeZoneModel {
         self.reset();
         match msg {
             TimeZoneMsg::SetSelected(layout) => {
-                if layout.is_none() {
-                    self.selectiongroup.set_active(true);
-                    let _ = sender.output(AppMsg::SetCanGoForward(false));
-                } else {
-                    let _ = sender.output(AppMsg::SetCanGoForward(true));
+                if layout.is_some() {
                     let _ = sender.output(AppMsg::SetTimezoneConfig(layout.clone()));
                 }
+                self.selectiongroup.set_active(layout.is_none());
+                let _ = sender.output(AppMsg::SetCanGoForward(layout.is_some()));
+
                 self.selected = layout;
                 if let Some(selected) = &self.selected {
                     let _ = Command::new("timedatectl")
