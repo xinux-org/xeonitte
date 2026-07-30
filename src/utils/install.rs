@@ -3,10 +3,8 @@ use super::report::ErrorPhase;
 use crate::{
     config::{LIBEXECDIR, SYSCONFDIR, TMPDIR},
     ui::{
-        pages::{
-            install::{INSTALL_BROKER, InstallMsg},
-            partitions::PartitionSchema,
-        },
+        pages::install::{INSTALL_BROKER, InstallMsg},
+        partitions::partition_model::PartitionSchema,
         window::{AppMsg, UserConfig},
     },
     utils::disko::{Devices, LUKS_PASSWORD_FILE},

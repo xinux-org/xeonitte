@@ -1,4 +1,4 @@
-use super::partitions::{CustomPartition, PartitionSchema};
+use crate::ui::partitions::partition_model::{CustomPartition, PartitionSchema};
 use crate::ui::window::{AppMsg, UserConfig};
 use adw::prelude::*;
 use gettextrs::gettext;

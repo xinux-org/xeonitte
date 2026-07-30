@@ -3,7 +3,6 @@ use super::pages::{
     install::{InstallModel, InstallMsg},
     keyboard::{KeyboardModel, KeyboardMsg},
     list::ListModel,
-    partitions::{PartitionMsg, PartitionSchema},
     summary::{SummaryModel, SummaryMsg},
     timezone::TimeZoneMsg,
     user::UserModel,
@@ -16,10 +15,12 @@ use crate::{
             error::ErrorMsg,
             install::INSTALL_BROKER,
             list::{ListInit, ListMsg},
-            partitions::{CustomOptions, FullDiskOptions, PARTITION_BROKER, PartitionModel},
             timezone::TimeZoneModel,
             user::UserMsg,
             welcome::WelcomeModel,
+        },
+        partitions::partition_model::{
+            CustomOptions, FullDiskOptions, PARTITION_BROKER, PartitionModel, PartitionMsg, PartitionSchema
         },
         quitdialog::QuitDialogModel,
     },
