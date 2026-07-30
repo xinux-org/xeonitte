@@ -237,21 +237,7 @@ impl SimpleComponent for UserModel {
                     .filter(|c| c.is_ascii_alphanumeric())
                     .collect::<String>();
 
-                if let Some(username) = &self.username {
-                    if let Some(oldname) = &self.name {
-                        if username.eq(&oldname
-                            .to_ascii_lowercase()
-                            .replace(' ', "")
-                            .chars()
-                            .filter(|c| c.is_ascii_alphanumeric())
-                            .collect::<String>())
-                        {
-                            self.username_row.set_text(&suggested_username);
-                        }
-                    }
-                } else {
-                    self.username_row.set_text(&suggested_username);
-                }
+                self.username_row.set_text(&suggested_username);
                 self.name = if name.is_empty() { None } else { Some(name) };
                 sender.input(UserMsg::CheckSelected);
             }
