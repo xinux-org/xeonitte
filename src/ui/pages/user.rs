@@ -329,32 +329,23 @@ impl SimpleComponent for UserModel {
                 trace!("UserMsg::CheckSelected {}", cangoforward);
 
                 if cangoforward {
-                    if let (
-                        Some(name),
-                        Some(username),
-                        Some(password),
-                        Some(_confirm_password),
-                        Some(hostname),
-                    ) = (
-                        &self.name,
-                        &self.username,
-                        &self.password,
-                        &self.confirm_password,
-                        &self.hostname,
-                    ) {
-                        let _ = sender.output(AppMsg::SetUserConfig(Some(UserConfig {
-                            name: name.to_string(),
-                            username: username.to_string(),
-                            password: password.to_string(),
-                            hostname: hostname.to_string(),
-                            rootpassword: self.root_password.clone(),
-                            autologin: self.autologin,
-                        })));
-                    }
+                    let _ = sender.output(AppMsg::SetUserConfig(self.to_user_config()));
                 }
-
                 let _ = sender.output(AppMsg::SetCanGoForward(cangoforward));
             }
         }
+    }
+}
+
+impl UserModel {
+    fn to_user_config(&self) -> Option<UserConfig> {
+        Some(UserConfig {
+            name: self.name.clone()?,
+            username: self.username.clone()?,
+            password: self.password.clone()?,
+            hostname: self.hostname.clone()?,
+            rootpassword: self.root_password.clone(),
+            autologin: self.autologin,
+        })
     }
 }
