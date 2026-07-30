@@ -20,7 +20,8 @@ use crate::{
             welcome::WelcomeModel,
         },
         partitions::partition_model::{
-            CustomOptions, FullDiskOptions, PARTITION_BROKER, PartitionModel, PartitionMsg, PartitionSchema
+            CustomOptions, FullDiskOptions, PARTITION_BROKER, PartitionModel, PartitionMsg,
+            PartitionSchema,
         },
         quitdialog::QuitDialogModel,
     },
@@ -673,7 +674,7 @@ impl Component for AppModel {
                             }
                             StepType::Partitioning => {
                                 trace!("Partitioning append");
-                                self.carousel.append(self.partition.widget());
+                                self.carousel.append(self.partition.widget().upcast());
                                 self.carouselpages.insert(i, StepType::Partitioning);
                                 i += 1;
                             }

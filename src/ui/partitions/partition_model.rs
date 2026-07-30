@@ -1,13 +1,14 @@
 use crate::{
     config::LIBEXECDIR,
     ui::{
-        partitions::partition_group::PartitionGroup,
         partitions::{
             hibernation::Hibernation,
             luks_password::{LuksPasswordComponent, LuksPasswordMsg},
             partition::{Partition, PartitionInit, PartitionRowMsg},
+            partition_group::PartitionGroup,
             whole_disk::WholeDisk,
         },
+        templates::base::BaseComponent,
         util::SizeType,
         window::AppMsg,
     },
@@ -97,190 +98,183 @@ impl SimpleComponent for PartitionModel {
     type Init = ();
 
     view! {
-        gtk::ScrolledWindow {
-            set_hexpand: true,
-            set_vexpand: true,
-            adw::Clamp {
-                gtk::Box {
-                    set_hexpand: true,
-                    set_vexpand: true,
-                    set_valign: gtk::Align::Center,
-                    set_orientation: gtk::Orientation::Vertical,
-                    set_margin_start: 30,
-                    set_margin_end: 30,
-                    set_margin_top: 20,
-                    set_margin_bottom: 20,
-                    #[name(liststack)]
-                    match model.method {
-                        PartitionMethod::Basic => gtk::Box {
-                            set_orientation: gtk::Orientation::Vertical,
-                            set_spacing: 20,
-                            gtk::Label {
-                                #[watch]
-                                set_label: &gettext("Select a disk"),
-                                add_css_class: "title-1"
-                            },
-                            gtk::Label {
-                                #[watch]
-                                set_label: &gettext("Disk will be formatted and all data will be lost"),
-                                add_css_class: "dim-label",
-                                add_css_class: "title-3"
-                            },
-                            #[local_ref]
-                            diskbox -> gtk::ListBox {
-                                add_css_class: "boxed-list",
-                                set_hexpand: true,
-                                set_selection_mode: gtk::SelectionMode::None,
-                            },
-                            gtk::Box {
-                                set_orientation: gtk::Orientation::Horizontal,
-                                set_spacing: 20,
-                                set_halign: gtk::Align::Center,
+        #[template]
+        BaseComponent {
+            set_margin_start: 30,
+            set_margin_end: 30,
+            set_margin_top: 20,
+            set_margin_bottom: 20,
 
-                                gtk::Button {
-                                    add_css_class: "pill",
-                                    #[watch]
-                                    set_label: &gettext("Advanced"),
-                                    set_halign: gtk::Align::Center,
-                                    connect_clicked[sender] => move |_| {
-                                        sender.input(PartitionMsg::SetMethod(PartitionMethod::Advanced));
-                                    },
-                                },
-                                gtk::Button {
-                                    set_valign: gtk::Align::Center,
-                                    add_css_class: "pill",
-                                    connect_clicked[sender] => move |_| {
-                                        sender.input(PartitionMsg::Refresh);
-                                    },
-                                    adw::ButtonContent {
-                                        set_icon_name: "view-refresh-symbolic",
-                                        #[watch]
-                                        set_label: &gettext("Refresh")
+            
+            #[name(liststack)]
+            match model.method {
+                PartitionMethod::Basic => gtk::Box {
+                    set_orientation: gtk::Orientation::Vertical,
+                    set_spacing: 20,
+                    gtk::Label {
+                        #[watch]
+                        set_label: &gettext("Select a disk"),
+                        add_css_class: "title-1"
+                    },
+                    gtk::Label {
+                        #[watch]
+                        set_label: &gettext("Disk will be formatted and all data will be lost"),
+                        add_css_class: "dim-label",
+                        add_css_class: "title-3"
+                    },
+                    #[local_ref]
+                    diskbox -> gtk::ListBox {
+                        add_css_class: "boxed-list",
+                        set_hexpand: true,
+                        set_selection_mode: gtk::SelectionMode::None,
+                    },
+                    gtk::Box {
+                        set_orientation: gtk::Orientation::Horizontal,
+                        set_spacing: 20,
+                        set_halign: gtk::Align::Center,
+
+                        gtk::Button {
+                            add_css_class: "pill",
+                            #[watch]
+                            set_label: &gettext("Advanced"),
+                            set_halign: gtk::Align::Center,
+                            connect_clicked[sender] => move |_| {
+                                sender.input(PartitionMsg::SetMethod(PartitionMethod::Advanced));
+                            },
+                        },
+                        gtk::Button {
+                            set_valign: gtk::Align::Center,
+                            add_css_class: "pill",
+                            connect_clicked[sender] => move |_| {
+                                sender.input(PartitionMsg::Refresh);
+                            },
+                            adw::ButtonContent {
+                                set_icon_name: "view-refresh-symbolic",
+                                #[watch]
+                                set_label: &gettext("Refresh")
+                            }
+                        }
+                    }
+                },
+                PartitionMethod::Advanced => gtk::Box {
+                    set_orientation: gtk::Orientation::Vertical,
+                    set_spacing: 20,
+                    gtk::Label {
+                        #[watch]
+                        set_label: &gettext("Select partitions"),
+                        add_css_class: "title-1"
+                    },
+
+                    gtk::Button {
+                        #[watch]
+                        set_css_classes: if let Some(PartitionSchema::Custom(opts)) = &model.schema {
+                            let schema = &opts.partitions;
+                            let mut root = false;
+                            let mut bootefi = !model.efi;
+                            for v in schema.values() {
+                                if let Some(file) = &v.mountpoint {
+                                    if file == "/" {
+                                        root = true;
+                                    }
+                                    if file == "/boot" {
+                                        bootefi = true;
                                     }
                                 }
                             }
+                            match (root, bootefi) {
+                                (true, true) => &["pill", "success"],
+                                (true, false) => &["pill", "error"],
+                                (false, true) => &["pill", "error"],
+                                (false, false) => &["pill", "error"],
+                            }
+                        } else {
+                            &["pill", "error"]
                         },
-                        PartitionMethod::Advanced => gtk::Box {
-                            set_orientation: gtk::Orientation::Vertical,
-                            set_spacing: 20,
-                            gtk::Label {
-                                #[watch]
-                                set_label: &gettext("Select partitions"),
-                                add_css_class: "title-1"
-                            },
-
-                            gtk::Button {
-                                #[watch]
-                                set_css_classes: if let Some(PartitionSchema::Custom(opts)) = &model.schema {
-                                    let schema = &opts.partitions;
-                                    let mut root = false;
-                                    let mut bootefi = !model.efi;
-                                    for v in schema.values() {
-                                        if let Some(file) = &v.mountpoint {
-                                            if file == "/" {
-                                                root = true;
-                                            }
-                                            if file == "/boot" {
-                                                bootefi = true;
-                                            }
+                        set_can_target: false,
+                        gtk::Label {
+                            #[watch]
+                            set_markup: &if let Some(PartitionSchema::Custom(opts)) = &model.schema {
+                                let schema = &opts.partitions;
+                                let mut root = false;
+                                let mut bootefi = !model.efi;
+                                for v in schema.values() {
+                                    if let Some(file) = &v.mountpoint {
+                                        if file == "/" {
+                                            root = true;
                                         }
-                                    }
-                                    match (root, bootefi) {
-                                        (true, true) => &["pill", "success"],
-                                        (true, false) => &["pill", "error"],
-                                        (false, true) => &["pill", "error"],
-                                        (false, false) => &["pill", "error"],
-                                    }
-                                } else {
-                                    &["pill", "error"]
-                                },
-                                set_can_target: false,
-                                gtk::Label {
-                                    #[watch]
-                                    set_markup: &if let Some(PartitionSchema::Custom(opts)) = &model.schema {
-                                        let schema = &opts.partitions;
-                                        let mut root = false;
-                                        let mut bootefi = !model.efi;
-                                        for v in schema.values() {
-                                            if let Some(file) = &v.mountpoint {
-                                                if file == "/" {
-                                                    root = true;
-                                                }
-                                                if file == "/boot" {
-                                                    bootefi = true;
-                                                }
-                                            }
+                                        if file == "/boot" {
+                                            bootefi = true;
                                         }
-                                        match (root, bootefi) {
-                                            (true, true) => gettext("Ready to install!"),
-                                            // Translators: Do NOT translate anything between the <tt> tags
-                                            (true, false) => gettext("Missing <tt>/boot</tt> partition"),
-                                            // Translators: Do NOT translate anything between the <tt> tags
-                                            (false, true) => gettext("Missing <tt>/</tt> partition"),
-                                            // Translators: Do NOT translate anything between the <tt> tags
-                                            (false, false) => gettext("Missing <tt>/</tt> and <tt>/boot</tt> partitions"),
-                                        }
-                                    } else if model.efi {
-                                        // Translators: Do NOT translate anything between the <tt> tags
-                                        gettext("Missing <tt>/</tt> and <tt>/boot</tt> partitions")
-                                    } else {
-                                        gettext("Missing <tt>/</tt> partition")
                                     }
                                 }
-                            },
-
-                            #[local_ref]
-                            partitionbox -> gtk::Box {
-                                set_hexpand: true,
-                                set_orientation: gtk::Orientation::Vertical,
-                                set_spacing: 20,
-                            },
-
-                            gtk::Box {
-                                set_orientation: gtk::Orientation::Horizontal,
-                                set_spacing: 20,
-                                set_halign: gtk::Align::Center,
-                                set_margin_top: 12,
-
-                                gtk::Button {
-                                    add_css_class: "pill",
-                                    #[watch]
-                                    set_label: &gettext("Basic"),
-                                    set_halign: gtk::Align::Center,
-                                    connect_clicked[sender] => move |_| {
-                                        sender.input(PartitionMsg::SetMethod(PartitionMethod::Basic));
-                                    }
-                                },
-                                gtk::Button {
-                                    set_valign: gtk::Align::Center,
-                                    add_css_class: "pill",
-                                    connect_clicked[sender] => move |_| {
-                                        sender.input(PartitionMsg::Refresh);
-                                    },
-                                    adw::ButtonContent {
-                                        set_icon_name: "view-refresh-symbolic",
-                                        #[watch]
-                                        set_label: &gettext("Refresh")
-                                    }
+                                match (root, bootefi) {
+                                    (true, true) => gettext("Ready to install!"),
+                                    // Translators: Do NOT translate anything between the <tt> tags
+                                    (true, false) => gettext("Missing <tt>/boot</tt> partition"),
+                                    // Translators: Do NOT translate anything between the <tt> tags
+                                    (false, true) => gettext("Missing <tt>/</tt> partition"),
+                                    // Translators: Do NOT translate anything between the <tt> tags
+                                    (false, false) => gettext("Missing <tt>/</tt> and <tt>/boot</tt> partitions"),
                                 }
+                            } else if model.efi {
+                                // Translators: Do NOT translate anything between the <tt> tags
+                                gettext("Missing <tt>/</tt> and <tt>/boot</tt> partitions")
+                            } else {
+                                gettext("Missing <tt>/</tt> partition")
                             }
                         }
                     },
 
-                    // Encryption settings group
                     #[local_ref]
-                    luksbox -> adw::PreferencesGroup {
-                        #[watch]
-                        set_visible: model.encryption_enabled,
+                    partitionbox -> gtk::Box {
+                        set_hexpand: true,
+                        set_orientation: gtk::Orientation::Vertical,
+                        set_spacing: 20,
                     },
 
-                    #[local_ref]
-                    hibernationbox -> adw::PreferencesGroup {
-                        set_visible: false
-                    },
+                    gtk::Box {
+                        set_orientation: gtk::Orientation::Horizontal,
+                        set_spacing: 20,
+                        set_halign: gtk::Align::Center,
+                        set_margin_top: 12,
+
+                        gtk::Button {
+                            add_css_class: "pill",
+                            #[watch]
+                            set_label: &gettext("Basic"),
+                            set_halign: gtk::Align::Center,
+                            connect_clicked[sender] => move |_| {
+                                sender.input(PartitionMsg::SetMethod(PartitionMethod::Basic));
+                            }
+                        },
+                        gtk::Button {
+                            set_valign: gtk::Align::Center,
+                            add_css_class: "pill",
+                            connect_clicked[sender] => move |_| {
+                                sender.input(PartitionMsg::Refresh);
+                            },
+                            adw::ButtonContent {
+                                set_icon_name: "view-refresh-symbolic",
+                                #[watch]
+                                set_label: &gettext("Refresh")
+                            }
+                        }
+                    }
                 }
-            }
-        }
+            },
+
+            // Encryption settings group
+            #[local_ref]
+            luksbox -> adw::PreferencesGroup {
+                #[watch]
+                set_visible: model.encryption_enabled,
+            },
+
+            #[local_ref]
+            hibernationbox -> adw::PreferencesGroup {
+                set_visible: false
+            },
+        },
     }
 
     fn init(
