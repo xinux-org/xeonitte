@@ -16,10 +16,7 @@ use crate::{
             error::ErrorMsg,
             install::INSTALL_BROKER,
             list::{ListInit, ListMsg},
-            partitions::{
-                self, CustomOptions, CustomPartition, FullDiskOptions, PARTITION_BROKER,
-                PartitionModel,
-            },
+            partitions::{CustomOptions, FullDiskOptions, PARTITION_BROKER, PartitionModel},
             timezone::TimeZoneModel,
             user::UserMsg,
             welcome::WelcomeModel,
@@ -34,23 +31,20 @@ use crate::{
         i18n::i18n_f,
         install::{InstallAsyncModel, InstallAsyncMsg},
         language::{get_country, get_lang},
-        parse::{Choice, ChoiceEnum, InstallationConfig, StepType, XeonitteConfig, parse_config},
+        parse::{Choice, InstallationConfig, StepType, XeonitteConfig, parse_config},
         report::ErrorPhase,
     },
 };
 use adw::prelude::*;
 use gettextrs::gettext;
-use libgweather::glib::closure::IntoClosureReturnValue;
 use log::{debug, error, info, trace, warn};
 use relm4::*;
 use size::Size;
 use std::{
     collections::{BTreeMap, HashMap},
     convert::identity,
-    fs::File,
-    io::Write,
-    panic,
     process::Command,
+    thread, time,
 };
 
 #[tracker::track]
@@ -120,7 +114,7 @@ pub enum AppMsg {
     SetCanGoBack(bool),
     SetCanGoForward(bool),
     SetStackPage(StackPage),
-    SetStackPageConfig(StackPage, Option<InstallationConfig>),
+    SetStackPageConfig(StackPage, Option<InstallationConfig>, usize),
     SetLanguageConfig(Option<String>),
     SetKeyboardConfig(Option<String>),
     SetTimezoneConfig(Option<String>),
@@ -152,7 +146,6 @@ pub enum AppAsyncMsg {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum StackPage {
-    FrontPage,
     Carousel,
     Install,
     Finished,
@@ -175,7 +168,8 @@ impl Component for AppModel {
             set_default_height: 900,
             connect_close_request[sender] => move |_| {
                 debug!("Caught close request");
-                if model.page == StackPage::FrontPage || model.page == StackPage::Install {
+                // if model.page == StackPage::FrontPage || model.page == StackPage::Install {
+                if model.page == StackPage::Carousel || model.page == StackPage::Install {
                     let _ = sender.input(AppMsg::QuitDialog);
                     relm4::gtk::glib::Propagation::Stop
                 } else {
@@ -195,7 +189,7 @@ impl Component for AppModel {
                     #[wrap(Some)]
                     #[transition(Crossfade)]
                     set_title_widget = match model.page {
-                        (StackPage::FrontPage | StackPage::NoInternet) => {
+                        (StackPage::NoInternet) => {
                             gtk::Label {
                                 #[watch]
                                 // Translators: Do NOT translate the '{}'
@@ -233,11 +227,11 @@ impl Component for AppModel {
 
                 #[transition(SlideLeftRight)]
                 match model.page {
-                    StackPage::FrontPage => {
-                        gtk::Box {
-                            append: model.welcome.widget()
-                        }
-                    },
+                    // StackPage::FrontPage => {
+                    //     gtk::Box {
+                    //         append: model.welcome.widget()
+                    //     }
+                    // },
                     StackPage::Carousel => {
                         gtk::Overlay {
                             #[local_ref]
@@ -366,6 +360,8 @@ impl Component for AppModel {
         root: Self::Root,
         sender: ComponentSender<Self>,
     ) -> ComponentParts<Self> {
+        let ten_millis = time::Duration::from_secs(1);
+        thread::sleep(ten_millis);
         let config = parse_config().expect("Failed to parse config");
         let welcomepage = WelcomeModel::builder()
             .launch(())
@@ -434,7 +430,7 @@ impl Component for AppModel {
                     }
                     tokio::time::sleep(std::time::Duration::from_secs(1)).await;
                 }
-                AppAsyncMsg::SetPage(StackPage::FrontPage)
+                AppAsyncMsg::SetPage(StackPage::Carousel)
             });
         }
 
@@ -468,9 +464,11 @@ impl Component for AppModel {
             diskoconfig: canonical("/dev/sda".into()),
         };
 
+        sender.input(AppMsg::SetStackPageConfig(StackPage::Carousel, None, 0));
         let main_carousel = &model.carousel;
-        model.carousel.append(model.welcome.widget());
-        model.carouselpages.insert(0, StepType::Welcome);
+
+        // model.carousel.append(model.welcome.widget());
+        // model.carouselpages.insert(0, StepType::Welcome);
 
         let installpage = model.install.widget().clone();
         let errorpage = model.error.widget().clone();
@@ -558,21 +556,21 @@ impl Component for AppModel {
             }
             AppMsg::SetStackPage(page) => {
                 debug!("StackPage: {:?}", page);
-                if page == self.page {
-                    return;
+                if page.ne(&self.page) {
+                    self.page = page;
                 }
-                self.page = page;
             }
-            AppMsg::SetStackPageConfig(page, installconfig) => {
+            AppMsg::SetStackPageConfig(page, installconfig, index) => {
                 debug!("StackPage: {:?}", page);
                 debug!("Config: {:?}", installconfig);
-                if page == self.page {
-                    return;
-                }
+                // if page == self.page {
+                //     return;
+                // }
                 self.page = page;
                 self.installconfig = installconfig;
+
+                let mut i = index;
                 if let Some(cfg) = &self.installconfig {
-                    let mut i = 0;
                     for step in &cfg.steps {
                         match step {
                             StepType::Welcome => {
@@ -665,6 +663,20 @@ impl Component for AppModel {
                             }
                         }
                     }
+                } else {
+                    trace!("Welcome append");
+                    self.carousel.append(self.welcome.widget());
+                    self.carouselpages.insert(i, StepType::Welcome);
+                    i += 1;
+
+                    trace!("Keyboard append");
+                    self.carousel.append(self.keyboard.widget());
+                    self.carouselpages.insert(i, StepType::Keyboard);
+                    i += 1;
+
+                    trace!("Timezone append");
+                    self.carousel.append(self.timezone.widget());
+                    self.carouselpages.insert(i, StepType::Location);
                 }
                 sender.input(AppMsg::ChangePage(0));
             }
