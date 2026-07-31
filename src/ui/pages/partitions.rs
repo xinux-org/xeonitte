@@ -1049,13 +1049,14 @@ impl FactoryComponent for Partition {
     ) {
         match message {
             PartitionRowMsg::Deselect(mount) => {
-                if let Some(item) = self.mountrow.selected_item() {
-                    if let Ok(item) = item.downcast::<gtk::StringObject>() {
-                        if item.string().eq(&mount) {
-                            self.mountrow.set_selected(0);
-                        }
-                    }
-                }
+                self.mountrow
+                    .selected_item()
+                    .and_then(|item| item.downcast::<gtk::StringObject>().ok())
+                    .and_then(|item| {
+                        item.string()
+                            .eq(&mount)
+                            .then(|| self.mountrow.set_selected(0))
+                    });
             }
             PartitionRowMsg::SetSwap(swap) => {
                 self.swap = swap;
@@ -1070,12 +1071,12 @@ impl FactoryComponent for Partition {
                 self.adding_custom_mount = true;
             }
             PartitionRowMsg::AddCustomMount(mount) => {
-                Self::parse_mount_point(&mount).and_then(|x| {
-                    let is_mount_duplicate = self.possible_mounts.contains(&x);
+                if let Some(mount_name) = Self::parse_mount_point(&mount) {
+                    let is_mount_duplicate = self.possible_mounts.contains(&mount);
                     sender.input(PartitionRowMsg::ToggleError(is_mount_duplicate));
 
-                    is_mount_duplicate.not().then(|| {
-                        self.possible_mounts.push(x);
+                    if !is_mount_duplicate {
+                        self.possible_mounts.push(mount_name);
                         self.adding_custom_mount = false;
                         self.custom_mount_entry.set_text("");
                         self.mountrow.set_model(Some(&gtk::StringList::new(
@@ -1085,15 +1086,10 @@ impl FactoryComponent for Partition {
                                 .map(|s| s.as_str())
                                 .collect::<Vec<_>>(),
                         )));
-                        self.mountrow.set_selected(
-                            (self
-                                .possible_mounts
-                                .len()
-                                .checked_sub(1)
-                                .unwrap_or_default()) as u32,
-                        );
-                    })
-                });
+                        let row = self.possible_mounts.len().saturating_sub(1) as u32;
+                        self.mountrow.set_selected(row);
+                    }
+                }
             }
             PartitionRowMsg::ToggleError(x) => {
                 if x {
