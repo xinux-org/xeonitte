@@ -846,20 +846,19 @@ pub struct Partition {
 }
 impl Partition {
     fn parse_mount_point(mount: &String) -> Option<String> {
-        if mount
+        (mount
             .chars()
             .into_iter()
             .all(|x| x.is_alphabetic() || x.eq(&'/'))
             && !mount.contains("//")
-            && !mount.ends_with('/')
-        {
+            && !mount.ends_with('/'))
+        .then(|| {
             mount
                 .starts_with('/')
                 .then(|| mount.into())
-                .or_else(|| Some(format!("/{mount}")))
-        } else {
-            None
-        }
+                .or(format!("/{mount}").into())
+        })
+        .flatten()
     }
 }
 
