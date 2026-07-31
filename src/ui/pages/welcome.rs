@@ -1,5 +1,5 @@
-use crate::{ui::window::AppMsg, utils::language::get_languages};
 use crate::utils::report::ErrorPhase;
+use crate::{ui::window::AppMsg, utils::language::get_languages};
 use adw::prelude::*;
 use gettextrs::gettext;
 use log::{info, trace};

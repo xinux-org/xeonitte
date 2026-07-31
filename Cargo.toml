@@ -36,3 +36,6 @@ utils = { git = "https://git.oss.uzinfocom.uz/xinux/relago.git", branch = "main"
 [workspace]
 members = [".", "xeonitte-helper"]
 default-members = [".", "xeonitte-helper"]
+
+[lints.rust]
+unused_must_use = "allow"

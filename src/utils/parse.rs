@@ -72,6 +72,8 @@ pub enum StepType {
 pub struct Choice {
     pub description: Option<String>,
     pub packages: Option<Vec<String>>,
+    #[serde(default)]
+    pub default: bool,
     pub config: Option<String>,
 }
 

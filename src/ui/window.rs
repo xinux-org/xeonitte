@@ -16,10 +16,7 @@ use crate::{
             error::ErrorMsg,
             install::INSTALL_BROKER,
             list::{ListInit, ListMsg},
-            partitions::{
-                self, CustomOptions, CustomPartition, FullDiskOptions, PARTITION_BROKER,
-                PartitionModel,
-            },
+            partitions::{CustomOptions, FullDiskOptions, PARTITION_BROKER, PartitionModel},
             timezone::TimeZoneModel,
             user::UserMsg,
             welcome::WelcomeModel,
@@ -40,17 +37,12 @@ use crate::{
 };
 use adw::prelude::*;
 use gettextrs::gettext;
-use libgweather::glib::closure::IntoClosureReturnValue;
 use log::{debug, error, info, trace, warn};
 use relm4::*;
 use size::Size;
-use std::io::prelude::*;
 use std::{
     collections::{BTreeMap, HashMap},
     convert::identity,
-    fs::File,
-    io::Write,
-    panic,
     process::Command,
 };
 
@@ -284,7 +276,7 @@ impl Component for AppModel {
                                             let w = main_carousel.nth_page(i-1);
                                             main_carousel.scroll_to(&w, true);
                                         }
-                                        sender.input(AppMsg::ChangePage(i - 1));
+                                        sender.input(AppMsg::ChangePage(i.checked_sub(1).unwrap_or_default()));
                                     }
                                 }
                             },
@@ -747,7 +739,17 @@ impl Component for AppModel {
                                         choices: choices.clone(),
                                     },
                                 );
-                                self.listconfig.insert(id.to_string(), HashMap::new());
+
+                                let initial_config = choices
+                                    .iter()
+                                    .filter_map(|m| m.iter().find(|(_, choice)| choice.default))
+                                    .next()
+                                    .map(|(key, choice)| {
+                                        HashMap::from([(key.clone(), choice.clone())])
+                                    })
+                                    .unwrap_or_default();
+
+                                self.listconfig.insert(id.to_string(), initial_config);
                                 i += 1;
                             }
                             _ => {
@@ -785,11 +787,7 @@ impl Component for AppModel {
                 partition.clone().map(|x| {
                     let _ = match x {
                         PartitionSchema::FullDisk(FullDiskOptions {
-                            device,
-                            encryption,
-                            passphrase,
-                            disk_size,
-                            hibernation,
+                            device, encryption, ..
                         }) => {
                             devices = if encryption {
                                 luks_encrypted(device, LUKS_PASSWORD_FILE)
@@ -980,7 +978,7 @@ impl Component for AppModel {
             }
         }
     }
-    fn shutdown(&mut self, widgets: &mut Self::Widgets, output: Sender<Self::Output>) {}
+    fn shutdown(&mut self, _widgets: &mut Self::Widgets, _output: Sender<Self::Output>) {}
 
     fn update_cmd(
         &mut self,

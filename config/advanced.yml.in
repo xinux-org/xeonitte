@@ -37,6 +37,7 @@ steps:
   choices:
     - LTS:
         description: _("Install the latest LTS kernel")
+        default: true
     - Latest:
         description: _("Install the latest kernel")
         config: |-
