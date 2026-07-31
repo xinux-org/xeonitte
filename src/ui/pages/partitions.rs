@@ -853,7 +853,10 @@ impl Partition {
             && !mount.contains("//")
             && !mount.ends_with('/')
         {
-            (!mount.starts_with('/')).then(|| format!("/{mount}"))
+            mount
+                .starts_with('/')
+                .then(|| mount.into())
+                .or_else(|| Some(format!("/{mount}")))
         } else {
             None
         }
