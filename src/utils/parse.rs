@@ -4,7 +4,7 @@ use log::debug;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fs};
 
-#[derive(Deserialize, Serialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug, Default, Clone)]
 pub struct XeonitteConfig {
     pub distribution_name: String,
     pub branding: String,

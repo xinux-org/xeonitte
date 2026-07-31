@@ -15,6 +15,7 @@ use crate::{
         pages::{
             error::ErrorMsg,
             install::INSTALL_BROKER,
+            install_mode::InstallModeModel,
             list::{ListInit, ListMsg},
             partitions::{CustomOptions, FullDiskOptions, PARTITION_BROKER, PartitionModel},
             timezone::TimeZoneModel,
@@ -61,7 +62,7 @@ pub struct AppModel {
     #[tracker::no_eq]
     timezone: Controller<TimeZoneModel>,
     #[tracker::no_eq]
-    install_mode: Controller<InstallModel>,
+    install_mode: Controller<InstallModeModel>,
     #[tracker::no_eq]
     partition: Controller<PartitionModel>,
     #[tracker::no_eq]
@@ -377,7 +378,7 @@ impl Component for AppModel {
             .launch(())
             .forward(sender.input_sender(), identity);
         println!("Timezone page launched");
-        let instal_modepage = TimeZoneModel::builder()
+        let instal_mode_page = InstallModeModel::builder()
             .launch(())
             .forward(sender.input_sender(), identity);
         println!("Timezone page launched");
@@ -447,6 +448,7 @@ impl Component for AppModel {
             welcome: welcomepage,
             keyboard: keyboardpage,
             timezone: timezonepage,
+            install_mode: instal_mode_page,
             partition: partitionpage,
             user: userpage,
             summary: summarypage,

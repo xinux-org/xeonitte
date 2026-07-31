@@ -1,4 +1,4 @@
-use crate::ui::window::StackPage;
+use crate::ui::window::{AppMsg, StackPage};
 use crate::utils::i18n::i18n_f;
 use crate::utils::parse::{ChoiceEnum, InstallationConfig, XeonitteConfig};
 use adw::prelude::*;
@@ -7,7 +7,7 @@ use gtk::prelude::{BoxExt, ButtonExt, OrientableExt, WidgetExt};
 use relm4::*;
 use relm4::{ComponentParts, ComponentSender, RelmWidgetExt, SimpleComponent, gtk};
 
-struct InstallModeModel {
+pub struct InstallModeModel {
     config: XeonitteConfig,
 }
 
@@ -16,12 +16,11 @@ enum InstallModeOutput {
     SetStackPageConfig(StackPage, Option<InstallationConfig>),
 }
 
-#[relm4::component]
+#[relm4::component(pub)]
 impl SimpleComponent for InstallModeModel {
-    type Init = XeonitteConfig;
-
+    type Init = ();
     type Input = ();
-    type Output = InstallModeOutput;
+    type Output = AppMsg;
 
     view! {
         gtk::Box {
@@ -44,11 +43,13 @@ impl SimpleComponent for InstallModeModel {
 
     // Initialize the UI.
     fn init(
-        config: Self::Init,
+        init: Self::Init,
         root: Self::Root,
         sender: ComponentSender<Self>,
     ) -> ComponentParts<Self> {
-        let model = InstallModeModel { config };
+        let model = InstallModeModel {
+            config: XeonitteConfig::default(),
+        };
         let selectbox = gtk::FlowBox::new();
         // Insert the macro code generation here
         let widgets = view_output!();
@@ -63,7 +64,7 @@ impl SimpleComponent for InstallModeModel {
                             set_halign: gtk::Align::Center,
                             set_valign: gtk::Align::Center,
                             connect_clicked[sender, config] => move |_| {
-                                sender.output(InstallModeOutput::SetStackPageConfig(StackPage::Carousel, Some(config.clone()))).unwrap();
+                                sender.output(AppMsg::SetStackPageConfig(StackPage::Carousel, Some(config.clone()), 0)).unwrap();
                             },
                             gtk::Box {
                                 set_orientation: gtk::Orientation::Vertical,
