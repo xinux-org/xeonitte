@@ -40,7 +40,7 @@ use crate::{
 use adw::prelude::*;
 use gettextrs::gettext;
 use log::{debug, error, info, trace, warn};
-use relm4::*;
+use relm4::{gtk, *};
 use size::Size;
 use std::{
     collections::{BTreeMap, HashMap},
@@ -674,7 +674,7 @@ impl Component for AppModel {
                             }
                             StepType::Partitioning => {
                                 trace!("Partitioning append");
-                                self.carousel.append(self.partition.widget().upcast());
+                                self.carousel.append(self.partition.widget());
                                 self.carouselpages.insert(i, StepType::Partitioning);
                                 i += 1;
                             }

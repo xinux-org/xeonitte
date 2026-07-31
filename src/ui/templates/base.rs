@@ -1,21 +1,22 @@
 use adw::prelude::*;
-use relm4::*;
+use relm4::{
+    gtk::{self},
+    *,
+};
 
 #[relm4::widget_template(pub)]
 impl WidgetTemplate for BaseComponent {
     view! {
-        gtk::ScrolledWindow {
-            set_hexpand: true,
-            set_vexpand: true,
-            adw::Clamp {
-                gtk::Box {
-                    set_hexpand: true,
-                    set_vexpand: true,
-                    set_valign: gtk::Align::Center,
-                    set_orientation: gtk::Orientation::Vertical,
-                    set_spacing: 20,
-                    set_margin_all: 20,
-                }
+        #[root]
+        adw::Clamp {
+            #[name(root_box)]
+            gtk::Box {
+                set_hexpand: true,
+                set_vexpand: true,
+                set_valign: gtk::Align::Center,
+                set_orientation: gtk::Orientation::Vertical,
+                set_spacing: 20,
+                set_margin_all: 20,
             }
         }
     }
