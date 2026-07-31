@@ -876,7 +876,7 @@ pub enum PartitionRowMsg {
     Delete,
     ShowCustomMountEntry,
     AddCustomMount(String),
-    Validate(bool),
+    ToggleError(bool),
 }
 
 #[derive(Debug)]
@@ -1070,7 +1070,7 @@ impl FactoryComponent for Partition {
             PartitionRowMsg::AddCustomMount(mount) => {
                 Self::parse_mount_point(&mount).and_then(|x| {
                     let is_mount_duplicate = self.possible_mounts.contains(&x);
-                    sender.input(PartitionRowMsg::Validate(is_mount_duplicate));
+                    sender.input(PartitionRowMsg::ToggleError(is_mount_duplicate));
 
                     is_mount_duplicate.not().then(|| {
                         self.possible_mounts.push(x);
@@ -1093,7 +1093,7 @@ impl FactoryComponent for Partition {
                     })
                 });
             }
-            PartitionRowMsg::Validate(x) => {
+            PartitionRowMsg::ToggleError(x) => {
                 if x {
                     widgets.custom_mount_entry.add_css_class("error");
                     widgets
