@@ -61,6 +61,8 @@ pub struct AppModel {
     #[tracker::no_eq]
     timezone: Controller<TimeZoneModel>,
     #[tracker::no_eq]
+    install_mode: Controller<InstallModel>,
+    #[tracker::no_eq]
     partition: Controller<PartitionModel>,
     #[tracker::no_eq]
     user: Controller<UserModel>,
@@ -375,6 +377,10 @@ impl Component for AppModel {
             .launch(())
             .forward(sender.input_sender(), identity);
         println!("Timezone page launched");
+        let instal_modepage = TimeZoneModel::builder()
+            .launch(())
+            .forward(sender.input_sender(), identity);
+        println!("Timezone page launched");
         let partitionpage = PartitionModel::builder()
             .launch_with_broker((), &PARTITION_BROKER)
             .forward(sender.input_sender(), identity);
@@ -563,9 +569,6 @@ impl Component for AppModel {
             AppMsg::SetStackPageConfig(page, installconfig, index) => {
                 debug!("StackPage: {:?}", page);
                 debug!("Config: {:?}", installconfig);
-                // if page == self.page {
-                //     return;
-                // }
                 self.page = page;
                 self.installconfig = installconfig;
 

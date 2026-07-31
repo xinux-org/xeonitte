@@ -7,21 +7,21 @@ use gtk::prelude::{BoxExt, ButtonExt, OrientableExt, WidgetExt};
 use relm4::*;
 use relm4::{ComponentParts, ComponentSender, RelmWidgetExt, SimpleComponent, gtk};
 
-struct ModeModel {
+struct InstallModeModel {
     config: XeonitteConfig,
 }
 
 #[derive(Debug)]
-enum ModeOutput {
+enum InstallModeOutput {
     SetStackPageConfig(StackPage, Option<InstallationConfig>),
 }
 
 #[relm4::component]
-impl SimpleComponent for ModeModel {
+impl SimpleComponent for InstallModeModel {
     type Init = XeonitteConfig;
 
     type Input = ();
-    type Output = ModeOutput;
+    type Output = InstallModeOutput;
 
     view! {
         gtk::Box {
@@ -48,7 +48,7 @@ impl SimpleComponent for ModeModel {
         root: Self::Root,
         sender: ComponentSender<Self>,
     ) -> ComponentParts<Self> {
-        let model = ModeModel { config };
+        let model = InstallModeModel { config };
         let selectbox = gtk::FlowBox::new();
         // Insert the macro code generation here
         let widgets = view_output!();
@@ -63,7 +63,7 @@ impl SimpleComponent for ModeModel {
                             set_halign: gtk::Align::Center,
                             set_valign: gtk::Align::Center,
                             connect_clicked[sender, config] => move |_| {
-                                sender.output(ModeOutput::SetStackPageConfig(StackPage::Carousel, Some(config.clone()))).unwrap();
+                                sender.output(InstallModeOutput::SetStackPageConfig(StackPage::Carousel, Some(config.clone()))).unwrap();
                             },
                             gtk::Box {
                                 set_orientation: gtk::Orientation::Vertical,
