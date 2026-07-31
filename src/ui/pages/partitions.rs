@@ -15,7 +15,7 @@ use size::Size;
 use std::{
     collections::{HashMap, HashSet},
     convert::identity,
-    ops::{AddAssign, Sub, SubAssign},
+    ops::{AddAssign, Not, Sub, SubAssign},
     process::Command,
     str::FromStr,
 };
@@ -844,7 +844,21 @@ pub struct Partition {
     donotformat: String,
     possible_mounts: Vec<String>,
     adding_custom_mount: bool,
-    is_mount_duplicate: bool,
+}
+impl Partition {
+    fn parse_mount_point(mount: &String) -> Option<String> {
+        if mount
+            .chars()
+            .into_iter()
+            .all(|x| x.is_alphabetic() || x.eq(&'/'))
+            && !mount.contains("//")
+            && !mount.ends_with('/')
+        {
+            (!mount.starts_with('/')).then(|| format!("/{mount}"))
+        } else {
+            None
+        }
+    }
 }
 
 #[derive(Default, Debug, PartialEq, Eq, Clone)]
@@ -863,6 +877,7 @@ pub enum PartitionRowMsg {
     Delete,
     ShowCustomMountEntry,
     AddCustomMount(String),
+    Validate(bool),
 }
 
 #[derive(Debug)]
@@ -1009,7 +1024,6 @@ impl FactoryComponent for Partition {
             possible_mounts,
             adding_custom_mount: false,
             is_full: false,
-            is_mount_duplicate: false,
         }
     }
 
@@ -1055,32 +1069,12 @@ impl FactoryComponent for Partition {
                 self.adding_custom_mount = true;
             }
             PartitionRowMsg::AddCustomMount(mount) => {
-                if mount
-                    .chars()
-                    .into_iter()
-                    .all(|x| x.is_alphabetic() || x.eq(&'/'))
-                    && !mount.contains("//")
-                    && !mount.ends_with('/')
-                {
-                    let mount = if mount.starts_with('/') {
-                        mount
-                    } else {
-                        format!("/{mount}")
-                    };
-                    self.is_mount_duplicate = self.possible_mounts.contains(&mount);
-                    if self.is_mount_duplicate {
-                        widgets.custom_mount_entry.add_css_class("error");
-                        widgets
-                            .custom_mount_entry
-                            .set_title(&gettext("Mount point exists"));
-                    } else {
-                        widgets.custom_mount_entry.remove_css_class("error");
-                        widgets
-                            .custom_mount_entry
-                            .set_title(&gettext("Custom mount point"));
-                    }
-                    if !self.is_mount_duplicate {
-                        self.possible_mounts.push(mount);
+                Self::parse_mount_point(&mount).and_then(|x| {
+                    let is_mount_duplicate = self.possible_mounts.contains(&x);
+                    sender.input(PartitionRowMsg::Validate(is_mount_duplicate));
+
+                    is_mount_duplicate.not().then(|| {
+                        self.possible_mounts.push(x);
                         self.adding_custom_mount = false;
                         self.custom_mount_entry.set_text("");
                         self.mountrow.set_model(Some(&gtk::StringList::new(
@@ -1097,7 +1091,20 @@ impl FactoryComponent for Partition {
                                 .checked_sub(1)
                                 .unwrap_or_default()) as u32,
                         );
-                    }
+                    })
+                });
+            }
+            PartitionRowMsg::Validate(x) => {
+                if x {
+                    widgets.custom_mount_entry.add_css_class("error");
+                    widgets
+                        .custom_mount_entry
+                        .set_title(&gettext("Mount point exists"));
+                } else {
+                    widgets.custom_mount_entry.remove_css_class("error");
+                    widgets
+                        .custom_mount_entry
+                        .set_title(&gettext("Custom mount point"));
                 }
             }
         }
@@ -1463,15 +1470,10 @@ impl FactoryComponent for PartitionGroup {
                             donotformat: "".to_string(),
                             possible_mounts: Vec::default(),
                             adding_custom_mount: false,
-                            is_mount_duplicate: false,
                         })
                         .device
                         .clone();
 
-                    // fix partitioning bugs from removing 20MB
-                    // if new_size.ge(&Size::from_gb(1)) {
-                    //     new_size.sub_assign(Size::from_mb(20));
-                    // }
                     self.partitions.guard().push_back({
                         PartitionInit {
                             name: format!("{device}{index}"),
