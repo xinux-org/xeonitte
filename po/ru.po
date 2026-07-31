@@ -310,3 +310,11 @@ msgstr "Введите новый размер раздела"
 #: src/ui/pages/partitions.rs:1145
 msgid "Free space"
 msgstr "Свободное место"
+
+#: src/ui/pages/partitions.rs:939 src/ui/pages/partitions.rs:1080
+msgid "Custom mount point"
+msgstr "Пользовательская точка монтирования"
+
+#: src/ui/pages/partitions.rs:1075
+msgid "Mount point exists"
+msgstr "Точка монтирования существует"

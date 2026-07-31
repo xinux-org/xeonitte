@@ -269,7 +269,7 @@ impl Component for AppModel {
                                             let w = main_carousel.nth_page(i-1);
                                             main_carousel.scroll_to(&w, true);
                                         }
-                                        sender.input(AppMsg::ChangePage(i - 1));
+                                        sender.input(AppMsg::ChangePage(i.checked_sub(1).unwrap_or_default()));
                                     }
                                 }
                             },
@@ -727,7 +727,17 @@ impl Component for AppModel {
                                         choices: choices.clone(),
                                     },
                                 );
-                                self.listconfig.insert(id.to_string(), HashMap::new());
+
+                                let initial_config = choices
+                                    .iter()
+                                    .filter_map(|m| m.iter().find(|(_, choice)| choice.default))
+                                    .next()
+                                    .map(|(key, choice)| {
+                                        HashMap::from([(key.clone(), choice.clone())])
+                                    })
+                                    .unwrap_or_default();
+
+                                self.listconfig.insert(id.to_string(), initial_config);
                                 i += 1;
                             }
                             _ => {

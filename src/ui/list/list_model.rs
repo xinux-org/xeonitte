@@ -82,13 +82,18 @@ impl SimpleComponent for ListModel {
         root: Self::Root,
         sender: ComponentSender<Self>,
     ) -> ComponentParts<Self> {
-        let mut choices = vec![];
+        let choices: Vec<(String, Choice)> = init
+            .choices
+            .into_iter()
+            .map(|m| m.into_iter())
+            .flatten()
+            .collect();
 
-        for choice in init.choices {
-            for (key, value) in choice {
-                choices.push((key, value));
-            }
-        }
+        let selected = choices
+            .iter()
+            .find(|(_, choice)| choice.default)
+            .map(|(name, _)| vec![name.clone()])
+            .unwrap_or_default();
 
         let mut model = ListModel {
             id: init.id,
@@ -101,7 +106,7 @@ impl SimpleComponent for ListModel {
                 },
             ),
             choices,
-            selected: Vec::new(),
+            selected,
             required: init.required,
             group: if init.multiple {
                 None
@@ -120,6 +125,7 @@ impl SimpleComponent for ListModel {
                 group: model.group.clone(),
                 locale: model.locale.clone(),
                 tracker: 0,
+                selected: choice.default,
             };
             list_guard.push_back(item);
         }
@@ -137,21 +143,21 @@ impl SimpleComponent for ListModel {
                 } else {
                     true
                 };
-                let _ = sender.output(AppMsg::SetCanGoForward(cangoforward));
+                sender.output(AppMsg::SetCanGoForward(cangoforward));
             }
             ListMsg::Select(key) => {
                 self.selected.push(key);
                 sender.input(ListMsg::CheckSelected);
                 let mut selected = self.choices.iter().cloned().collect::<HashMap<_, _>>();
                 selected.retain(|k, _| self.selected.contains(k));
-                let _ = sender.output(AppMsg::SetListConfig(self.id.to_string(), selected));
+                sender.output(AppMsg::SetListConfig(self.id.to_string(), selected));
             }
             ListMsg::Deselect(key) => {
                 self.selected.retain(|k| k != &key);
                 sender.input(ListMsg::CheckSelected);
                 let mut selected = self.choices.iter().cloned().collect::<HashMap<_, _>>();
                 selected.retain(|k, _| self.selected.contains(k));
-                let _ = sender.output(AppMsg::SetListConfig(self.id.to_string(), selected));
+                sender.output(AppMsg::SetListConfig(self.id.to_string(), selected));
             }
             ListMsg::SetLocale(locale) => {
                 self.set_locale(locale);
@@ -169,10 +175,11 @@ use relm4::{adw, factory::FactoryComponent};
 
 #[tracker::track]
 pub struct ListItem {
-    pub title: String,
-    pub description: String,
-    pub group: Option<gtk::CheckButton>,
-    pub locale: Option<String>,
+    title: String,
+    description: String,
+    group: Option<gtk::CheckButton>,
+    locale: Option<String>,
+    selected: bool,
 }
 
 #[derive(Debug)]
@@ -202,6 +209,7 @@ impl FactoryComponent for ListItem {
             #[name(checkbtn)]
             add_suffix = &gtk::CheckButton {
                 set_group: self.group.as_ref(),
+                set_active: self.selected,
                 connect_toggled[sender, title = self.title.to_string()] => move |checkbtn| {
                     if checkbtn.is_active() {
                         let _ = sender.output(ListItemMsg::Select(title.to_string()));
