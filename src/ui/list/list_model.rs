@@ -134,7 +134,6 @@ impl SimpleComponent for ListModel {
         let widgets = view_output!();
         ComponentParts { model, widgets }
     }
-
     fn update(&mut self, msg: Self::Input, sender: ComponentSender<Self>) {
         self.reset();
         match msg {
@@ -171,6 +170,8 @@ impl SimpleComponent for ListModel {
         }
     }
 }
+
+use relm4::{adw, factory::FactoryComponent};
 
 #[tracker::track]
 pub struct ListItem {
@@ -219,11 +220,9 @@ impl FactoryComponent for ListItem {
             }
         }
     }
-
     fn init_model(parent: Self::Init, _index: &DynamicIndex, _sender: FactorySender<Self>) -> Self {
         parent
     }
-
     fn update(&mut self, _message: Self::Input, _sender: FactorySender<Self>) {
         self.reset();
     }

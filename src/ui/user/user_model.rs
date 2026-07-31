@@ -237,46 +237,20 @@ impl SimpleComponent for UserModel {
                     .filter(|c| c.is_ascii_alphanumeric())
                     .collect::<String>();
 
-                if let Some(username) = &self.username {
-                    if let Some(oldname) = &self.name {
-                        if username.eq(&oldname
-                            .to_ascii_lowercase()
-                            .replace(' ', "")
-                            .chars()
-                            .filter(|c| c.is_ascii_alphanumeric())
-                            .collect::<String>())
-                        {
-                            self.username_row.set_text(&suggested_username);
-                        }
-                    }
-                } else {
-                    self.username_row.set_text(&suggested_username);
-                }
+                self.username_row.set_text(&suggested_username);
                 self.name = if name.is_empty() { None } else { Some(name) };
                 sender.input(UserMsg::CheckSelected);
             }
             UserMsg::UsernameChanged(username) => {
-                self.username = if username.is_empty() {
-                    None
-                } else {
-                    Some(username)
-                };
+                self.username = (!username.is_empty()).then_some(username);
                 sender.input(UserMsg::CheckSelected);
             }
             UserMsg::PasswordChanged(password) => {
-                self.password = if password.is_empty() {
-                    None
-                } else {
-                    Some(password)
-                };
+                self.password = (!password.is_empty()).then_some(password);
                 sender.input(UserMsg::SetPasswordStyle);
             }
             UserMsg::ConfirmPasswordChanged(confirm_password) => {
-                self.confirm_password = if confirm_password.is_empty() {
-                    None
-                } else {
-                    Some(confirm_password)
-                };
+                self.confirm_password = (!confirm_password.is_empty()).then_some(confirm_password);
                 sender.input(UserMsg::SetPasswordStyle);
             }
             UserMsg::SetPasswordStyle => {
@@ -295,34 +269,20 @@ impl SimpleComponent for UserModel {
                 sender.input(UserMsg::CheckSelected);
             }
             UserMsg::HostnameChanged(hostname) => {
-                if let Some(current) = &self.hostname {
-                    if &hostname == current {
-                        debug!("Hostname changed to the same value, ignoring");
-                        return;
-                    }
+                if self.hostname.as_ref() == Some(&hostname) {
+                    debug!("Hostname changed to the same value, ignoring");
+                    return;
                 }
-
-                self.hostname = if hostname.is_empty() {
-                    None
-                } else {
-                    Some(hostname)
-                };
+                self.hostname = (!hostname.is_empty()).then_some(hostname);
                 sender.input(UserMsg::CheckSelected);
             }
             UserMsg::RootPasswordChanged(root_password) => {
-                self.root_password = if root_password.is_empty() {
-                    None
-                } else {
-                    Some(root_password)
-                };
+                self.root_password = (!root_password.is_empty()).then_some(root_password);
                 sender.input(UserMsg::SetRootPasswordStyle);
             }
             UserMsg::ConfirmRootPasswordChanged(confirm_root_password) => {
-                self.confirm_root_password = if confirm_root_password.is_empty() {
-                    None
-                } else {
-                    Some(confirm_root_password)
-                };
+                self.confirm_root_password =
+                    (!confirm_root_password.is_empty()).then_some(confirm_root_password);
                 sender.input(UserMsg::SetRootPasswordStyle);
             }
             UserMsg::SetRootPasswordStyle => {
@@ -355,32 +315,23 @@ impl SimpleComponent for UserModel {
                 trace!("UserMsg::CheckSelected {}", cangoforward);
 
                 if cangoforward {
-                    if let (
-                        Some(name),
-                        Some(username),
-                        Some(password),
-                        Some(_confirm_password),
-                        Some(hostname),
-                    ) = (
-                        &self.name,
-                        &self.username,
-                        &self.password,
-                        &self.confirm_password,
-                        &self.hostname,
-                    ) {
-                        let _ = sender.output(AppMsg::SetUserConfig(Some(UserConfig {
-                            name: name.to_string(),
-                            username: username.to_string(),
-                            password: password.to_string(),
-                            hostname: hostname.to_string(),
-                            rootpassword: self.root_password.clone(),
-                            autologin: self.autologin,
-                        })));
-                    }
+                    let _ = sender.output(AppMsg::SetUserConfig(self.to_user_config()));
                 }
-
                 let _ = sender.output(AppMsg::SetCanGoForward(cangoforward));
             }
         }
+    }
+}
+
+impl UserModel {
+    fn to_user_config(&self) -> Option<UserConfig> {
+        Some(UserConfig {
+            name: self.name.clone()?,
+            username: self.username.clone()?,
+            password: self.password.clone()?,
+            hostname: self.hostname.clone()?,
+            rootpassword: self.root_password.clone(),
+            autologin: self.autologin,
+        })
     }
 }

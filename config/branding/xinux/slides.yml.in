@@ -6,7 +6,7 @@ slides:
 - title: _("Nix Package Manager")
   subtitle: _("Keep your system stable with Nix's reliable and reproducible packages")
   image: nix.svg
-- title: _("Over 80,000 packages available")
+- title: _("Over 140,000 packages available")
   subtitle: _("Easily find and install all the packages you need on your Xinux system")
   image: apps.svg
 - title: _("E-imzo Manager")
@@ -18,9 +18,6 @@ slides:
 - title: _("Module Manager")
   subtitle: _("The goal of this project is to provide a simple graphical tool for modifying and managing desktop NixOS configurations.")
   image: module-manager.png
-- title: _("Conf-Editor")
-  subtitle: _("This project is to provide a simple graphical tool for modifying and managing desktop NixOS configurations.")
-  image: configuration-editor.png
 - title: _("Uzbek Keyboard Layout")
   subtitle: _("Easily find and install all the packages you need on your Xinux system")
   image: keyboard.png

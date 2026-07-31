@@ -25,7 +25,6 @@
   rustPlatform,
   vte-gtk4,
   wrapGAppsHook4,
-  cryptsetup,
   util-linux,
   dosfstools,
   e2fsprogs,
@@ -67,7 +66,6 @@ mkShell {
     rustPlatform.bindgenHook
     vte-gtk4
     wrapGAppsHook4
-    cryptsetup
     util-linux
     dosfstools
     e2fsprogs
