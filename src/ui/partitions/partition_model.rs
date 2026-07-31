@@ -9,9 +9,9 @@ use crate::{
             whole_disk::WholeDisk,
         },
         templates::base::BaseComponent,
-        util::SizeType,
         window::AppMsg,
     },
+    utils::SizeType,
 };
 use gettextrs::gettext;
 use log::{debug, error, info, trace};

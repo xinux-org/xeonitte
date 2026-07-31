@@ -372,6 +372,11 @@ impl Worker for InstallAsyncModel {
                     ));
                     return;
                 };
+
+                commands.push(format!(
+                    "mkdir -p /home/{}/.config", // avoid not found error
+                    &username,
+                ));
                 commands.push(format!(
                     "chown -R {}:users /home/{}/.config", // path relative to chroot
                     &username, &username,

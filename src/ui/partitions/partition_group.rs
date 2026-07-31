@@ -1,12 +1,10 @@
 use crate::{
     format_size,
-    ui::{
-        partitions::{
-            partition::{Partition, PartitionInit, PartitionOut},
-            partition_model::CustomPartition,
-        },
-        util::{SizeType, represent},
+    ui::partitions::{
+        partition::{Partition, PartitionInit, PartitionOut},
+        partition_model::CustomPartition,
     },
+    utils::{SizeType, represent},
 };
 use gettextrs::gettext;
 use relm4::{adw::prelude::*, factory::*, *};
