@@ -1,4 +1,4 @@
-use crate::ui::{pages::base::BaseSeparator, window::AppMsg};
+use crate::ui::{templates::base::BaseSeparator, window::AppMsg};
 use crate::utils::report::ErrorPhase;
 use adw::prelude::*;
 use gettextrs::gettext;

@@ -1,7 +1,14 @@
+pub mod error;
+pub mod install;
+pub mod keyboard;
+pub mod list;
 pub mod new_partition_dialog;
-pub mod pages;
 pub mod partitions;
 pub mod quitdialog;
+pub mod summary;
 pub mod templates;
+pub mod timezone;
+pub mod user;
 pub mod util;
+pub mod welcome;
 pub mod window;

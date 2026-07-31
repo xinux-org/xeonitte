@@ -1,29 +1,20 @@
-use super::pages::{
-    error::ErrorModel,
-    install::{InstallModel, InstallMsg},
-    keyboard::{KeyboardModel, KeyboardMsg},
-    list::ListModel,
-    summary::{SummaryModel, SummaryMsg},
-    timezone::TimeZoneMsg,
-    user::UserModel,
-    welcome::WelcomeMsg,
-};
 use crate::{
     get_storage_size_for_disko,
     ui::{
-        pages::{
-            error::ErrorMsg,
-            install::INSTALL_BROKER,
-            list::{ListInit, ListMsg},
-            timezone::TimeZoneModel,
-            user::UserMsg,
-            welcome::WelcomeModel,
-        },
+        error::error_model::{ErrorModel, ErrorMsg},
+        install::install_model::{INSTALL_BROKER, InstallModel, InstallMsg},
+        keyboard::keyboard_model::{KeyboardModel, KeyboardMsg},
+        list::list_model::{ListInit, ListModel, ListMsg},
         partitions::partition_model::{
             CustomOptions, FullDiskOptions, PARTITION_BROKER, PartitionModel, PartitionMsg,
             PartitionSchema,
         },
         quitdialog::QuitDialogModel,
+        summary::summary_model::{SummaryModel, SummaryMsg},
+        timezone::timezone_model::{TimeZoneModel, TimeZoneMsg},
+        user::user_model::{UserModel, UserMsg},
+        welcome::welcome_model::WelcomeModel,
+        welcome::welcome_model::WelcomeMsg,
     },
     utils::{
         disko::{
@@ -465,14 +456,14 @@ impl Component for AppModel {
             carousel: adw::Carousel::new(),
             carouselpages: HashMap::new(),
             current_page: 0,
+            installworker,
             languageconfig: None,
             keyboardconfig: None,
             timezoneconfig: None,
             partitionconfig: None,
             userconfig: None,
-            installworker,
-            tracker: 0,
             diskoconfig: Devices::default(),
+            tracker: 0,
         };
 
         let main_carousel = &model.carousel;

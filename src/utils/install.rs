@@ -3,7 +3,7 @@ use super::report::ErrorPhase;
 use crate::{
     config::{LIBEXECDIR, SYSCONFDIR, TMPDIR},
     ui::{
-        pages::install::{INSTALL_BROKER, InstallMsg},
+        install::install_model::{INSTALL_BROKER, InstallMsg},
         partitions::partition_model::PartitionSchema,
         window::{AppMsg, UserConfig},
     },

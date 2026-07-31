@@ -1,4 +1,4 @@
-use crate::ui::pages::base::BaseSeparator;
+use crate::ui::templates::base::BaseSeparator;
 use crate::utils::report::ErrorPhase;
 use crate::{ui::window::AppMsg, utils::language::get_languages};
 use adw::prelude::*;
