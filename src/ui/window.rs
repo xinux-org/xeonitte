@@ -15,7 +15,7 @@ use crate::{
         pages::{
             error::ErrorMsg,
             install::INSTALL_BROKER,
-            install_mode::InstallModeModel,
+            install_mode::{InstallModeModel, InstallModeMsg},
             list::{ListInit, ListMsg},
             partitions::{CustomOptions, FullDiskOptions, PARTITION_BROKER, PartitionModel},
             timezone::TimeZoneModel,
@@ -366,6 +366,7 @@ impl Component for AppModel {
         let ten_millis = time::Duration::from_secs(1);
         thread::sleep(ten_millis);
         let config = parse_config().expect("Failed to parse config");
+        dbg!(&config);
         let welcomepage = WelcomeModel::builder()
             .launch(())
             .forward(sender.input_sender(), identity);
@@ -379,7 +380,7 @@ impl Component for AppModel {
             .forward(sender.input_sender(), identity);
         println!("Timezone page launched");
         let instal_mode_page = InstallModeModel::builder()
-            .launch(())
+            .launch(config.clone())
             .forward(sender.input_sender(), identity);
         println!("Timezone page launched");
         let partitionpage = PartitionModel::builder()
@@ -441,7 +442,7 @@ impl Component for AppModel {
             });
         }
 
-        let mut model = AppModel {
+        let model = AppModel {
             page: startpage,
             config,
             installconfig: None,
@@ -472,7 +473,17 @@ impl Component for AppModel {
             diskoconfig: canonical("/dev/sda".into()),
         };
 
-        sender.input(AppMsg::SetStackPageConfig(StackPage::Carousel, None, 0));
+        sender.input(AppMsg::SetStackPageConfig(
+            StackPage::Carousel,
+            model
+                .config
+                .choices
+                .iter()
+                .cloned()
+                .find(|x| x.config.config_id == "init")
+                .and_then(move |x| x.config.into()),
+            0,
+        ));
         let main_carousel = &model.carousel;
 
         // model.carousel.append(model.welcome.widget());
@@ -494,7 +505,7 @@ impl Component for AppModel {
                     .present(relm4::main_application().active_window().as_ref());
             }
             AppMsg::ChangePage(page) => {
-                trace!("AppMsg::ChangePage: {}", page);
+                dbg!("AppMsg::ChangePage: {}", page);
                 if self.current_page > page {
                     self.can_go_forward = true;
                 } else {
@@ -511,6 +522,9 @@ impl Component for AppModel {
                         }
                         StepType::Location => {
                             self.timezone.emit(TimeZoneMsg::CheckSelected);
+                        }
+                        StepType::InstallMode => {
+                            self.install_mode.emit(InstallModeMsg::CheckSelected);
                         }
                         StepType::Partitioning => {
                             self.partition.emit(PartitionMsg::CheckSelected);
@@ -596,6 +610,12 @@ impl Component for AppModel {
                                 self.carouselpages.insert(i, StepType::Location);
                                 i += 1;
                             }
+                            StepType::InstallMode => {
+                                trace!("Install Mode append");
+                                self.carousel.append(self.install_mode.widget());
+                                self.carouselpages.insert(i, StepType::InstallMode);
+                                i += 1;
+                            }
                             StepType::Partitioning => {
                                 trace!("Partitioning append");
                                 self.carousel.append(self.partition.widget());
@@ -668,20 +688,6 @@ impl Component for AppModel {
                             }
                         }
                     }
-                } else {
-                    trace!("Welcome append");
-                    self.carousel.append(self.welcome.widget());
-                    self.carouselpages.insert(i, StepType::Welcome);
-                    i += 1;
-
-                    trace!("Keyboard append");
-                    self.carousel.append(self.keyboard.widget());
-                    self.carouselpages.insert(i, StepType::Keyboard);
-                    i += 1;
-
-                    trace!("Timezone append");
-                    self.carousel.append(self.timezone.widget());
-                    self.carouselpages.insert(i, StepType::Location);
                 }
                 sender.input(AppMsg::ChangePage(0));
             }

@@ -1,14 +1,20 @@
 use crate::ui::window::{AppMsg, StackPage};
-use crate::utils::i18n::i18n_f;
-use crate::utils::parse::{ChoiceEnum, InstallationConfig, XeonitteConfig};
-use adw::prelude::*;
+use crate::utils::parse::{InstallationConfig, XeonitteConfig};
 use gettextrs::gettext;
 use gtk::prelude::{BoxExt, ButtonExt, OrientableExt, WidgetExt};
+use log::trace;
 use relm4::*;
 use relm4::{ComponentParts, ComponentSender, RelmWidgetExt, SimpleComponent, gtk};
 
 pub struct InstallModeModel {
     config: XeonitteConfig,
+    selected: Option<InstallationConfig>,
+}
+
+#[derive(Debug)]
+pub enum InstallModeMsg {
+    SetSelected(Option<InstallationConfig>),
+    CheckSelected,
 }
 
 #[derive(Debug)]
@@ -18,8 +24,8 @@ enum InstallModeOutput {
 
 #[relm4::component(pub)]
 impl SimpleComponent for InstallModeModel {
-    type Init = ();
-    type Input = ();
+    type Init = XeonitteConfig;
+    type Input = InstallModeMsg;
     type Output = AppMsg;
 
     view! {
@@ -48,90 +54,72 @@ impl SimpleComponent for InstallModeModel {
         sender: ComponentSender<Self>,
     ) -> ComponentParts<Self> {
         let model = InstallModeModel {
-            config: XeonitteConfig::default(),
+            config: init,
+            selected: None,
         };
         let selectbox = gtk::FlowBox::new();
         // Insert the macro code generation here
         let widgets = view_output!();
 
-        for item in &model.config.choices {
-            match item {
-                ChoiceEnum::Configuration { file: _, config } => {
-                    view! {
-                        button = gtk::Button {
-                            set_width_request: 200,
-                            set_height_request: 200,
+        model
+            .config
+            .choices
+            .iter()
+            .cloned()
+            .for_each(|configuration| {
+                let config = configuration.config;
+                view! {
+                    button = gtk::Button {
+                        set_width_request: 200,
+                        set_height_request: 200,
+                        set_halign: gtk::Align::Center,
+                        set_valign: gtk::Align::Center,
+                        connect_clicked[sender, config] => move |_| {
+                            sender.input(InstallModeMsg::SetSelected(Some(config.clone())))
+                        },
+                        gtk::Box {
+                            set_orientation: gtk::Orientation::Vertical,
                             set_halign: gtk::Align::Center,
                             set_valign: gtk::Align::Center,
-                            connect_clicked[sender, config] => move |_| {
-                                sender.output(AppMsg::SetStackPageConfig(StackPage::Carousel, Some(config.clone()), 0)).unwrap();
-                            },
-                            gtk::Box {
-                                set_orientation: gtk::Orientation::Vertical,
+                            set_spacing: 10,
+                            set_margin_all: 10,
+                            gtk::Image {
+                                set_icon_name: Some(&config.config_logo),
+                                set_pixel_size: 80,
                                 set_halign: gtk::Align::Center,
                                 set_valign: gtk::Align::Center,
-                                set_spacing: 10,
-                                set_margin_all: 10,
-                                gtk::Image {
-                                    set_icon_name: Some(&config.config_logo),
-                                    set_pixel_size: 80,
-                                    set_halign: gtk::Align::Center,
-                                    set_valign: gtk::Align::Center,
-                                },
-                                gtk::Label {
-                                    set_label: &gettext(&config.config_name),
-                                    set_halign: gtk::Align::Center,
-                                    set_valign: gtk::Align::Center,
-                                    set_wrap: true,
-                                    set_justify: gtk::Justification::Center,
-                                }
+                            },
+                            gtk::Label {
+                                set_label: &gettext(&config.config_name),
+                                set_halign: gtk::Align::Center,
+                                set_valign: gtk::Align::Center,
+                                set_wrap: true,
+                                set_justify: gtk::Justification::Center,
                             }
                         }
                     }
-                    selectbox.append(&button);
                 }
-                ChoiceEnum::Live => {
-                    view! {
-                        button = gtk::Button {
-                            set_width_request: 200,
-                            set_height_request: 200,
-                            set_halign: gtk::Align::Center,
-                            set_valign: gtk::Align::Center,
-                            connect_clicked => move |_| {
-                                relm4::main_application().quit();
-                            },
-                            gtk::Box {
-                                set_orientation: gtk::Orientation::Vertical,
-                                set_halign: gtk::Align::Center,
-                                set_valign: gtk::Align::Center,
-                                set_spacing: 10,
-                                set_margin_all: 10,
-                                gtk::Image {
-                                    set_icon_name: Some("preferences-desktop-display-symbolic"),
-                                    set_pixel_size: 80,
-                                    set_halign: gtk::Align::Center,
-                                    set_valign: gtk::Align::Center,
-                                },
-                                gtk::Label {
-                                    // Translators: Do NOT translate the '{}'
-                                    // The string reads "Try {distribution name} live"
-                                    set_label: i18n_f("Try {} live", &[&model.config.distribution_name]).as_str(),
-                                    set_halign: gtk::Align::Center,
-                                    set_valign: gtk::Align::Center,
-                                    set_wrap: true,
-                                    set_justify: gtk::Justification::Center,
-                                }
-                            }
-
-                        }
-                    }
-                    selectbox.append(&button);
-                }
-            }
-        }
-
+                selectbox.append(&button);
+            });
         ComponentParts { model, widgets }
     }
 
-    // fn update(&mut self, _msg: Self::Input, _sender: ComponentSender<Self>) {}
+    fn update(&mut self, msg: Self::Input, sender: ComponentSender<Self>) {
+        match msg {
+            InstallModeMsg::SetSelected(mode) => {
+                self.selected = mode;
+                sender
+                    .output(AppMsg::SetStackPageConfig(
+                        StackPage::Carousel,
+                        self.selected.clone(),
+                        0,
+                    ))
+                    .unwrap();
+            }
+            InstallModeMsg::CheckSelected => {
+                dbg!("WelcomeMsg::CheckSelected {}", self.selected.is_some());
+                let _ = sender.output(AppMsg::SetCanGoForward(self.selected.is_some()));
+            }
+        }
+    }
 }

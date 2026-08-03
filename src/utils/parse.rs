@@ -10,18 +10,15 @@ pub struct XeonitteConfig {
     pub branding: String,
     pub internet_check_url: String,
     pub default_hostname: String,
-    pub choices: Vec<ChoiceEnum>,
+    pub choices: Vec<Configuration>,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "lowercase")]
-pub enum ChoiceEnum {
-    Configuration {
-        file: String,
-        #[serde(skip)]
-        config: InstallationConfig,
-    },
-    Live,
+pub struct Configuration {
+    pub file: String,
+    #[serde(skip)]
+    pub config: InstallationConfig,
 }
 
 #[derive(Deserialize, Serialize, Default, Clone, Debug, PartialEq, Eq)]
@@ -52,6 +49,8 @@ pub enum StepType {
     Welcome,
     Location,
     Keyboard,
+    #[serde(rename = "install_mode")]
+    InstallMode,
     User {
         root: Option<bool>,
         hostname: Option<bool>,
@@ -80,13 +79,9 @@ pub fn parse_config() -> Result<XeonitteConfig> {
     let f = fs::read_to_string(&format!("{}/xeonitte/config.yml", SYSCONFDIR))?;
     let mut config: XeonitteConfig = serde_yaml::from_str(&f)?;
     for choice in &mut config.choices {
-        match choice {
-            ChoiceEnum::Configuration { file, config } => {
-                let f = fs::read_to_string(&format!("{}/xeonitte/{}", SYSCONFDIR, file))?;
-                *config = serde_yaml::from_str(&f)?;
-            }
-            ChoiceEnum::Live => {}
-        }
+        let Configuration { file, config } = choice;
+        let f = fs::read_to_string(&format!("{}/xeonitte/{}", SYSCONFDIR, file))?;
+        *config = serde_yaml::from_str(&f)?;
     }
     Ok(config)
 }
