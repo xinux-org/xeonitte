@@ -108,6 +108,7 @@ impl SimpleComponent for InstallModeModel {
         match msg {
             InstallModeMsg::SetSelected(mode) => {
                 self.selected = mode;
+                println!("AXAXAXAXA: {:?}", &self.selected);
                 sender
                     .output(AppMsg::SetStackPageConfig(
                         StackPage::Carousel,

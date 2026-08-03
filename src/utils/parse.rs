@@ -43,7 +43,7 @@ pub struct InstallationConfig {
     pub commands: Vec<String>,
 }
 
-#[derive(Deserialize, Serialize, Clone, Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum StepType {
     Welcome,
@@ -67,7 +67,7 @@ pub enum StepType {
     Summary,
 }
 
-#[derive(Deserialize, Serialize, Clone, Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug, PartialEq)]
 pub struct Choice {
     pub description: Option<String>,
     pub packages: Option<Vec<String>>,

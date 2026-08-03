@@ -366,7 +366,6 @@ impl Component for AppModel {
         let ten_millis = time::Duration::from_secs(1);
         thread::sleep(ten_millis);
         let config = parse_config().expect("Failed to parse config");
-        dbg!(&config);
         let welcomepage = WelcomeModel::builder()
             .launch(())
             .forward(sender.input_sender(), identity);
@@ -506,6 +505,7 @@ impl Component for AppModel {
             }
             AppMsg::ChangePage(page) => {
                 dbg!("AppMsg::ChangePage: {}", page);
+                dbg!(self.current_page);
                 if self.current_page > page {
                     self.can_go_forward = true;
                 } else {
@@ -590,9 +590,33 @@ impl Component for AppModel {
 
                 let mut i = index;
                 if let Some(cfg) = &self.installconfig {
-                    for step in &cfg.steps {
+                    // let steps: Vec<StepType> = self
+                    //     .carouselpages
+                    //     .iter()
+                    //     .filter(|page| !cfg.steps.contains(page.1))
+                    //     .map(|page| page.1.clone())
+                    //     .collect();
+                    let steps: Vec<&StepType> = cfg
+                        .steps
+                        .iter()
+                        .filter(|step| {
+                            !self
+                                .carouselpages
+                                .values()
+                                .collect::<Vec<&StepType>>()
+                                .contains(step)
+                        })
+                        .collect();
+                    dbg!("STEPS:", &steps);
+                    for step in &steps {
                         match step {
                             StepType::Welcome => {
+                                if self
+                                    .carouselpages
+                                    .values()
+                                    .find(|x| **x == StepType::Welcome)
+                                    .is_none()
+                                {}
                                 trace!("Welcome append");
                                 self.carousel.append(self.welcome.widget());
                                 self.carouselpages.insert(i, StepType::Welcome);
