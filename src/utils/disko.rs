@@ -574,7 +574,6 @@ pub fn canonical(device: String) -> Devices {
     Devices { disk }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -583,11 +582,7 @@ mod tests {
     fn test_add() {
         let res = canonical("sda1".to_string());
         let luksed = luks_encrypted("sda1".to_string(), LUKS_PASSWORD_FILE);
-        let nixed = res.to_nix_devices();
-        let nixe = res.to_nix_module();
-        dbg!("RES: ", res);
-        println!("NIXED: {:#?}", nixed);
-        println!("NIXE: {:#?}", nixe);
+
         println!("LUKSED: {:#?}", luksed);
         println!("TEST");
     }

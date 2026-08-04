@@ -107,18 +107,33 @@ impl SimpleComponent for InstallModeModel {
     fn update(&mut self, msg: Self::Input, sender: ComponentSender<Self>) {
         match msg {
             InstallModeMsg::SetSelected(mode) => {
-                self.selected = mode;
-                println!("AXAXAXAXA: {:?}", &self.selected);
+                self.selected = mode.clone();
+                let init_steps_len = self
+                    .config
+                    .get_installation_config("init")
+                    .unwrap_or_default()
+                    .steps
+                    .len();
+                let page_start_index = mode
+                    .as_ref()
+                    .and_then(|x| {
+                        x.config_id
+                            .ne("init")
+                            .then_some(init_steps_len.ne(&0).then_some(init_steps_len + 1))
+                    })
+                    .flatten()
+                    .unwrap_or_default();
+                dbg!(page_start_index);
                 sender
                     .output(AppMsg::SetStackPageConfig(
                         StackPage::Carousel,
-                        self.selected.clone(),
-                        0,
+                        mode,
+                        page_start_index,
                     ))
                     .unwrap();
             }
             InstallModeMsg::CheckSelected => {
-                dbg!("WelcomeMsg::CheckSelected {}", self.selected.is_some());
+                trace!("WelcomeMsg::CheckSelected {}", self.selected.is_some());
                 let _ = sender.output(AppMsg::SetCanGoForward(self.selected.is_some()));
             }
         }

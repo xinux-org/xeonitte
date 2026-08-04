@@ -15,9 +15,8 @@ use size::Size;
 use std::{
     collections::HashMap,
     convert::identity,
-    ops::{AddAssign, Sub, SubAssign},
+    ops::{AddAssign, SubAssign},
     process::Command,
-    str::FromStr,
 };
 
 pub struct PartitionModel {

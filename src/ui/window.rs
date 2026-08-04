@@ -44,6 +44,7 @@ use size::Size;
 use std::{
     collections::{BTreeMap, HashMap},
     convert::identity,
+    ops::Not,
     process::Command,
     thread, time,
 };
@@ -84,7 +85,7 @@ pub struct AppModel {
     can_go_forward: bool,
     carousel: adw::Carousel,
     #[tracker::no_eq]
-    carouselpages: HashMap<usize, StepType>,
+    carouselpages: Vec<StepType>,
     current_page: u32,
 
     languageconfig: Option<String>,
@@ -460,7 +461,7 @@ impl Component for AppModel {
             can_go_back: true,
             can_go_forward: true,
             carousel: adw::Carousel::new(),
-            carouselpages: HashMap::new(),
+            carouselpages: Vec::new(),
             current_page: 0,
             languageconfig: None,
             keyboardconfig: None,
@@ -504,15 +505,14 @@ impl Component for AppModel {
                     .present(relm4::main_application().active_window().as_ref());
             }
             AppMsg::ChangePage(page) => {
-                dbg!("AppMsg::ChangePage: {}", page);
-                dbg!(self.current_page);
+                trace!("AppMsg::ChangePage: {}", page);
                 if self.current_page > page {
                     self.can_go_forward = true;
                 } else {
                     self.can_go_forward = false;
                 }
 
-                if let Some(data) = self.carouselpages.get(&(page as usize)) {
+                if let Some(data) = self.carouselpages.get(page as usize) {
                     match data {
                         StepType::Welcome => {
                             self.welcome.emit(WelcomeMsg::CheckSelected);
@@ -583,79 +583,96 @@ impl Component for AppModel {
                 }
             }
             AppMsg::SetStackPageConfig(page, installconfig, index) => {
-                debug!("StackPage: {:?}", page);
-                debug!("Config: {:?}", installconfig);
+                trace!("StackPage: {:?}", page);
+                trace!("Config: {:?}", installconfig);
+                println!(
+                    "+++++++++++++++++++++++++++++++++++{}+++++++++++++++++++++++++++++++++++++++++++++++++++++++++",
+                    installconfig.clone().unwrap().config_id
+                );
+                dbg!(index);
+
                 self.page = page;
                 self.installconfig = installconfig;
 
-                let mut i = index;
+                // remove already existing pages to make switch: advanced -> basic available
+                // let mut keys: Vec<usize> = self.carouselpages.keys().cloned().collect();
+                // keys.sort_by(|x, y| x.cmp(y));
+                // if !&self.carouselpages.is_empty() {
+                //     keys.iter().for_each(|k| {
+                //         k.gt(&(index)).then(|| self.carouselpages.remove(&k));
+                //     });
+                // }
+                // let keys_after: Vec<usize> = self.carouselpages.keys().cloned().collect();
+                self.carouselpages = self.carouselpages.iter().cloned().take(index).collect();
+                let len = self.carouselpages.len();
+                for i in index..len {
+                    let page = self.carousel.nth_page(i as u32);
+                    self.carousel.remove(&page);
+                }
+
+                // self.carouselpages
+                //     .clone()
+                //     .iter()
+                //     .enumerate()
+                //     .rev()
+                //     .for_each(|(i, _)| {
+                //         println!(
+                //             "============================INDEX: {}, LEN: {}",
+                //             i,
+                //             self.carouselpages.clone().len()
+                //         );
+                //         index.gt(&i).then(|| self.carouselpages.remove(i));
+                //     });
+
+                let carouselpages_before = self.carouselpages.clone();
+                dbg!(carouselpages_before);
+
                 if let Some(cfg) = &self.installconfig {
-                    // let steps: Vec<StepType> = self
-                    //     .carouselpages
-                    //     .iter()
-                    //     .filter(|page| !cfg.steps.contains(page.1))
-                    //     .map(|page| page.1.clone())
-                    //     .collect();
                     let steps: Vec<&StepType> = cfg
                         .steps
                         .iter()
-                        .filter(|step| {
-                            !self
-                                .carouselpages
-                                .values()
-                                .collect::<Vec<&StepType>>()
-                                .contains(step)
-                        })
+                        .filter(|step| !self.carouselpages.contains(step))
                         .collect();
-                    dbg!("STEPS:", &steps);
                     for step in &steps {
                         match step {
                             StepType::Welcome => {
                                 if self
                                     .carouselpages
-                                    .values()
+                                    .iter()
                                     .find(|x| **x == StepType::Welcome)
                                     .is_none()
                                 {}
                                 trace!("Welcome append");
                                 self.carousel.append(self.welcome.widget());
-                                self.carouselpages.insert(i, StepType::Welcome);
-                                i += 1;
+                                self.carouselpages.push(StepType::Welcome);
                             }
                             StepType::Keyboard => {
                                 trace!("Keyboard append");
                                 self.carousel.append(self.keyboard.widget());
-                                self.carouselpages.insert(i, StepType::Keyboard);
-                                i += 1;
+                                self.carouselpages.push(StepType::Keyboard);
                             }
                             StepType::Location => {
                                 trace!("Timezone append");
                                 self.carousel.append(self.timezone.widget());
-                                self.carouselpages.insert(i, StepType::Location);
-                                i += 1;
+                                self.carouselpages.push(StepType::Location);
                             }
                             StepType::InstallMode => {
                                 trace!("Install Mode append");
                                 self.carousel.append(self.install_mode.widget());
-                                self.carouselpages.insert(i, StepType::InstallMode);
-                                i += 1;
+                                self.carouselpages.push(StepType::InstallMode);
                             }
                             StepType::Partitioning => {
                                 trace!("Partitioning append");
                                 self.carousel.append(self.partition.widget());
-                                self.carouselpages.insert(i, StepType::Partitioning);
-                                i += 1;
+                                self.carouselpages.push(StepType::Partitioning);
                             }
                             StepType::User { root, hostname } => {
                                 trace!("User append");
                                 self.carousel.append(self.user.widget());
-                                self.carouselpages.insert(
-                                    i,
-                                    StepType::User {
-                                        root: *root,
-                                        hostname: *hostname,
-                                    },
-                                );
+                                self.carouselpages.push(StepType::User {
+                                    root: *root,
+                                    hostname: *hostname,
+                                });
                                 self.user.emit(UserMsg::SetConfig(
                                     if let Some(root) = root { *root } else { false },
                                     if let Some(hostname) = hostname {
@@ -667,13 +684,11 @@ impl Component for AppModel {
                                 ));
                                 self.summary
                                     .emit(SummaryMsg::ShowHostname(hostname.unwrap_or(false)));
-                                i += 1;
                             }
                             StepType::Summary => {
                                 trace!("Summary append");
                                 self.carousel.append(self.summary.widget());
-                                self.carouselpages.insert(i, StepType::Summary);
-                                i += 1;
+                                self.carouselpages.push(StepType::Summary);
                             }
                             StepType::List {
                                 id,
@@ -694,18 +709,14 @@ impl Component for AppModel {
                                     .forward(sender.input_sender(), identity);
                                 self.carousel.append(listpage.widget());
                                 self.list.insert(title.to_string(), listpage);
-                                self.carouselpages.insert(
-                                    i,
-                                    StepType::List {
-                                        id: id.to_string(),
-                                        multiple: *multiple,
-                                        required: *required,
-                                        title: title.to_string(),
-                                        choices: choices.clone(),
-                                    },
-                                );
+                                self.carouselpages.push(StepType::List {
+                                    id: id.to_string(),
+                                    multiple: *multiple,
+                                    required: *required,
+                                    title: title.to_string(),
+                                    choices: choices.clone(),
+                                });
                                 self.listconfig.insert(id.to_string(), HashMap::new());
-                                i += 1;
                             }
                             _ => {
                                 warn!("Unimplemented step: {:?}", step);
@@ -713,6 +724,9 @@ impl Component for AppModel {
                         }
                     }
                 }
+
+                let carouselpages_after = self.carouselpages.clone();
+                dbg!(carouselpages_after);
                 sender.input(AppMsg::ChangePage(0));
             }
             AppMsg::SetLanguageConfig(language) => {

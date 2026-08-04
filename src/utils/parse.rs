@@ -12,6 +12,14 @@ pub struct XeonitteConfig {
     pub default_hostname: String,
     pub choices: Vec<Configuration>,
 }
+impl XeonitteConfig {
+    pub fn get_installation_config(&self, id: &str) -> Option<InstallationConfig> {
+        self.choices
+            .iter()
+            .find(|c| c.config.config_id.eq(id))
+            .and_then(|x| x.config.clone().into())
+    }
+}
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "lowercase")]
