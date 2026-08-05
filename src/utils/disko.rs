@@ -15,12 +15,15 @@ pub struct Devices {
 }
 
 impl Devices {
-    pub fn to_json(&self) -> String {
-        serde_json::to_string_pretty(self).expect("Devices serialization is total")
+    pub fn to_json(&self) -> Result<String, serde_json::Error> {
+        serde_json::to_string_pretty(self)
     }
 
     pub fn to_nix_devices(&self) -> String {
-        let v = serde_json::to_value(self).expect("total");
+        let v = serde_json::to_value(self).unwrap_or_else(|e| {
+            eprintln!("Can't convert to nix code: {:?}", e);
+            serde_json::Value::Object(serde_json::Map::new())
+        });
         nix::render(&v, 0)
     }
 
@@ -124,10 +127,11 @@ pub struct Partition {
     pub content: Option<PartitionContent>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub enum FsFormat {
     Ext2,
     Ext3,
+    #[default]
     Ext4,
     Vfat,
     Xfs,
@@ -164,12 +168,6 @@ impl FsFormat {
         vec![
             "ext2", "ext3", "ext4", "vfat", "xfs", "btrfs", "f2fs", "bcachefs", "exfat", "ntfs",
         ]
-    }
-}
-
-impl Default for FsFormat {
-    fn default() -> Self {
-        FsFormat::Ext4
     }
 }
 
@@ -314,9 +312,9 @@ impl From<String> for NixValue {
     }
 }
 
-pub fn to_nix<T: Serialize>(value: &T) -> String {
-    let v = serde_json::to_value(value).expect("serialization is total");
-    nix::render(&v, 0)
+pub fn to_nix<T: Serialize>(value: &T) -> Result<String, serde_json::Error> {
+    let v = serde_json::to_value(value)?;
+    Ok(nix::render(&v, 0))
 }
 
 mod nix {
@@ -407,35 +405,40 @@ fn indent(s: &str, levels: usize) -> String {
     }
 }
 
+fn get_swap(device: &str) -> Option<String> {
+    let storage_size: Option<u64> = get_storage_size(device, 512);
+    let memory_size = get_memory_size();
+
+    match (storage_size, memory_size) {
+        (Some(256_000..), Some(memory_size)) => {
+            Some(get_storage_size_for_disko(Size::from_kib(memory_size)))
+        }
+        (Some(128_000..256_000), _) => Some(get_storage_size_for_disko(Size::from_gigabytes(8))),
+        (Some(64_000..128_000), _) => Some(get_storage_size_for_disko(Size::from_gigabytes(4))),
+        _ => None,
+    }
+}
+
 // nix version: https://gist.github.com/lambdajon/1946c9585c997a2615f5386a5f222c6f
 pub fn luks_encrypted(device: String, password_file: impl Into<String>) -> Devices {
     // Shared by the swap and LUKS containers
     let password_file = password_file.into();
     let mut partitions = Attrs::new();
-    let storage_size: Option<u64> = get_storage_size(&device, 512);
-    let memory_size = get_memory_size();
-    let swap_size: Option<String> = match (storage_size, memory_size) {
-        (Some(256_000..), Some(memory_size)) => Some(get_storage_size_for_disko(
-            Size::from_kib(memory_size).bytes() as u64,
-        )),
-        (Some(128_000..256_000), _) => Some(get_storage_size_for_disko(
-            Size::from_gigabytes(8).bytes() as u64,
-        )),
-        (Some(64_000..128_000), _) => Some(get_storage_size_for_disko(
-            Size::from_gigabytes(4).bytes() as u64,
-        )),
-        _ => None,
-    };
-
-    println!("storage size: {:?}", storage_size);
-    println!("memory size: {:?}", memory_size);
-    println!("swap size: {:?}", swap_size);
+    let swap_size = get_swap(&device);
 
     partitions.insert(
         "BOOT".into(),
         Partition {
+            type_code: Some("EF02".into()),
+            size: Some("1M".into()),
+            ..Default::default()
+        },
+    );
+    partitions.insert(
+        "ESP".into(),
+        Partition {
             type_code: Some("EF00".into()),
-            size: Some("1000M".into()),
+            size: Some("2G".into()),
             content: Some(PartitionContent::Filesystem(Filesystem {
                 format: "vfat".into(),
                 mountpoint: Some("/boot".into()),
@@ -469,14 +472,13 @@ pub fn luks_encrypted(device: String, password_file: impl Into<String>) -> Devic
             },
         );
     }
-
     partitions.insert(
         "luks".into(),
         Partition {
             size: Some("100%".into()),
             content: Some(PartitionContent::Luks(Luks {
                 name: "crypted".into(),
-                password_file: Some(password_file.into()),
+                password_file: Some(password_file),
                 settings: luks_settings,
                 content: Some(Box::new(DeviceContent::Filesystem(Filesystem {
                     format: "ext4".into(),
@@ -493,7 +495,7 @@ pub fn luks_encrypted(device: String, password_file: impl Into<String>) -> Devic
     disk.insert(
         "main".into(),
         Disk {
-            device: device,
+            device,
             content: Some(DeviceContent::Gpt(Gpt {
                 partitions,
                 ..Default::default()
@@ -502,34 +504,26 @@ pub fn luks_encrypted(device: String, password_file: impl Into<String>) -> Devic
         },
     );
 
-    Devices {
-        disk,
-        ..Default::default()
-    }
+    Devices { disk }
 }
 
 pub fn canonical(device: String) -> Devices {
     let mut partitions = Attrs::new();
+    let swap_size = get_swap(&device);
 
-    let storage_size: Option<u64> = get_storage_size(&device, 512);
-    let memory_size = get_memory_size();
-    let swap_size: Option<String> = match (storage_size, memory_size) {
-        (Some(256_000..), Some(memory_size)) => Some(get_storage_size_for_disko(
-            Size::from_kib(memory_size).bytes() as u64,
-        )),
-        (Some(128_000..256_000), _) => Some(get_storage_size_for_disko(
-            Size::from_gigabytes(8).bytes() as u64,
-        )),
-        (Some(64_000..128_000), _) => Some(get_storage_size_for_disko(
-            Size::from_gigabytes(4).bytes() as u64,
-        )),
-        _ => None,
-    };
+    partitions.insert(
+        "BOOT".into(),
+        Partition {
+            type_code: Some("EF02".into()),
+            size: Some("1M".into()),
+            ..Default::default()
+        },
+    );
     partitions.insert(
         "ESP".into(),
         Partition {
             type_code: Some("EF00".into()),
-            size: Some("512M".into()),
+            size: Some("2G".into()),
             content: Some(PartitionContent::Filesystem(Filesystem {
                 format: "vfat".into(),
                 mountpoint: Some("/boot".into()),
@@ -539,7 +533,6 @@ pub fn canonical(device: String) -> Devices {
             ..Default::default()
         },
     );
-
     if swap_size.is_some() {
         partitions.insert(
             "swap".into(),
@@ -570,7 +563,7 @@ pub fn canonical(device: String) -> Devices {
     disk.insert(
         "main".into(),
         Disk {
-            device: device,
+            device,
             content: Some(DeviceContent::Gpt(Gpt {
                 partitions,
                 ..Default::default()
@@ -578,8 +571,24 @@ pub fn canonical(device: String) -> Devices {
             ..Default::default()
         },
     );
-    Devices {
-        disk,
-        ..Default::default()
+    Devices { disk }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_add() {
+        let res = canonical("sda1".to_string());
+        let luksed = luks_encrypted("sda1".to_string(), LUKS_PASSWORD_FILE);
+        let nixed = res.to_nix_devices();
+        let nixe = res.to_nix_module();
+        dbg!("RES: ", res);
+        println!("NIXED: {:#?}", nixed);
+        println!("NIXE: {:#?}", nixe);
+        println!("LUKSED: {:#?}", luksed);
+        println!("TEST");
     }
 }

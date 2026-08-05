@@ -25,7 +25,6 @@
   rustPlatform,
   vte-gtk4,
   wrapGAppsHook4,
-  cryptsetup,
   util-linux,
   dosfstools,
   e2fsprogs,
@@ -37,6 +36,8 @@
   deadnix,
   nixfmt,
   polkit,
+  just,
+  bacon,
   ...
 }:
 mkShell {
@@ -65,7 +66,6 @@ mkShell {
     rustPlatform.bindgenHook
     vte-gtk4
     wrapGAppsHook4
-    cryptsetup
     util-linux
     dosfstools
     e2fsprogs
@@ -76,6 +76,8 @@ mkShell {
     statix
     deadnix
     nixfmt
+    just
+    bacon
   ];
 
   # Set Environment Variables

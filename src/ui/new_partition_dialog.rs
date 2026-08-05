@@ -2,6 +2,7 @@ use relm4::{ComponentParts, ComponentSender, RelmWidgetExt, css};
 use relm4::{adw, adw::prelude::*, gtk};
 
 pub struct NewPartitionDialog {
+    #[allow(unused)]
     device: String,
     parent: gtk::Widget,
 }

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-30 14:34+0500\n"
+"POT-Creation-Date: 2026-07-29 20:38+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,7 +29,7 @@ msgstr ""
 msgid "Installer;Xeonitte;"
 msgstr ""
 
-#: data/org.xinux.Xeonitte.metainfo.xml.in.in:6 src/main.rs:30
+#: data/org.xinux.Xeonitte.metainfo.xml.in.in:6 src/main.rs:32
 msgid "Xeonitte Installer"
 msgstr ""
 
@@ -46,33 +46,33 @@ msgstr ""
 msgid "Authentication is required to install operating system"
 msgstr ""
 
-#: src/ui/pages/error.rs:51
+#: src/ui/pages/error.rs:55
 msgid "Installation Failed!"
 msgstr ""
 
-#: src/ui/pages/error.rs:82
+#: src/ui/pages/error.rs:86
 msgid "Upload Report"
 msgstr ""
 
-#: src/ui/pages/error.rs:100
+#: src/ui/pages/error.rs:104
 msgid "Open Report"
 msgstr ""
 
-#: src/ui/pages/keyboard.rs:52
+#: src/ui/pages/keyboard.rs:53
 msgid "Keyboard Layout"
 msgstr ""
 
-#: src/ui/pages/keyboard.rs:60
+#: src/ui/pages/keyboard.rs:61
 msgid "Test the Keyboard Layout"
 msgstr ""
 
-#: src/ui/pages/keyboard.rs:85 src/ui/pages/timezone.rs:77
-#: src/ui/pages/welcome.rs:76
+#: src/ui/pages/keyboard.rs:99 src/ui/pages/timezone.rs:91
+#: src/ui/pages/welcome.rs:101
 msgid "Show less"
 msgstr ""
 
-#: src/ui/pages/keyboard.rs:85 src/ui/pages/timezone.rs:77
-#: src/ui/pages/welcome.rs:76
+#: src/ui/pages/keyboard.rs:99 src/ui/pages/timezone.rs:91
+#: src/ui/pages/welcome.rs:101
 msgid "Show all"
 msgstr ""
 
@@ -80,112 +80,132 @@ msgstr ""
 msgid "Clear"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:115
+#: src/ui/pages/partitions.rs:121
 msgid "Select a disk"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:120
+#: src/ui/pages/partitions.rs:126
 msgid "Disk will be formatted and all data will be lost"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:142
+#: src/ui/pages/partitions.rs:144
 msgid "Advanced"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:157 src/ui/pages/partitions.rs:265
+#: src/ui/pages/partitions.rs:159 src/ui/pages/partitions.rs:264
 msgid "Refresh"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:167
+#: src/ui/pages/partitions.rs:169
 msgid "Select partitions"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:214
+#: src/ui/pages/partitions.rs:216
 msgid "Ready to install!"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:216
+#: src/ui/pages/partitions.rs:218
 msgid "Missing <tt>/boot</tt> partition"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:218 src/ui/pages/partitions.rs:226
+#: src/ui/pages/partitions.rs:220 src/ui/pages/partitions.rs:228
 msgid "Missing <tt>/</tt> partition"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:220 src/ui/pages/partitions.rs:224
+#: src/ui/pages/partitions.rs:222 src/ui/pages/partitions.rs:226
 msgid "Missing <tt>/</tt> and <tt>/boot</tt> partitions"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:250
+#: src/ui/pages/partitions.rs:249
 msgid "Basic"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:826
+#: src/ui/pages/partitions.rs:887
 msgid "Format"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:847 src/ui/pages/partitions.rs:866
+#: src/ui/pages/partitions.rs:908 src/ui/pages/partitions.rs:952
 msgid "Mount"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:876
+#: src/ui/pages/partitions.rs:939 src/ui/pages/partitions.rs:1080
+msgid "Custom mount point"
+msgstr ""
+
+#: src/ui/pages/partitions.rs:962
 msgid "Encrypt"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:878
+#: src/ui/pages/partitions.rs:964
 msgid "Encrypt this partition with LUKS"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:892
+#: src/ui/pages/partitions.rs:980
 msgid "Delete"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:913 src/ui/pages/summary.rs:321
+#: src/ui/pages/partitions.rs:995 src/ui/pages/summary.rs:321
 msgid "Do not mount"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:914
+#: src/ui/pages/partitions.rs:1008
 msgid "Leave as is"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:1021
+#: src/ui/pages/partitions.rs:1075
+msgid "Mount point exists"
+msgstr ""
+
+#: src/ui/pages/partitions.rs:1173
 msgid "Total"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:1034
+#: src/ui/pages/partitions.rs:1187
 msgid "Free"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:1110
+#: src/ui/pages/partitions.rs:1239
+msgid "Free space"
+msgstr ""
+
+#: src/ui/pages/partitions.rs:1258
 msgid "Enter the new partition size"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:1391
+#: src/ui/pages/partitions.rs:1560
 msgid "Encryption"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:1394
+#: src/ui/pages/partitions.rs:1565
 msgid "Enable Disk Encryption"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:1396
+#: src/ui/pages/partitions.rs:1567
 msgid "Encrypt your disk with LUKS"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:1405
+#: src/ui/pages/partitions.rs:1576
 msgid "Encryption Password"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:1414 src/ui/pages/user.rs:118
+#: src/ui/pages/partitions.rs:1585 src/ui/pages/user.rs:118
 msgid "Confirm Password"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:1425
+#: src/ui/pages/partitions.rs:1596
 msgid "Passwords do not match"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:1432
+#: src/ui/pages/partitions.rs:1603
 msgid "Password is required"
+msgstr ""
+
+#: src/ui/pages/partitions.rs:1665
+msgid "Hibernation"
+msgstr ""
+
+#: src/ui/pages/partitions.rs:1668
+msgid "Enable Hibernation"
 msgstr ""
 
 #: src/ui/pages/summary.rs:58
@@ -200,7 +220,7 @@ msgstr ""
 msgid "Keyboard"
 msgstr ""
 
-#: src/ui/pages/summary.rs:85 src/ui/pages/timezone.rs:52
+#: src/ui/pages/summary.rs:85 src/ui/pages/timezone.rs:53
 msgid "Timezone"
 msgstr ""
 
@@ -265,38 +285,38 @@ msgstr ""
 msgid "Confirm root password"
 msgstr ""
 
-#: src/ui/pages/welcome.rs:42
+#: src/ui/pages/welcome.rs:43
 msgid "Welcome!"
 msgstr ""
 
-#: src/ui/pages/welcome.rs:47
+#: src/ui/pages/welcome.rs:48
 msgid "Choose a language"
 msgstr ""
 
-#: src/ui/window.rs:207
+#: src/ui/window.rs:217
 msgid "Installing…"
 msgstr ""
 
-#: src/ui/window.rs:213
+#: src/ui/window.rs:223
 msgid "Installation Finished"
 msgstr ""
 
-#: src/ui/window.rs:219
+#: src/ui/window.rs:229
 msgid "Installation Failed"
 msgstr ""
 
-#: src/ui/window.rs:330
+#: src/ui/window.rs:340
 msgid "Finished!"
 msgstr ""
 
-#: src/ui/window.rs:343
+#: src/ui/window.rs:353
 msgid "Reboot"
 msgstr ""
 
-#: src/ui/window.rs:359
+#: src/ui/window.rs:369
 msgid "No Internet"
 msgstr ""
 
-#: src/ui/window.rs:360
+#: src/ui/window.rs:370
 msgid "Please connect to the Internet to continue"
 msgstr ""

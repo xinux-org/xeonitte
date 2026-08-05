@@ -31,7 +31,7 @@
 
       channels-config.allowUnfree = true;
       systems.modules.nixos = with inputs; [
-        inputs.disko.nixosModules.disko
+        disko.nixosModules.disko
         nix-data.nixosModules.nix-data
         @BOOTLOADER_MODULE@
         xinux-modules.nixosModules.meta

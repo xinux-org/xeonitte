@@ -3,10 +3,8 @@ use super::report::ErrorPhase;
 use crate::{
     config::{LIBEXECDIR, SYSCONFDIR, TMPDIR},
     ui::{
-        pages::{
-            install::{INSTALL_BROKER, InstallMsg},
-            partitions::PartitionSchema,
-        },
+        install::install_model::{INSTALL_BROKER, InstallMsg},
+        partitions::partition_model::PartitionSchema,
         window::{AppMsg, UserConfig},
     },
     utils::disko::{Devices, LUKS_PASSWORD_FILE},
@@ -104,6 +102,9 @@ impl Worker for InstallAsyncModel {
 
                 // Step 0: Clear TMPDIR
                 info!("Step 0: Clear {}", TMPDIR);
+                INSTALL_BROKER.send(InstallMsg::ProgressbarTitle(
+                    "Step 0: clearing up /nix/var/nix/builds/xeonitte folder".to_string(),
+                ));
                 fn clear() -> Result<()> {
                     Command::new("pkexec")
                         .arg("umount")
@@ -141,6 +142,9 @@ impl Worker for InstallAsyncModel {
                 };
 
                 info!("Step 2: Generate base config");
+                INSTALL_BROKER.send(InstallMsg::ProgressbarTitle(
+                    "Step 2: Generate base config".to_string(),
+                ));
                 if let Err(e) = Command::new("pkexec")
                     .arg("nixos-generate-config")
                     .arg("--root")
@@ -203,7 +207,9 @@ impl Worker for InstallAsyncModel {
 
                 // Step 3: Make configuration base on language, timezone, keyboard, and user
                 info!("Step 3: Make configuration");
-
+                INSTALL_BROKER.send(InstallMsg::ProgressbarTitle(
+                    "Step 3: Make configuration".to_string(),
+                ));
                 let mut mbrdisk = None;
                 if let Some(partitions) = partitions.as_ref() {
                     match partitions {
@@ -239,7 +245,10 @@ impl Worker for InstallAsyncModel {
                 }
 
                 info!("Step 3.1: Backup xeonitte");
-                if let Err(e) = backup_and_update_flake() {
+                INSTALL_BROKER.send(InstallMsg::ProgressbarTitle(
+                    "Step 3.1: Backup xeonitte generated configs into /xeonitte".to_string(),
+                ));
+                if let Err(e) = backup_config() {
                     sender.output(AppMsg::error(
                         ErrorPhase::Configuration,
                         format!("Failed to create backup flake: {e}"),
@@ -247,33 +256,11 @@ impl Worker for InstallAsyncModel {
                     return;
                 }
                 // Step 4: Install NixOS
-                info!("Step 4: Install NixOS");
+                info!("Step 4: Install Xinux");
+                INSTALL_BROKER.send(InstallMsg::ProgressbarTitle(
+                    "Step 4: Install Xinux".to_string(),
+                ));
                 if let Some(hostname) = user.as_ref().as_ref().map(|u| u.hostname.clone()) {
-                    // INSTALL_BROKER.send(InstallMsg::Install(
-                    //     vec![
-                    //         "/usr/bin/env",
-                    //         "pkexec",
-                    //         "nixos-install",
-                    //         "--no-root-passwd",
-                    //         "--no-channel-copy",
-                    //         "--root",
-                    //         "/nix/var/nix/builds/xeonitte",
-                    //         // Nix requires its build directory to have no
-                    //         // # world-writable parent directories. The chroot store that
-                    //         // # nixos-install uses will use the state dir in the chroot
-                    //         // # for the build-dir, but the chroot is under /tmp, which
-                    //         // # is writable. It doesn't have to be in the chroot though,
-                    //         // # so we can just realign it with the host state dir.
-                    //         "--option",
-                    //         "build-dir",
-                    //         "/nix/var/nix/builds/xeonitte",
-                    //         "--flake",
-                    //         &format!("{}/etc/nixos#{}", TMPDIR, hostname),
-                    //     ]
-                    //     .into_iter()
-                    //     .map(|s| s.to_string())
-                    //     .collect(),
-                    // ));
                     let flake_dir = format!("{}/etc/nixos", TMPDIR);
                     let flake_uri = format!("{}#{}", flake_dir, hostname);
 
@@ -338,48 +325,16 @@ impl Worker for InstallAsyncModel {
                         cmd,
                     ]));
                 } else {
-                    sender.output(AppMsg::error(
-                        ErrorPhase::Installation,
-                        "No hostname found",
-                    ));
+                    sender.output(AppMsg::error(ErrorPhase::Installation, "No hostname found"));
                 }
             }
             InstallAsyncMsg::FinishInstall(timezone, imperative_timezone, mut commands) => {
                 // Step 5: Set user passwords
                 info!("Step 5: Set user passwords");
-                fn setuserpasswd(username: Option<String>, password: Option<String>) -> Result<()> {
-                    let mut passwdcmd = Command::new("pkexec")
-                        .arg("nixos-enter")
-                        .arg("--root")
-                        .arg("/mnt")
-                        .arg("-c")
-                        .arg("chpasswd -c SHA512")
-                        .stdin(Stdio::piped())
-                        .spawn()?;
-                    let passwdstdin = passwdcmd
-                        .stdin
-                        .as_mut()
-                        .context("Failed to get password stdin")?;
-                    passwdstdin.write_all(
-                        format!(
-                            "{}:{}",
-                            username.context("No username found")?,
-                            password.context("No password found")?
-                        )
-                        .as_bytes(),
-                    )?;
-                    match passwdcmd.wait() {
-                        Err(e) => {
-                            error!("Failed to set password: {}", e);
-                        }
-                        Ok(status) => {
-                            if !status.success() {
-                                error!("Failed to set password");
-                            }
-                        }
-                    }
-                    Ok(())
-                }
+                INSTALL_BROKER.send(InstallMsg::ProgressbarTitle(
+                    "Step 5: Set user passwords".to_string(),
+                ));
+
                 if let Err(e) = setuserpasswd(self.username.clone(), self.password.clone()) {
                     sender.output(AppMsg::error(
                         ErrorPhase::PostInstall,
@@ -390,6 +345,9 @@ impl Worker for InstallAsyncModel {
 
                 // Step 6: Set root password
                 info!("Step 6: Set root password if specified");
+                INSTALL_BROKER.send(InstallMsg::ProgressbarTitle(
+                    "Step 6: Set root password if specified".to_string(),
+                ));
                 if let Some(rootpasswd) = &self.rootpassword
                     && let Err(e) =
                         setuserpasswd(Some("root".to_string()), Some(rootpasswd.clone()))
@@ -414,6 +372,11 @@ impl Worker for InstallAsyncModel {
                     ));
                     return;
                 };
+
+                commands.push(format!(
+                    "mkdir -p /home/{}/.config", // avoid not found error
+                    &username,
+                ));
                 commands.push(format!(
                     "chown -R {}:users /home/{}/.config", // path relative to chroot
                     &username, &username,
@@ -421,6 +384,9 @@ impl Worker for InstallAsyncModel {
 
                 // Step 6.1: Set libreoffice config
                 info!("Step 6.1: Set libreoffice config");
+                INSTALL_BROKER.send(InstallMsg::ProgressbarTitle(
+                    "Step 6.1: Set libreoffice config".to_string(),
+                ));
                 if let Err(e) = init_libreoffice_config(username.clone()) {
                     sender.output(AppMsg::error(
                         ErrorPhase::PostInstall,
@@ -432,8 +398,13 @@ impl Worker for InstallAsyncModel {
                 self.postinstall_commands = commands;
                 sender.input(InstallAsyncMsg::RunNextCommand);
             }
-            // Step 7: Run commands
             InstallAsyncMsg::RunNextCommand => {
+                // Step 7: Run commands
+                info!("Step 7: Run commands");
+                INSTALL_BROKER.send(InstallMsg::ProgressbarTitle(
+                    "Step 7: Almost done!".to_string(),
+                ));
+
                 if self.postinstall_commands.is_empty() {
                     let _ = sender.output(AppMsg::Finished);
                     return;
@@ -524,9 +495,7 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
             } else if file.file_name().to_string_lossy().ends_with(".nix") {
                 let mut config = fs::read_to_string(file.path())?;
                 config = config.replace("@NVIDIAOFFLOAD@", "");
-
                 config = config.replace("@ARCH@", &format!("{}-linux", arch));
-
                 config = config.replace("@DISKO@", &makeconfig.disko);
 
                 if efi {
@@ -547,7 +516,6 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
                     config =
                         config.replace("@BOOTLOADER_MODULE@", "xinux-modules.nixosModules.biosboot")
                 }
-
 
                 config = config.replace(
                     "@NETWORK@",
@@ -834,7 +802,7 @@ fn init_libreoffice_config(username: String) -> Result<()> {
     Ok(())
 }
 
-fn backup_and_update_flake() -> Result<()> {
+fn backup_config() -> Result<()> {
     Command::new("pkexec")
         .arg("rm")
         .arg("-rf")
@@ -854,17 +822,6 @@ fn backup_and_update_flake() -> Result<()> {
         .output()?;
 
     Command::new("pkexec")
-        .arg("touch")
-        .arg(format!("{}/flake.lock", TMPDIR))
-        .output()?;
-
-    Command::new("pkexec")
-        .arg("chmod")
-        .arg("777")
-        .arg(format!("{}/flake.lock", TMPDIR))
-        .output()?;
-
-    Command::new("pkexec")
         .arg("chmod")
         .arg("777")
         .arg("/tmp/xeonitte.log")
@@ -875,11 +832,39 @@ fn backup_and_update_flake() -> Result<()> {
         .arg("777")
         .arg("/tmp/xeonitte-term.log")
         .output()?;
+    Ok(())
+}
 
-    Command::new("pkexec")
-        .arg("chmod")
-        .arg("755")
-        .arg("/nix/var/nix/builds/xeonitte")
-        .output()?;
+fn setuserpasswd(username: Option<String>, password: Option<String>) -> Result<()> {
+    let mut passwdcmd = Command::new("pkexec")
+        .arg("nixos-enter")
+        .arg("--root")
+        .arg("/mnt")
+        .arg("-c")
+        .arg("chpasswd -c SHA512")
+        .stdin(Stdio::piped())
+        .spawn()?;
+    let passwdstdin = passwdcmd
+        .stdin
+        .as_mut()
+        .context("Failed to get password stdin")?;
+    passwdstdin.write_all(
+        format!(
+            "{}:{}",
+            username.context("No username found")?,
+            password.context("No password found")?
+        )
+        .as_bytes(),
+    )?;
+    match passwdcmd.wait() {
+        Err(e) => {
+            error!("Failed to set password: {}", e);
+        }
+        Ok(status) => {
+            if !status.success() {
+                error!("Failed to set password");
+            }
+        }
+    }
     Ok(())
 }

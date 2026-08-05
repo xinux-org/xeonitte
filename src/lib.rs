@@ -5,8 +5,10 @@ pub mod ui;
 pub mod utils;
 
 pub fn get_memory_size() -> Option<u64> {
-    let contents =
-        std::fs::read_to_string("/proc/meminfo").expect("Couldnʻt read the /proc/meminfo file.");
+    let contents = std::fs::read_to_string("/proc/meminfo").unwrap_or_else(|e| {
+        eprintln!("Couldnʻt read the /proc/meminfo file: {e}");
+        "".to_string()
+    });
 
     contents
         .lines()
@@ -38,7 +40,7 @@ pub fn format_size(s: Size) -> String {
         "GiB" => 1024_u64.pow(3),
         "MiB" => 1024_u64.pow(2),
         "KiB" => 1024,
-        _ => 0,
+        _ => 1, // byte
     };
 
     let s = format!("{}", bytes as f64 / the as f64).to_string();
@@ -55,8 +57,11 @@ pub fn get_storage_size(device: &str, logical_block_size: u64) -> Option<u64> {
     } else {
         device
     };
-    let contents = std::fs::read_to_string(format!("/sys/class/block/{}/size", device))
-        .ok()?
+    let contents = std::fs::read_to_string(format!("/sys/class/block/{device}/size"))
+        .unwrap_or_else(|e| {
+            eprintln!("Couldnʻt read the /sys/class/block/{device}/size file: {e}",);
+            "".to_string()
+        })
         .trim()
         .to_string();
 
@@ -66,8 +71,8 @@ pub fn get_storage_size(device: &str, logical_block_size: u64) -> Option<u64> {
         .map(|x| x * logical_block_size / 1_000_000)
 }
 
-pub fn get_storage_size_for_disko(size: u64) -> String {
-    let size = format_size(Size::from_bytes(size));
+pub fn get_storage_size_for_disko(size: Size) -> String {
+    let size = format_size(size);
 
     let mut ssize = size.split_ascii_whitespace().map(|x| {
         if let Some(y) = x.find(".") {
@@ -78,7 +83,12 @@ pub fn get_storage_size_for_disko(size: u64) -> String {
     });
     format!(
         "{}{}",
-        ssize.next().unwrap(),
-        ssize.next().unwrap().chars().nth(0).unwrap_or_default()
+        ssize.next().unwrap_or_default(), // number
+        ssize
+            .next()
+            .unwrap_or_default()
+            .chars()
+            .nth(0)
+            .unwrap_or_default()  // size type, e.g M, G, T
     )
 }

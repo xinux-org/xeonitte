@@ -1,8 +1,6 @@
-use anyhow::{Context, Result, anyhow};
+use anyhow::{Context, Result};
 use clap::{self, FromArgMatches, Subcommand};
-use disk_types::{BlockDeviceExt, FileSystem, PartitionTable, PartitionType, Sector, SectorExt};
-use distinst_disks::{DiskExt, PartitionBuilder, PartitionFlag};
-use log::{error, info};
+use log::error;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
@@ -10,7 +8,7 @@ use std::{
     io::{self, Read, Write},
     os::unix::fs::OpenOptionsExt,
     path::Path,
-    process::{Command, Stdio},
+    process::Command,
 };
 
 const TMPDIR: &str = "/nix/var/nix/builds/xeonitte";
@@ -173,40 +171,4 @@ fn main() {
             }
         }
     }
-}
-fn get_memory_size() -> Option<u64> {
-    let contents =
-        std::fs::read_to_string("/proc/meminfo").expect("Couldnʻt read the /proc/meminfo file.");
-
-    contents
-        .lines()
-        .filter(|line| line.contains("MemTotal"))
-        .map(|x| {
-            x.chars()
-                .filter(|c| c.is_ascii_digit())
-                .collect::<String>()
-                .parse::<u64>()
-                .ok()
-        })
-        .collect::<Vec<_>>()
-        .first()
-        .copied()
-        .flatten()
-}
-
-fn get_storage_size(device: &str, logical_block_size: u64) -> Option<u64> {
-    let device = if device.contains("/dev/") {
-        &device[5..]
-    } else {
-        device
-    };
-    let contents = std::fs::read_to_string(format!("/sys/class/block/{}/size", device))
-        .expect("Couldnʻt read the /sys/class/block/{}/size file.")
-        .trim()
-        .to_string();
-
-    contents
-        .parse::<u64>()
-        .ok()
-        .map(|x| x * logical_block_size / 1_000_000)
 }

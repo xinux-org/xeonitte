@@ -277,8 +277,15 @@ impl SimpleComponent for UserModel {
         match msg {
             UserMsg::SetConfig(root, showhostname, hostname) => {
                 self.showrootpassword = root;
+
+                if self.showrootpassword {
+                    self.data.root_password.replace("".to_string());
+                    self.data.confirm_root_password.replace("".to_string());
+                }
+
                 self.showhostname = showhostname;
                 self.data.hostname = hostname.to_string();
+                self.hostnamerow.set_text(&self.data.hostname);
             }
             UserMsg::Update(patch) => {
                 self.data.apply(patch.clone());
