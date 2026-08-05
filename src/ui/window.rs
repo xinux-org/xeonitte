@@ -627,7 +627,7 @@ impl Component for AppModel {
 
                     if carouselpages_len > cfg.steps.len() {
                         self.carouselpages =
-                            self.carouselpages.iter().cloned().take(index).collect();
+                            self.carouselpages.iter().cloned().take(index - 1).collect();
                         for i in index..(carousel_len.checked_sub(1).unwrap_or_default() as usize) {
                             let page = self.carousel.nth_page(i as u32);
                             dbg!(i);
@@ -645,6 +645,7 @@ impl Component for AppModel {
                         .filter(|step| !self.carouselpages.contains(step))
                         .collect();
                     for step in &steps {
+                        dbg!("ADDED STEP", step);
                         match step {
                             StepType::Welcome => {
                                 if self
@@ -736,8 +737,8 @@ impl Component for AppModel {
                     }
                 }
 
-                let carouselpages_after = self.carouselpages.clone();
-                dbg!(carouselpages_after);
+                let carouselpages_after_len = self.carouselpages.clone().len();
+                dbg!(carouselpages_after_len);
 
                 let carousel_len_after = self.carousel.n_pages();
                 dbg!(&carousel_len_after);
