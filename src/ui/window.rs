@@ -603,12 +603,6 @@ impl Component for AppModel {
                 //     });
                 // }
                 // let keys_after: Vec<usize> = self.carouselpages.keys().cloned().collect();
-                self.carouselpages = self.carouselpages.iter().cloned().take(index).collect();
-                let len = self.carouselpages.len();
-                for i in index..len {
-                    let page = self.carousel.nth_page(i as u32);
-                    self.carousel.remove(&page);
-                }
 
                 // self.carouselpages
                 //     .clone()
@@ -623,11 +617,28 @@ impl Component for AppModel {
                 //         );
                 //         index.gt(&i).then(|| self.carouselpages.remove(i));
                 //     });
-
-                let carouselpages_before = self.carouselpages.clone();
-                dbg!(carouselpages_before);
-
                 if let Some(cfg) = &self.installconfig {
+                    let carouselpages_len = self.carouselpages.len();
+                    dbg!(&carouselpages_len);
+                    let carousel_len = self.carousel.n_pages();
+                    dbg!(&carousel_len);
+                    let carouselpages_very_before = self.carouselpages.clone();
+                    dbg!(carouselpages_very_before);
+
+                    if carouselpages_len > cfg.steps.len() {
+                        self.carouselpages =
+                            self.carouselpages.iter().cloned().take(index).collect();
+                        for i in index..(carousel_len.checked_sub(1).unwrap_or_default() as usize) {
+                            let page = self.carousel.nth_page(i as u32);
+                            dbg!(i);
+                            dbg!(&page.widget_name());
+                            self.carousel.remove(&page);
+                            // widgets.main_carousel.remove(&page);
+                        }
+                    }
+
+                    let carouselpages_before = self.carouselpages.clone();
+                    dbg!(carouselpages_before);
                     let steps: Vec<&StepType> = cfg
                         .steps
                         .iter()
@@ -727,6 +738,9 @@ impl Component for AppModel {
 
                 let carouselpages_after = self.carouselpages.clone();
                 dbg!(carouselpages_after);
+
+                let carousel_len_after = self.carousel.n_pages();
+                dbg!(&carousel_len_after);
                 sender.input(AppMsg::ChangePage(0));
             }
             AppMsg::SetLanguageConfig(language) => {
