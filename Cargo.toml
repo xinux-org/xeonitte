@@ -33,6 +33,8 @@ log = "0.4.30"
 
 report = { git = "https://git.oss.uzinfocom.uz/xinux/relago.git", branch = "rc-26-05" }
 utils = { git = "https://git.oss.uzinfocom.uz/xinux/relago.git", branch = "rc-26-05" }
+garde = { version = "0.23.0", features = ["derive"] }
+struct-patch = "0.12.7"
 
 [workspace]
 members = [".", "xeonitte-helper"]

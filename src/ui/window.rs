@@ -599,12 +599,6 @@ impl Component for AppModel {
                         StepType::Partitioning => {
                             self.partition.emit(PartitionMsg::CheckSelected);
                         }
-                        StepType::User {
-                            root: _,
-                            hostname: _,
-                        } => {
-                            self.user.emit(UserMsg::CheckSelected);
-                        }
                         StepType::Summary => {
                             self.summary.emit(SummaryMsg::SetConfig(
                                 self.languageconfig.clone(),
