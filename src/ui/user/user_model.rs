@@ -56,7 +56,8 @@ impl UserModel {
             return &[];
         };
 
-        if report.iter().any(|(path, _)| path.eq(&Path::new(field))) {
+        let field = Path::new(field);
+        if report.iter().any(|(path, _)| path.eq(&field)) {
             return &["error"];
         } else {
             return &[];
