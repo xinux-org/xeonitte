@@ -585,75 +585,29 @@ impl Component for AppModel {
             AppMsg::SetStackPageConfig(page, installconfig, index) => {
                 trace!("StackPage: {:?}", page);
                 trace!("Config: {:?}", installconfig);
-                println!(
-                    "+++++++++++++++++++++++++++++++++++{}+++++++++++++++++++++++++++++++++++++++++++++++++++++++++",
-                    installconfig.clone().unwrap().config_id
-                );
-                dbg!(index);
 
                 self.page = page;
                 self.installconfig = installconfig;
 
-                // remove already existing pages to make switch: advanced -> basic available
-                // let mut keys: Vec<usize> = self.carouselpages.keys().cloned().collect();
-                // keys.sort_by(|x, y| x.cmp(y));
-                // if !&self.carouselpages.is_empty() {
-                //     keys.iter().for_each(|k| {
-                //         k.gt(&(index)).then(|| self.carouselpages.remove(&k));
-                //     });
-                // }
-                // let keys_after: Vec<usize> = self.carouselpages.keys().cloned().collect();
-
-                // self.carouselpages
-                //     .clone()
-                //     .iter()
-                //     .enumerate()
-                //     .rev()
-                //     .for_each(|(i, _)| {
-                //         println!(
-                //             "============================INDEX: {}, LEN: {}",
-                //             i,
-                //             self.carouselpages.clone().len()
-                //         );
-                //         index.gt(&i).then(|| self.carouselpages.remove(i));
-                //     });
                 if let Some(cfg) = &self.installconfig {
-                    let carouselpages_len = self.carouselpages.len();
-                    dbg!(&carouselpages_len);
-                    let carousel_len = self.carousel.n_pages();
-                    dbg!(&carousel_len);
-                    let carouselpages_very_before = self.carouselpages.clone();
-                    dbg!(carouselpages_very_before);
-
-                    if carouselpages_len > cfg.steps.len() {
-                        self.carouselpages =
-                            self.carouselpages.iter().cloned().take(index - 1).collect();
-                        for i in index..(carousel_len.checked_sub(1).unwrap_or_default() as usize) {
-                            let page = self.carousel.nth_page(i as u32);
-                            dbg!(i);
-                            dbg!(&page.widget_name());
+                    if index > 0 {
+                        let init_pages_count = index.saturating_sub(1) as u32;
+                        while self.carousel.n_pages() > init_pages_count {
+                            let last = self.carousel.n_pages() - 1;
+                            let page = self.carousel.nth_page(last);
                             self.carousel.remove(&page);
-                            // widgets.main_carousel.remove(&page);
                         }
+                        self.carouselpages.truncate(init_pages_count as usize);
                     }
 
-                    let carouselpages_before = self.carouselpages.clone();
-                    dbg!(carouselpages_before);
                     let steps: Vec<&StepType> = cfg
                         .steps
                         .iter()
                         .filter(|step| !self.carouselpages.contains(step))
                         .collect();
                     for step in &steps {
-                        dbg!("ADDED STEP", step);
                         match step {
                             StepType::Welcome => {
-                                if self
-                                    .carouselpages
-                                    .iter()
-                                    .find(|x| **x == StepType::Welcome)
-                                    .is_none()
-                                {}
                                 trace!("Welcome append");
                                 self.carousel.append(self.welcome.widget());
                                 self.carouselpages.push(StepType::Welcome);
@@ -737,12 +691,12 @@ impl Component for AppModel {
                     }
                 }
 
-                let carouselpages_after_len = self.carouselpages.clone().len();
-                dbg!(carouselpages_after_len);
-
-                let carousel_len_after = self.carousel.n_pages();
-                dbg!(&carousel_len_after);
-                sender.input(AppMsg::ChangePage(0));
+                if index > 0 {
+                    self.current_page = index.saturating_sub(2) as u32;
+                    self.can_go_forward = true;
+                } else {
+                    sender.input(AppMsg::ChangePage(0));
+                }
             }
             AppMsg::SetLanguageConfig(language) => {
                 self.languageconfig = language;

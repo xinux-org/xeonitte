@@ -108,6 +108,9 @@ impl SimpleComponent for InstallModeModel {
         match msg {
             InstallModeMsg::SetSelected(mode) => {
                 self.selected = mode.clone();
+
+                dbg!(self.selected.clone());
+                let _= sender.output(AppMsg::SetCanGoForward(self.selected.is_some()));
                 let init_steps_len = self
                     .config
                     .get_installation_config("init")
