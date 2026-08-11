@@ -1,41 +1,82 @@
 use crate::ui::window::{AppMsg, UserConfig};
+use garde::{Path, Report, Validate};
 use gettextrs::gettext;
-use log::{debug, trace};
 use relm4::adw::{self, prelude::*};
 use relm4::*;
+use struct_patch::Patch;
+
+#[tracker::track]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Validate, Default, Debug, Clone, Patch)]
+#[patch(attribute(derive(Debug, Default, Clone)))]
+#[garde(allow_unvalidated)]
+pub struct UserData {
+    #[garde(length(min = 1))]
+    pub name: String,
+    #[garde(length(min = 1))]
+    pub username: String,
+
+    #[garde(length(min = 1))]
+    pub password: String,
+    #[garde(matches(password))]
+    pub confirm_password: String,
+
+    #[garde(length(min = 1))]
+    pub hostname: String,
+
+    #[garde(length(min = 1))]
+    pub root_password: Option<String>,
+    #[garde(matches(root_password), length(min = 1))]
+    pub confirm_root_password: Option<String>,
+
+    #[garde(skip)]
+    pub autologin: bool,
+}
 
 #[tracker::track]
 pub struct UserModel {
-    name: Option<String>,
-    username: Option<String>,
-    password: Option<String>,
-    confirm_password: Option<String>,
-    hostname: Option<String>,
-    root_password: Option<String>,
-    confirm_root_password: Option<String>,
     username_row: adw::EntryRow,
     confirm_password_row: adw::PasswordEntryRow,
     confirm_root_password_row: adw::PasswordEntryRow,
     hostnamerow: adw::EntryRow,
     showhostname: bool,
     showrootpassword: bool,
-    autologin: bool,
+    data: UserData,
+    #[no_eq]
+    validation: Option<Report>,
+    dirty: bool,
+}
+
+impl UserModel {
+    pub fn field_css(&self, field: &str) -> &[&str] {
+        if !self.dirty {
+            return &[];
+        }
+
+        let Some(report) = self.validation.as_ref() else {
+            return &[];
+        };
+
+        let field = Path::new(field);
+        if report.iter().any(|(path, _)| path.eq(&field)) {
+            return &["error"];
+        } else {
+            return &[];
+        }
+    }
+}
+
+pub fn to_ascii_alphanumeric(text: &str) -> String {
+    text.to_ascii_lowercase()
+        .replace(' ', "")
+        .chars()
+        .filter(|c| c.is_ascii_alphanumeric())
+        .collect::<String>()
 }
 
 #[derive(Debug)]
 pub enum UserMsg {
     SetConfig(bool, bool, String),
-    NameChanged(String),
-    UsernameChanged(String),
-    PasswordChanged(String),
-    ConfirmPasswordChanged(String),
-    HostnameChanged(String),
-    RootPasswordChanged(String),
-    ConfirmRootPasswordChanged(String),
-    SetPasswordStyle,
-    SetRootPasswordStyle,
-    SetAutoLogin(bool),
-    CheckSelected,
+    Update(UserDataPatch),
 }
 
 #[relm4::component(pub)]
@@ -68,14 +109,18 @@ impl SimpleComponent for UserModel {
                         adw::EntryRow {
                             #[watch]
                             set_title: &gettext("Name"),
+                            #[watch]
+                            set_css_classes: model.field_css("name"),
                             connect_changed[sender] => move |entry| {
-                                sender.input(UserMsg::NameChanged(entry.text().to_string()));
+                                sender.input(UserMsg::Update(UserDataPatch { name: Some(entry.text().to_string()), ..Default::default()}));
                             }
                         },
                         #[local_ref]
                         username_row -> adw::EntryRow {
                             #[watch]
                             set_title: &gettext("Username"),
+                            #[watch]
+                            set_css_classes: model.field_css("username"),
                             connect_text_notify => move |entry| {
                                 let mut corrected = String::new();
                                 for c in entry.text().chars() {
@@ -102,22 +147,26 @@ impl SimpleComponent for UserModel {
                                 }
                             },
                             connect_changed[sender] => move |entry| {
-                                sender.input(UserMsg::UsernameChanged(entry.text().to_string()));
+                                sender.input(UserMsg::Update(UserDataPatch { username: Some(entry.text().to_string()), ..Default::default()}));
                             },
                         },
                         adw::PasswordEntryRow {
                             #[watch]
                             set_title: &gettext("Password"),
+                            #[watch]
+                            set_css_classes: model.field_css("password"),
                             connect_changed[sender] => move |entry| {
-                                sender.input(UserMsg::PasswordChanged(entry.text().to_string()));
+                                sender.input(UserMsg::Update(UserDataPatch {password: Some(entry.text().to_string()), ..Default::default()}));
                             }
                         },
                         #[local_ref]
                         confirm_password_row -> adw::PasswordEntryRow {
                             #[watch]
                             set_title: &gettext("Confirm Password"),
+                            #[watch]
+                            set_css_classes: model.field_css("confirm_password"),
                             connect_changed[sender] => move |entry| {
-                                sender.input(UserMsg::ConfirmPasswordChanged(entry.text().to_string()));
+                                sender.input(UserMsg::Update(UserDataPatch {confirm_password: Some(entry.text().to_string()), ..Default::default()}));
                             }
                         },
                         adw::ActionRow {
@@ -131,7 +180,7 @@ impl SimpleComponent for UserModel {
                             add_suffix = &gtk::Switch {
                                 set_valign: gtk::Align::Center,
                                 connect_state_set[sender] => move |_, state| {
-                                    sender.input(UserMsg::SetAutoLogin(state));
+                                    sender.input(UserMsg::Update(UserDataPatch { autologin: Some(state), ..Default::default()}));
                                     relm4::gtk::glib::Propagation::Proceed
                                 }
                             }
@@ -146,8 +195,10 @@ impl SimpleComponent for UserModel {
                         hostnamerow -> adw::EntryRow {
                             #[watch]
                             set_title: &gettext("Hostname"),
+                            #[watch]
+                            set_css_classes: model.field_css("hostname"),
                             connect_changed[sender] => move |entry| {
-                                sender.input(UserMsg::HostnameChanged(entry.text().to_string()));
+                                sender.input(UserMsg::Update(UserDataPatch{ hostname: Some(entry.text().to_string()), ..Default::default()}));
                             },
                             connect_text_notify => move |entry| {
                                 let mut corrected = String::new();
@@ -171,16 +222,20 @@ impl SimpleComponent for UserModel {
                         adw::PasswordEntryRow {
                             #[watch]
                             set_title: &gettext("Root password"),
+                            #[watch]
+                            set_css_classes: model.field_css("root_password"),
                             connect_changed[sender] => move |entry| {
-                                sender.input(UserMsg::RootPasswordChanged(entry.text().to_string()));
+                                sender.input(UserMsg::Update(UserDataPatch { root_password: Some(Some(entry.text().to_string())), ..Default::default() }));
                             }
                         },
                         #[local_ref]
                         confirm_root_password_row -> adw::PasswordEntryRow {
                             #[watch]
                             set_title: &gettext("Confirm root password"),
+                            #[watch]
+                            set_css_classes: model.field_css("confirm_root_password"),
                             connect_changed[sender] => move |entry| {
-                                sender.input(UserMsg::ConfirmRootPasswordChanged(entry.text().to_string()));
+                                sender.input(UserMsg::Update(UserDataPatch { confirm_root_password: Some(Some(entry.text().to_string())), ..Default::default()}));
                             }
                         }
                     }
@@ -195,20 +250,18 @@ impl SimpleComponent for UserModel {
         sender: ComponentSender<Self>,
     ) -> ComponentParts<Self> {
         let model = UserModel {
-            name: None,
-            username: None,
-            password: None,
-            confirm_password: None,
-            hostname: None,
-            root_password: None,
-            confirm_root_password: None,
             username_row: adw::EntryRow::new(),
             hostnamerow: adw::EntryRow::new(),
             confirm_password_row: adw::PasswordEntryRow::new(),
             confirm_root_password_row: adw::PasswordEntryRow::new(),
             showhostname: false,
             showrootpassword: false,
-            autologin: false,
+            data: UserData {
+                hostname: "xinux".to_string(),
+                ..Default::default()
+            },
+            validation: None,
+            dirty: false,
             tracker: 0,
         };
         let username_row = &model.username_row;
@@ -221,117 +274,60 @@ impl SimpleComponent for UserModel {
 
     fn update(&mut self, msg: Self::Input, sender: ComponentSender<Self>) {
         self.reset();
+        self.data.reset();
         match msg {
             UserMsg::SetConfig(root, showhostname, hostname) => {
                 self.showrootpassword = root;
+
+                if self.showrootpassword {
+                    self.data.root_password.replace("".to_string());
+                    self.data.confirm_root_password.replace("".to_string());
+                }
+
                 self.showhostname = showhostname;
-                self.hostname = Some(hostname.to_string());
-                self.hostnamerow.set_text(&hostname);
+                self.data.hostname = hostname.to_string();
+                self.hostnamerow.set_text(&self.data.hostname);
             }
-            UserMsg::NameChanged(name) => {
-                // Replace any non a-z characters with an ""
-                let suggested_username = name
-                    .to_ascii_lowercase()
-                    .replace(' ', "")
-                    .chars()
-                    .filter(|c| c.is_ascii_alphanumeric())
-                    .collect::<String>();
+            UserMsg::Update(patch) => {
+                self.data.apply(patch.clone());
 
-                self.username_row.set_text(&suggested_username);
-                self.name = if name.is_empty() { None } else { Some(name) };
-                sender.input(UserMsg::CheckSelected);
-            }
-            UserMsg::UsernameChanged(username) => {
-                self.username = (!username.is_empty()).then_some(username);
-                sender.input(UserMsg::CheckSelected);
-            }
-            UserMsg::PasswordChanged(password) => {
-                self.password = (!password.is_empty()).then_some(password);
-                sender.input(UserMsg::SetPasswordStyle);
-            }
-            UserMsg::ConfirmPasswordChanged(confirm_password) => {
-                self.confirm_password = (!confirm_password.is_empty()).then_some(confirm_password);
-                sender.input(UserMsg::SetPasswordStyle);
-            }
-            UserMsg::SetPasswordStyle => {
-                if self.password == self.confirm_password {
-                    if self.password.is_some() {
-                        self.confirm_password_row.add_css_class("success");
-                        self.confirm_password_row.remove_css_class("error");
-                    } else {
-                        self.confirm_password_row.remove_css_class("success");
-                        self.confirm_password_row.remove_css_class("error");
-                    }
-                } else {
-                    self.confirm_password_row.add_css_class("error");
-                    self.confirm_password_row.remove_css_class("success");
+                if let Some(name) = patch.name {
+                    self.data.username = to_ascii_alphanumeric(&name);
+                    self.username_row.set_text(&self.data.username);
                 }
-                sender.input(UserMsg::CheckSelected);
-            }
-            UserMsg::HostnameChanged(hostname) => {
-                if self.hostname.as_ref() == Some(&hostname) {
-                    debug!("Hostname changed to the same value, ignoring");
-                    return;
-                }
-                self.hostname = (!hostname.is_empty()).then_some(hostname);
-                sender.input(UserMsg::CheckSelected);
-            }
-            UserMsg::RootPasswordChanged(root_password) => {
-                self.root_password = (!root_password.is_empty()).then_some(root_password);
-                sender.input(UserMsg::SetRootPasswordStyle);
-            }
-            UserMsg::ConfirmRootPasswordChanged(confirm_root_password) => {
-                self.confirm_root_password =
-                    (!confirm_root_password.is_empty()).then_some(confirm_root_password);
-                sender.input(UserMsg::SetRootPasswordStyle);
-            }
-            UserMsg::SetRootPasswordStyle => {
-                if self.root_password == self.confirm_root_password {
-                    if self.root_password.is_some() {
-                        self.confirm_root_password_row.add_css_class("success");
-                        self.confirm_root_password_row.remove_css_class("error");
-                    } else {
-                        self.confirm_root_password_row.remove_css_class("success");
-                        self.confirm_root_password_row.remove_css_class("error");
-                    }
-                } else {
-                    self.confirm_root_password_row.add_css_class("error");
-                    self.confirm_root_password_row.remove_css_class("success");
-                }
-                sender.input(UserMsg::CheckSelected);
-            }
-            UserMsg::SetAutoLogin(autologin) => {
-                self.autologin = autologin;
-                sender.input(UserMsg::CheckSelected);
-            }
-            UserMsg::CheckSelected => {
-                let cangoforward = self.name.is_some()
-                    && self.username.is_some()
-                    && self.password.is_some()
-                    && self.confirm_password.is_some()
-                    && self.password == self.confirm_password
-                    && self.hostname.is_some()
-                    && self.root_password == self.confirm_root_password;
-                trace!("UserMsg::CheckSelected {}", cangoforward);
 
-                if cangoforward {
-                    let _ = sender.output(AppMsg::SetUserConfig(self.to_user_config()));
+                self.validation = self
+                    .data
+                    .validate()
+                    .map_or_else(|report| Some(report), |_| None);
+
+                self.dirty = true;
+
+                if self.validation.is_none() {
+                    let UserData {
+                        name,
+                        username,
+                        password,
+                        hostname,
+                        root_password: rootpassword,
+                        autologin,
+                        ..
+                    } = self.data.clone();
+
+                    let _ = sender.output(AppMsg::SetUserConfig(Some(UserConfig {
+                        name,
+                        username,
+                        password,
+                        hostname,
+                        rootpassword,
+                        autologin,
+                    })));
+                    let _ = sender.output(AppMsg::SetCanGoForward(true));
+                } else {
+                    let _ = sender.output(AppMsg::SetUserConfig(None));
+                    let _ = sender.output(AppMsg::SetCanGoForward(false));
                 }
-                let _ = sender.output(AppMsg::SetCanGoForward(cangoforward));
             }
         }
-    }
-}
-
-impl UserModel {
-    fn to_user_config(&self) -> Option<UserConfig> {
-        Some(UserConfig {
-            name: self.name.clone()?,
-            username: self.username.clone()?,
-            password: self.password.clone()?,
-            hostname: self.hostname.clone()?,
-            rootpassword: self.root_password.clone(),
-            autologin: self.autologin,
-        })
     }
 }
