@@ -40,7 +40,7 @@ in
 
     cargoDeps = rustPlatform.fetchCargoVendor {
       src = ../..;
-	    hash = "sha256-MZbg1t9aRbdJdMAuXZ+MyqHEj6QbOq1elqVyCKMuP24=";
+	    hash = "sha256-ifGbfFqFMxRdrvGRkzu8LdXK+V7TKdTv5P4LOlKzW/c=";
     };
 
     nativeBuildInputs = [
