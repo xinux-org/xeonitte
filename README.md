@@ -4,7 +4,7 @@
 
 # Xeonitte
 
-A graphical installer for NixOS based distributions.
+A graphical installer for Xinux.
 
 <p align="center">
     <a href="https://git.oss.uzinfocom.uz/xinux/xeonitte/actions?workflow=ci.yml"><img align="center" src="https://git.oss.uzinfocom.uz/xinux/xeonitte/badges/workflows/ci.yml/badge.svg?logo=forgejo" alt="Test CI"></a>
