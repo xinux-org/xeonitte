@@ -15,9 +15,8 @@ use size::Size;
 use std::{
     collections::HashMap,
     convert::identity,
-    ops::{AddAssign, Sub, SubAssign},
+    ops::{AddAssign, Not, SubAssign},
     process::Command,
-    str::FromStr,
 };
 
 pub struct PartitionModel {
@@ -835,12 +834,32 @@ pub struct Partition {
     name: String,
     size: u64,
     mountrow: adw::ComboRow,
+    custom_mount_entry: adw::EntryRow,
     device: String,
     swap: bool,
     boot: bool,
     is_full: bool,
     donotmount: String,
     donotformat: String,
+    possible_mounts: Vec<String>,
+    adding_custom_mount: bool,
+}
+impl Partition {
+    fn parse_mount_point(mount: &String) -> Option<String> {
+        (mount
+            .chars()
+            .into_iter()
+            .all(|x| x.is_alphabetic() || x.eq(&'/'))
+            && !mount.contains("//")
+            && !mount.ends_with('/'))
+        .then(|| {
+            mount
+                .starts_with('/')
+                .then(|| mount.into())
+                .or(format!("/{mount}").into())
+        })
+        .flatten()
+    }
 }
 
 #[derive(Default, Debug, PartialEq, Eq, Clone)]
@@ -857,6 +876,9 @@ pub enum PartitionRowMsg {
     SetSwap(bool),
     SetBoot(bool),
     Delete,
+    ShowCustomMountEntry,
+    AddCustomMount(String),
+    ToggleError(bool),
 }
 
 #[derive(Debug)]
@@ -900,8 +922,17 @@ impl FactoryComponent for Partition {
                 set_visible: !self.swap,
                 #[watch]
                 set_title: &gettext("Mount"),
-                // TODO: When switching language the "Do not mount" option does not update
-                set_model: Some(&gtk::StringList::new(&[&self.donotmount, " /", "/boot", "/home", "/opt", "/var", "/nix"])),
+                set_model: Some(&gtk::StringList::new(
+                    &self.possible_mounts.iter().map(|s| s.as_str()).collect::<Vec<_>>()
+                )),
+                add_suffix = &gtk::Button {
+                    set_icon_name: "list-add-symbolic",
+                    add_css_class: "flat",
+                    set_valign: gtk::Align::Center,
+                    connect_clicked[sender] => move |_| {
+                        sender.input(PartitionRowMsg::ShowCustomMountEntry);
+                    }
+                },
                 connect_selected_notify[sender, name = self.name.to_string(), device = self.device.to_string(), mountstring = self.donotmount.to_string(), size = self.size, is_full = self.is_full] => move |row| {
                     if let Some(item) = row.selected_item() {
                         if let Ok(item) = item.downcast::<gtk::StringObject>() {
@@ -915,6 +946,20 @@ impl FactoryComponent for Partition {
                         }
                     }
                 }
+            },
+
+            #[local_ref]
+            add_row = custom_mount_entry -> adw::EntryRow {
+                #[watch]
+                set_visible: !self.swap && self.adding_custom_mount,
+                set_title: &gettext("Custom mount point"),
+
+                connect_entry_activated[sender] => move |entry| {
+                    let text = entry.text().trim().to_string();
+                    if !text.is_empty() {
+                        sender.input(PartitionRowMsg::AddCustomMount(text));
+                    }
+                },
             },
             add_row = &adw::ActionRow {
                 #[watch]
@@ -963,16 +1008,23 @@ impl FactoryComponent for Partition {
     }
 
     fn init_model(parent: Self::Init, _index: &DynamicIndex, _sender: FactorySender<Self>) -> Self {
+        let donotmount = gettext("Do not mount");
+        let possible_mounts = std::iter::once(donotmount.clone())
+            .chain(["/", "/boot", "/home", "/opt", "/var", "/nix"].map(Into::into))
+            .collect();
         Partition {
             name: parent.name,
             size: parent.size,
             mountrow: parent.mountrow,
+            custom_mount_entry: adw::EntryRow::new(),
             device: parent.device,
             swap: false,
             boot: false,
-            is_full: false,
-            donotmount: gettext("Do not mount"),
+            donotmount,
             donotformat: gettext("Leave as is"),
+            possible_mounts,
+            adding_custom_mount: false,
+            is_full: false,
         }
     }
 
@@ -984,20 +1036,27 @@ impl FactoryComponent for Partition {
         sender: FactorySender<Self>,
     ) -> Self::Widgets {
         let mountrow = &self.mountrow.clone();
+        let custom_mount_entry = &self.custom_mount_entry.clone();
         let widgets = view_output!();
         widgets
     }
 
-    fn update(&mut self, msg: Self::Input, _sender: FactorySender<Self>) {
-        match msg {
+    fn update_with_view(
+        &mut self,
+        widgets: &mut Self::Widgets,
+        message: Self::Input,
+        sender: FactorySender<Self>,
+    ) {
+        match message {
             PartitionRowMsg::Deselect(mount) => {
-                if let Some(item) = self.mountrow.selected_item() {
-                    if let Ok(item) = item.downcast::<gtk::StringObject>() {
-                        if item.string().eq(&mount) {
-                            self.mountrow.set_selected(0);
-                        }
-                    }
-                }
+                self.mountrow
+                    .selected_item()
+                    .and_then(|item| item.downcast::<gtk::StringObject>().ok())
+                    .and_then(|item| {
+                        item.string()
+                            .eq(&mount)
+                            .then(|| self.mountrow.set_selected(0))
+                    });
             }
             PartitionRowMsg::SetSwap(swap) => {
                 self.swap = swap;
@@ -1005,10 +1064,48 @@ impl FactoryComponent for Partition {
             PartitionRowMsg::SetBoot(boot) => {
                 self.boot = boot;
             }
-            PartitionRowMsg::Delete => _sender
+            PartitionRowMsg::Delete => sender
                 .output(PartitionOut::Delete(self.name.clone()))
                 .unwrap(),
+            PartitionRowMsg::ShowCustomMountEntry => {
+                self.adding_custom_mount = true;
+            }
+            PartitionRowMsg::AddCustomMount(mount) => {
+                if let Some(mount_name) = Self::parse_mount_point(&mount) {
+                    let is_mount_duplicate = self.possible_mounts.contains(&mount);
+                    sender.input(PartitionRowMsg::ToggleError(is_mount_duplicate));
+
+                    if !is_mount_duplicate {
+                        self.possible_mounts.push(mount_name);
+                        self.adding_custom_mount = false;
+                        self.custom_mount_entry.set_text("");
+                        self.mountrow.set_model(Some(&gtk::StringList::new(
+                            &self
+                                .possible_mounts
+                                .iter()
+                                .map(|s| s.as_str())
+                                .collect::<Vec<_>>(),
+                        )));
+                        let row = self.possible_mounts.len().saturating_sub(1) as u32;
+                        self.mountrow.set_selected(row);
+                    }
+                }
+            }
+            PartitionRowMsg::ToggleError(x) => {
+                if x {
+                    widgets.custom_mount_entry.add_css_class("error");
+                    widgets
+                        .custom_mount_entry
+                        .set_title(&gettext("Mount point exists"));
+                } else {
+                    widgets.custom_mount_entry.remove_css_class("error");
+                    widgets
+                        .custom_mount_entry
+                        .set_title(&gettext("Custom mount point"));
+                }
+            }
         }
+        self.update_view(widgets, sender);
     }
 }
 
@@ -1186,7 +1283,7 @@ impl FactoryComponent for PartitionGroup {
                         gtk::DropDown {
                             set_valign: gtk::Align::Center,
                             set_model: Some(&gtk::StringList::new(&["TiB", "GiB", "MiB", "KiB"])),
-                            connect_selected_item_notify[sender, x = self.new_partition_size.clone().bytes()] => move |row| {
+                            connect_selected_item_notify[sender] => move |row| {
                                 let t = match row.selected() {
                                     0 => SizeType::TB,
                                     1 => SizeType::GB,
@@ -1361,20 +1458,19 @@ impl FactoryComponent for PartitionGroup {
                             name: self.name.clone() + "1",
                             size: 0,
                             mountrow: adw::ComboRow::new(),
+                            custom_mount_entry: adw::EntryRow::new(),
                             device: self.name.clone(),
                             swap: false,
                             boot: false,
                             is_full,
                             donotmount: "".to_string(),
                             donotformat: "".to_string(),
+                            possible_mounts: Vec::default(),
+                            adding_custom_mount: false,
                         })
                         .device
                         .clone();
 
-                    // fix partitioning bugs from removing 20MB
-                    // if new_size.ge(&Size::from_gb(1)) {
-                    //     new_size.sub_assign(Size::from_mb(20));
-                    // }
                     self.partitions.guard().push_back({
                         PartitionInit {
                             name: format!("{device}{index}"),

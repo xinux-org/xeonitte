@@ -32,7 +32,12 @@ log = "0.4.30"
 
 report = { git = "https://git.oss.uzinfocom.uz/xinux/relago.git", branch = "main" }
 utils = { git = "https://git.oss.uzinfocom.uz/xinux/relago.git", branch = "main" }
+garde = { version = "0.23.0", features = ["derive"] }
+struct-patch = "0.12.7"
 
 [workspace]
 members = [".", "xeonitte-helper"]
 default-members = [".", "xeonitte-helper"]
+
+[lints.rust]
+unused_must_use = "allow"

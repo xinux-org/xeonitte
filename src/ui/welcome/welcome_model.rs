@@ -1,5 +1,6 @@
-use crate::{ui::window::AppMsg, utils::language::get_languages};
+use crate::ui::templates::base::BaseSeparator;
 use crate::utils::report::ErrorPhase;
+use crate::{ui::window::AppMsg, utils::language::get_languages};
 use adw::prelude::*;
 use gettextrs::gettext;
 use log::{info, trace};
@@ -152,10 +153,8 @@ impl SimpleComponent for WelcomeModel {
                                 gtk::Label {
                                     set_label: title,
                                 },
-                                gtk::Separator {
-                                    set_hexpand: true,
-                                    set_opacity: 0.0,
-                                },
+                                #[template]
+                                BaseSeparator,
                                 #[name(rowbtn)]
                                 gtk::CheckButton {
                                     set_halign: gtk::Align::End,
@@ -200,10 +199,8 @@ impl SimpleComponent for WelcomeModel {
                                 gtk::Label {
                                     set_label: title,
                                 },
-                                gtk::Separator {
-                                    set_hexpand: true,
-                                    set_opacity: 0.0,
-                                },
+                                #[template]
+                                BaseSeparator,
                                 gtk::CheckButton {
                                     set_halign: gtk::Align::End,
                                     set_group: Some(&model.selectiongroup),
@@ -266,10 +263,8 @@ impl SimpleComponent for WelcomeModel {
                             gtk::Label {
                                 set_label: &title,
                             },
-                            gtk::Separator {
-                                set_hexpand: true,
-                                set_opacity: 0.0,
-                            },
+                            #[template]
+                            BaseSeparator,
                             gtk::CheckButton {
                                 set_halign: gtk::Align::End,
                                 set_group: Some(&model.selectiongroup),
@@ -285,7 +280,6 @@ impl SimpleComponent for WelcomeModel {
                 langbox.append(&row);
             }
         }
-
         let widgets = view_output!();
         widgets.langstack.set_vhomogeneous(false);
 
@@ -297,22 +291,19 @@ impl SimpleComponent for WelcomeModel {
         match msg {
             WelcomeMsg::ToggleShowall => {
                 if !self.showall {
-                    for expander in &self.expanders {
-                        expander.set_expanded(false);
-                    }
+                    self.expanders
+                        .iter()
+                        .for_each(|expander| expander.set_expand(false));
                 }
                 self.set_showall(!self.showall);
             }
-            WelcomeMsg::SetSelected(x) => {
-                info!("Selected language: {:?}", x);
-                if let Some(lang) = &x {
-                    let _ = sender.output(AppMsg::SetCanGoForward(true));
-                    let _ = sender.output(AppMsg::SetLanguageConfig(Some(lang.to_string())));
-                } else {
-                    self.selectiongroup.set_active(true);
-                    let _ = sender.output(AppMsg::SetCanGoForward(false));
-                }
-                self.selected = x;
+            WelcomeMsg::SetSelected(lang) => {
+                info!("Selected language: {:?}", lang);
+                sender.output(AppMsg::SetLanguageConfig(lang.clone()));
+                sender.output(AppMsg::SetCanGoForward(lang.is_some()));
+
+                self.selectiongroup.set_active(lang.is_none());
+                self.selected = lang;
                 gettextrs::setlocale(
                     gettextrs::LocaleCategory::LcAll,
                     self.selected

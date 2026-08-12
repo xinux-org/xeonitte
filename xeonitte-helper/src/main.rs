@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use clap::{self, FromArgMatches, Subcommand};
-use log::{error, info};
+use log::error;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,

@@ -1,7 +1,7 @@
 use crate::{
     config::LIBEXECDIR,
     ui::window::AppMsg,
-    utils::report::{send_report, ErrorPhase},
+    utils::report::{ErrorPhase, send_report},
 };
 use adw::prelude::*;
 use gettextrs::gettext;

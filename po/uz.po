@@ -309,3 +309,11 @@ msgstr "Yangi boʻlak hajmini kiriting"
 #: src/ui/pages/partitions.rs:1145
 msgid "Free space"
 msgstr "Boʻsh joy"
+
+#: src/ui/pages/partitions.rs:939 src/ui/pages/partitions.rs:1080
+msgid "Custom mount point"
+msgstr "Yangi ulash nuqtasi"
+
+#: src/ui/pages/partitions.rs:1075
+msgid "Mount point exists"
+msgstr "Ulash nuqtasi mavjud"

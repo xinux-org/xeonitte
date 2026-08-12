@@ -1,3 +1,4 @@
+use crate::ui::templates::base::BaseSeparator;
 use crate::ui::window::AppMsg;
 use crate::utils::report::ErrorPhase;
 use adw::prelude::*;
@@ -231,10 +232,8 @@ impl SimpleComponent for TimeZoneModel {
                                 gtk::Label {
                                     set_label: &zone.replace('_', " "),
                                 },
-                                gtk::Separator {
-                                    set_hexpand: true,
-                                    set_opacity: 0.0,
-                                },
+                                #[template]
+                                BaseSeparator,
                                 #[name(timelabel)]
                                 gtk::Label {
                                     set_label: &timestr,
@@ -316,10 +315,8 @@ impl SimpleComponent for TimeZoneModel {
                             gtk::Label {
                                 set_label: zone,
                             },
-                            gtk::Separator {
-                                set_hexpand: true,
-                                set_opacity: 0.0,
-                            },
+                            #[template]
+                            BaseSeparator,
                             #[name(timelabel)]
                             gtk::Label {
                                 set_label: &timestr,
@@ -352,13 +349,12 @@ impl SimpleComponent for TimeZoneModel {
         self.reset();
         match msg {
             TimeZoneMsg::SetSelected(layout) => {
-                if layout.is_none() {
-                    self.selectiongroup.set_active(true);
-                    let _ = sender.output(AppMsg::SetCanGoForward(false));
-                } else {
-                    let _ = sender.output(AppMsg::SetCanGoForward(true));
+                if layout.is_some() {
                     let _ = sender.output(AppMsg::SetTimezoneConfig(layout.clone()));
                 }
+                self.selectiongroup.set_active(layout.is_none());
+                let _ = sender.output(AppMsg::SetCanGoForward(layout.is_some()));
+
                 self.selected = layout;
                 if let Some(selected) = &self.selected {
                     let _ = Command::new("timedatectl")
