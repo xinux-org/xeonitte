@@ -1,8 +1,6 @@
-use anyhow::{Context, Result, anyhow};
+use anyhow::{Context, Result};
 use clap::{self, FromArgMatches, Subcommand};
-use disk_types::{BlockDeviceExt, FileSystem, PartitionTable, PartitionType, Sector, SectorExt};
-use distinst_disks::{DiskExt, PartitionBuilder, PartitionFlag};
-use log::{error, info};
+use log::error;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
@@ -10,7 +8,7 @@ use std::{
     io::{self, Read, Write},
     os::unix::fs::OpenOptionsExt,
     path::Path,
-    process::{Command, Stdio},
+    process::Command,
 };
 
 const TMPDIR: &str = "/nix/var/nix/builds/xeonitte";

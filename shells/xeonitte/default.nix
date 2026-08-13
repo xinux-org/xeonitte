@@ -25,7 +25,6 @@
   rustPlatform,
   vte-gtk4,
   wrapGAppsHook4,
-  cryptsetup,
   util-linux,
   dosfstools,
   e2fsprogs,
@@ -37,6 +36,8 @@
   deadnix,
   nixfmt,
   polkit,
+  just,
+  bacon,
   ...
 }:
 mkShell {
@@ -65,7 +66,6 @@ mkShell {
     rustPlatform.bindgenHook
     vte-gtk4
     wrapGAppsHook4
-    cryptsetup
     util-linux
     dosfstools
     e2fsprogs
@@ -76,10 +76,12 @@ mkShell {
     statix
     deadnix
     nixfmt
-    polkit
+    just
+    bacon
   ];
 
   # Set Environment Variables
   RUST_BACKTRACE = "full";
   RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
+  PKG_CONFIG_PATH = "${polkit.dev}/lib/pkgconfig";
 }

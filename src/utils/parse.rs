@@ -72,17 +72,19 @@ pub enum StepType {
 pub struct Choice {
     pub description: Option<String>,
     pub packages: Option<Vec<String>>,
+    #[serde(default)]
+    pub default: bool,
     pub config: Option<String>,
 }
 
 pub fn parse_config() -> Result<XeonitteConfig> {
     debug!("Parsing config {}/xeonitte/config.yml", SYSCONFDIR);
-    let f = fs::read_to_string(&format!("{}/xeonitte/config.yml", SYSCONFDIR))?;
+    let f = fs::read_to_string(format!("{}/xeonitte/config.yml", SYSCONFDIR))?;
     let mut config: XeonitteConfig = serde_yaml::from_str(&f)?;
     for choice in &mut config.choices {
         match choice {
             ChoiceEnum::Configuration { file, config } => {
-                let f = fs::read_to_string(&format!("{}/xeonitte/{}", SYSCONFDIR, file))?;
+                let f = fs::read_to_string(format!("{}/xeonitte/{}", SYSCONFDIR, file))?;
                 *config = serde_yaml::from_str(&f)?;
             }
             ChoiceEnum::Live => {}
@@ -104,7 +106,7 @@ pub struct Slide {
 }
 
 pub fn parse_branding(brand: &str) -> Result<BrandingConfig> {
-    let f = fs::read_to_string(&format!(
+    let f = fs::read_to_string(format!(
         "{}/xeonitte/branding/{}/slides.yml",
         SYSCONFDIR, brand
     ))?;

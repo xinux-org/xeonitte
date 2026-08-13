@@ -1,4 +1,4 @@
-use crate::ui::window::AppMsg;
+use crate::ui::{templates::base::BaseSeparator, window::AppMsg};
 use crate::utils::report::ErrorPhase;
 use adw::prelude::*;
 use gettextrs::gettext;
@@ -192,7 +192,7 @@ impl SimpleComponent for KeyboardModel {
                 expander = adw::ExpanderRow {
                     set_title: &gnome_desktop::country_from_code(&country.to_uppercase(), None)
                         .map(|x| x.to_string())
-                        .or_else(|| possible_country)
+                        .or(possible_country)
                         .unwrap_or_else(|| {
                             trace!("Country name can't be found for {}", country);
                             String::from("Unknown")}),
@@ -219,10 +219,8 @@ impl SimpleComponent for KeyboardModel {
                             gtk::Label {
                                 set_label: name,
                             },
-                            gtk::Separator {
-                                set_hexpand: true,
-                                set_opacity: 0.0,
-                            },
+                            #[template]
+                            BaseSeparator,
                             gtk::CheckButton {
                                 set_halign: gtk::Align::End,
                                 set_group: Some(&model.selectiongroup),
@@ -283,10 +281,10 @@ impl SimpleComponent for KeyboardModel {
             KeyboardMsg::SetSelected(layout) => {
                 if layout.is_none() {
                     self.selectiongroup.set_active(true);
-                    let _ = sender.output(AppMsg::SetCanGoForward(false));
+                    sender.output(AppMsg::SetCanGoForward(false));
                 } else {
-                    let _ = sender.output(AppMsg::SetCanGoForward(true));
-                    let _ = sender.output(AppMsg::SetKeyboardConfig(layout.clone()));
+                    sender.output(AppMsg::SetCanGoForward(true));
+                    sender.output(AppMsg::SetKeyboardConfig(layout.clone()));
                 }
                 self.selected = layout;
                 if let Some(selected) = &self.selected {
@@ -294,7 +292,7 @@ impl SimpleComponent for KeyboardModel {
                         .arg("set")
                         .arg("org.gnome.desktop.input-sources")
                         .arg("sources")
-                        .arg(&format!("[('xkb','{}')]", selected))
+                        .arg(format!("[('xkb','{}')]", selected))
                         .spawn();
                     if let (Some(layout), Some(variant)) =
                         (selected.split('+').next(), selected.split('+').nth(1))
@@ -332,36 +330,30 @@ impl SimpleComponent for KeyboardModel {
                     .layouts
                     .iter()
                     .filter_map(|(layout, (_name, lang, _country, _variant))| {
-                        if lang == &language.to_lowercase() {
-                            Some(layout.to_string())
-                        } else {
-                            None
-                        }
+                        lang.eq(&language.to_lowercase())
+                            .then_some(layout.to_string())
                     })
                     .collect::<Vec<_>>();
                 let mut shortvec = layouts
                     .iter()
                     .filter(|k| !k.contains('-') && !k.contains('_'))
                     .filter_map(|x| {
-                        let layoutinfo = self.xkb.layout_info(x);
-                        if let Some((Some(name), Some(lang), Some(country), Some(variant))) =
-                            layoutinfo
-                        {
-                            let y = Some((
-                                x.to_string(),
-                                (
-                                    name.to_string(),
-                                    lang.to_string(),
-                                    country.to_string(),
-                                    variant.to_string(),
-                                ),
-                            ));
-                            y
-                        } else {
-                            None
-                        }
+                        self.xkb
+                            .layout_info(x)
+                            .map(|(name, lang, country, variant)| {
+                                Some((
+                                    x.to_string(),
+                                    (
+                                        name?.to_string(),
+                                        lang?.to_string(),
+                                        country?.to_string(),
+                                        variant?.to_string(),
+                                    ),
+                                ))
+                            })?
                     })
                     .collect::<Vec<_>>();
+
                 if shortvec.is_empty() {
                     return;
                 }
@@ -411,10 +403,8 @@ impl SimpleComponent for KeyboardModel {
                                 gtk::Label {
                                     set_label: name,
                                 },
-                                gtk::Separator {
-                                    set_hexpand: true,
-                                    set_opacity: 0.0,
-                                },
+                                #[template]
+                                BaseSeparator,
                                 #[name(rowbtn)]
                                 gtk::CheckButton {
                                     set_halign: gtk::Align::End,

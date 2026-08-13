@@ -8,7 +8,8 @@
     };
   };
 
-  outputs = inputs:
+  outputs =
+    inputs:
     inputs.xinux-lib.mkFlake {
       inherit inputs;
       alias.packages.default = "xeonitte";

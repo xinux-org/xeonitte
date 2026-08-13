@@ -1,4 +1,4 @@
-blank_issues_enabled: false
+blank_issues_enabled: true
 issue_templates:
   - name: "Bug"
     description: "Report a bug in the system."
