@@ -23,7 +23,6 @@ Add screenshots if applicable.
 ### Environment
 - OS: [e.g., NixOs, macOS]
 - Nix: [e.g., 2.31.1, 3.11.2]
-- GHC: [e.g., 9.10, 9.12]
 
 ### Additional Context
 Add any other context about the problem here.
