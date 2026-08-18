@@ -75,7 +75,6 @@ pub fn to_ascii_alphanumeric(text: &str) -> String {
 
 #[derive(Debug)]
 pub enum UserMsg {
-    CheckSelected,
     SetConfig(bool, bool),
     Update(UserDataPatch),
 }
@@ -279,12 +278,6 @@ impl SimpleComponent for UserModel {
         self.reset();
         self.data.reset();
         match msg {
-            UserMsg::CheckSelected => {
-                sender.input(UserMsg::Update(UserDataPatch {
-                    ..Default::default()
-                }));
-                let _ = sender.output(AppMsg::SetCanGoForward(*&self.validation.is_none()));
-            }
             UserMsg::SetConfig(root, showhostname) => {
                 self.showrootpassword = root;
 
@@ -319,7 +312,7 @@ impl SimpleComponent for UserModel {
                         ..
                     } = self.data.clone();
 
-                    let _ = sender.output(AppMsg::SetUserConfig(Some(UserConfig {
+                    sender.output(AppMsg::SetUserConfig(Some(UserConfig {
                         name,
                         username,
                         password,
@@ -327,10 +320,8 @@ impl SimpleComponent for UserModel {
                         rootpassword,
                         autologin,
                     })));
-                    sender.output(AppMsg::SetCanGoForward(true));
                 } else {
                     sender.output(AppMsg::SetUserConfig(None));
-                    let _ = sender.output(AppMsg::SetCanGoForward(false));
                 }
             }
         }

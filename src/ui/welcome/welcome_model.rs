@@ -3,7 +3,7 @@ use crate::utils::report::ErrorPhase;
 use crate::{ui::window::AppMsg, utils::language::get_languages};
 use adw::prelude::*;
 use gettextrs::gettext;
-use log::{info, trace};
+use log::info;
 use relm4::*;
 
 #[tracker::track]
@@ -18,7 +18,6 @@ pub struct WelcomeModel {
 pub enum WelcomeMsg {
     ToggleShowall,
     SetSelected(Option<String>),
-    CheckSelected,
 }
 
 #[relm4::component(pub)]
@@ -300,8 +299,6 @@ impl SimpleComponent for WelcomeModel {
             WelcomeMsg::SetSelected(lang) => {
                 info!("Selected language: {:?}", lang);
                 sender.output(AppMsg::SetLanguageConfig(lang.clone()));
-                sender.output(AppMsg::SetCanGoForward(lang.is_some()));
-
                 self.selectiongroup.set_active(lang.is_none());
                 self.selected = lang;
                 gettextrs::setlocale(
@@ -313,10 +310,6 @@ impl SimpleComponent for WelcomeModel {
                         .next()
                         .unwrap_or_default(),
                 );
-            }
-            WelcomeMsg::CheckSelected => {
-                trace!("WelcomeMsg::CheckSelected {}", self.selected.is_some());
-                let _ = sender.output(AppMsg::SetCanGoForward(self.selected.is_some()));
             }
         }
     }

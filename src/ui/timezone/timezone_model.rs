@@ -28,7 +28,6 @@ pub enum TimeZoneMsg {
     ToggleShowall,
     SetSelected(Option<String>),
     SetTime(String),
-    CheckSelected,
 }
 
 #[relm4::component(pub)]
@@ -353,8 +352,6 @@ impl SimpleComponent for TimeZoneModel {
                     let _ = sender.output(AppMsg::SetTimezoneConfig(layout.clone()));
                 }
                 self.selectiongroup.set_active(layout.is_none());
-                let _ = sender.output(AppMsg::SetCanGoForward(layout.is_some()));
-
                 self.selected = layout;
                 if let Some(selected) = &self.selected {
                     let _ = Command::new("timedatectl")
@@ -363,10 +360,6 @@ impl SimpleComponent for TimeZoneModel {
                         .arg(selected)
                         .spawn();
                 }
-            }
-            TimeZoneMsg::CheckSelected => {
-                trace!("TimeZoneMsg::CheckSelected {}", self.selected.is_some());
-                let _ = sender.output(AppMsg::SetCanGoForward(self.selected.is_some()));
             }
             TimeZoneMsg::ToggleShowall => {
                 if !self.showall {

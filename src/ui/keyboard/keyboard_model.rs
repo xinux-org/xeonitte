@@ -27,7 +27,6 @@ pub enum KeyboardMsg {
     ToggleShowall,
     SetSelected(Option<String>),
     SetCountry(String, String),
-    CheckSelected,
 }
 
 #[relm4::component(pub)]
@@ -281,9 +280,7 @@ impl SimpleComponent for KeyboardModel {
             KeyboardMsg::SetSelected(layout) => {
                 if layout.is_none() {
                     self.selectiongroup.set_active(true);
-                    sender.output(AppMsg::SetCanGoForward(false));
                 } else {
-                    sender.output(AppMsg::SetCanGoForward(true));
                     sender.output(AppMsg::SetKeyboardConfig(layout.clone()));
                 }
                 self.selected = layout;
@@ -306,15 +303,6 @@ impl SimpleComponent for KeyboardModel {
                     } else {
                         let _ = Command::new("setxkbmap").arg(selected).spawn();
                     }
-                }
-            }
-            KeyboardMsg::CheckSelected => {
-                trace!("KeyboardMsg::CheckSelected {}", self.selected.is_some());
-                if self.selected.is_none() {
-                    self.selectiongroup.set_active(true);
-                    let _ = sender.output(AppMsg::SetCanGoForward(false));
-                } else {
-                    let _ = sender.output(AppMsg::SetCanGoForward(true));
                 }
             }
             KeyboardMsg::ToggleShowall => {

@@ -46,7 +46,6 @@ pub enum PartitionMsg {
     SetHibernation(bool),
     SetPassphrase,
     SetPassphraseConfirm,
-    CheckSelected,
     Refresh,
 }
 
@@ -415,7 +414,7 @@ impl SimpleComponent for PartitionModel {
                 partition_groups_guard.drop();
                 self.schema = None;
                 self.encryption_enabled = self.method == PartitionMethod::Basic;
-                let _ = sender.output(AppMsg::SetCanGoForward(false));
+                sender.output(AppMsg::SetPartitionConfig(None));
             }
             PartitionMsg::SetMethod(method) => {
                 self.method = method;
@@ -425,7 +424,7 @@ impl SimpleComponent for PartitionModel {
                 self.schema = None;
                 self.encryption_enabled = false;
                 self.diskgroupbtn.set_active(true);
-                let _ = sender.output(AppMsg::SetCanGoForward(false));
+                sender.output(AppMsg::SetPartitionConfig(None));
                 sender.input(PartitionMsg::Refresh);
             }
             PartitionMsg::SetFullDisk(device, size) => {
@@ -439,7 +438,7 @@ impl SimpleComponent for PartitionModel {
                         && !self.luks_password.model().passphrase.is_empty())
                     .then_some(self.luks_password.model().passphrase.clone()),
                 }));
-                sender.input(PartitionMsg::CheckSelected);
+                self.validate_and_emit(&sender);
                 trace!("Schema: {:?}", self.schema);
             }
             PartitionMsg::SetEncryption => {
@@ -460,7 +459,7 @@ impl SimpleComponent for PartitionModel {
                     }
                     None => {}
                 }
-                sender.input(PartitionMsg::CheckSelected);
+                self.validate_and_emit(&sender);
             }
             PartitionMsg::SetPartitionEncryption(name, device, size, encrypt, is_full) => {
                 trace!("SetPartitionEncryption {} {}", name, encrypt);
@@ -507,7 +506,7 @@ impl SimpleComponent for PartitionModel {
                         (any_encrypted && !passphrase.is_empty()).then_some(passphrase);
                 }
                 self.encryption_enabled = any_encrypted;
-                sender.input(PartitionMsg::CheckSelected);
+                self.validate_and_emit(&sender);
             }
             PartitionMsg::SetPassphrase => {
                 trace!("SetPassphrase");
@@ -526,12 +525,12 @@ impl SimpleComponent for PartitionModel {
                     }
                     None => {}
                 }
-                sender.input(PartitionMsg::CheckSelected);
+                self.validate_and_emit(&sender);
             }
             PartitionMsg::SetPassphraseConfirm => {
                 trace!("SetPassphraseConfirm");
                 // self.luks_password.model().passphrase_confirm = pass;
-                sender.input(PartitionMsg::CheckSelected);
+                self.validate_and_emit(&sender);
             }
             PartitionMsg::SetHibernation(x) => {
                 println!("HIBERNATION: {x}");
@@ -580,7 +579,7 @@ impl SimpleComponent for PartitionModel {
                         },
                     }));
                 }
-                sender.input(PartitionMsg::CheckSelected);
+                self.validate_and_emit(&sender);
                 trace!("Schema: {:?}", self.schema);
             }
             PartitionMsg::AddMountPartition(name, mount, device, size, is_full) => {
@@ -652,7 +651,7 @@ impl SimpleComponent for PartitionModel {
                         },
                     }));
                 }
-                sender.input(PartitionMsg::CheckSelected);
+                self.validate_and_emit(&sender);
                 trace!("Schema: {:?}", self.schema);
             }
             PartitionMsg::RemoveFormatPartition(name) => {
@@ -666,7 +665,7 @@ impl SimpleComponent for PartitionModel {
                         }
                     }
                 }
-                sender.input(PartitionMsg::CheckSelected);
+                self.validate_and_emit(&sender);
                 trace!("Schema: {:?}", self.schema);
             }
             PartitionMsg::RemoveMountPartition(name) => {
@@ -680,7 +679,7 @@ impl SimpleComponent for PartitionModel {
                         }
                     }
                 }
-                sender.input(PartitionMsg::CheckSelected);
+                self.validate_and_emit(&sender);
                 trace!("Schema: {:?}", self.schema);
             }
             PartitionMsg::AddPartition(name, part) => {
@@ -703,56 +702,50 @@ impl SimpleComponent for PartitionModel {
                         },
                     }));
                 }
-                sender.input(PartitionMsg::CheckSelected);
+                self.validate_and_emit(&sender);
                 trace!("Schema: {:?}", self.schema);
             }
-            PartitionMsg::CheckSelected => {
-                trace!("PartitionMsg::CheckSelected: {:?}", self.schema);
+        }
+    }
+}
 
-                // Check password validity if encryption is enabled
-                let password_valid = !self.luks_password.model().encryption_enabled
+impl PartitionModel {
+    fn validate_and_emit(&self, sender: &ComponentSender<Self>) {
+        trace!("validate_and_emit: {:?}", self.schema);
+
+        let password_valid = !self.luks_password.model().encryption_enabled
+            || (!self.luks_password.model().passphrase.is_empty()
+                && self.luks_password.model().passphrase
+                    == self.luks_password.model().passphrase_confirm);
+
+        let valid_schema = match &self.schema {
+            Some(PartitionSchema::FullDisk(_)) if password_valid => self.schema.clone(),
+            Some(PartitionSchema::Custom(opts)) => {
+                let schema = &opts.partitions;
+                let mut root = false;
+                let mut bootefi = false;
+                for part in schema.values() {
+                    if part.mountpoint == Some("/".to_string()) {
+                        root = true;
+                    }
+                    if part.mountpoint == Some("/boot".to_string()) || !self.efi {
+                        bootefi = true;
+                    }
+                }
+                let any_encrypted = schema.values().any(|p| p.encrypt);
+                let pw_ok = !any_encrypted
                     || (!self.luks_password.model().passphrase.is_empty()
                         && self.luks_password.model().passphrase
                             == self.luks_password.model().passphrase_confirm);
-
-                match &self.schema {
-                    Some(PartitionSchema::FullDisk(_)) => {
-                        let _ = sender.output(AppMsg::SetCanGoForward(password_valid));
-                        if password_valid {
-                            let _ = sender.output(AppMsg::SetPartitionConfig(self.schema.clone()));
-                        }
-                    }
-                    Some(PartitionSchema::Custom(opts)) => {
-                        let schema = &opts.partitions;
-                        let mut root = false;
-                        let mut bootefi = false;
-                        for part in schema.values() {
-                            if part.mountpoint == Some("/".to_string()) {
-                                root = true;
-                            }
-                            if part.mountpoint == Some("/boot".to_string()) || !self.efi {
-                                bootefi = true;
-                            }
-                        }
-
-                        let partitions_valid = root && bootefi;
-                        let any_encrypted = schema.values().any(|p| p.encrypt);
-                        let password_valid = !any_encrypted
-                            || (!self.luks_password.model().passphrase.is_empty()
-                                && self.luks_password.model().passphrase
-                                    == self.luks_password.model().passphrase_confirm);
-                        let can_proceed = partitions_valid && password_valid;
-
-                        let _ = sender.output(AppMsg::SetCanGoForward(can_proceed));
-                        if can_proceed {
-                            let _ = sender.output(AppMsg::SetPartitionConfig(self.schema.clone()));
-                        }
-                    }
-                    None => {
-                        let _ = sender.output(AppMsg::SetCanGoForward(false));
-                    }
+                if root && bootefi && pw_ok {
+                    self.schema.clone()
+                } else {
+                    None
                 }
             }
-        }
+            _ => None,
+        };
+
+        sender.output(AppMsg::SetPartitionConfig(valid_schema));
     }
 }

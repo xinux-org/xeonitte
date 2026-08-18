@@ -1,4 +1,4 @@
-use crate::{ui::window::AppMsg, utils::parse::Choice};
+use crate::{flow::Choice, ui::window::AppMsg};
 use adw::prelude::*;
 use gettextrs::gettext;
 use relm4::{factory::*, *};
@@ -20,7 +20,6 @@ pub struct ListModel {
 
 #[derive(Debug)]
 pub enum ListMsg {
-    CheckSelected,
     Select(String),
     Deselect(String),
     SetLocale(Option<String>),
@@ -137,25 +136,14 @@ impl SimpleComponent for ListModel {
     fn update(&mut self, msg: Self::Input, sender: ComponentSender<Self>) {
         self.reset();
         match msg {
-            ListMsg::CheckSelected => {
-                let cangoforward = if self.required {
-                    !self.selected.is_empty()
-                } else {
-                    true
-                };
-                let _ = sender.output(AppMsg::SetCanGoForward(cangoforward));
-                sender.output(AppMsg::SetCanGoForward(cangoforward));
-            }
             ListMsg::Select(key) => {
                 self.selected.push(key);
-                sender.input(ListMsg::CheckSelected);
                 let mut selected = self.choices.iter().cloned().collect::<HashMap<_, _>>();
                 selected.retain(|k, _| self.selected.contains(k));
                 sender.output(AppMsg::SetListConfig(self.id.to_string(), selected));
             }
             ListMsg::Deselect(key) => {
                 self.selected.retain(|k| k != &key);
-                sender.input(ListMsg::CheckSelected);
                 let mut selected = self.choices.iter().cloned().collect::<HashMap<_, _>>();
                 selected.retain(|k, _| self.selected.contains(k));
                 sender.output(AppMsg::SetListConfig(self.id.to_string(), selected));
