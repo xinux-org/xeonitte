@@ -143,6 +143,7 @@ impl SimpleComponent for ListModel {
                 } else {
                     true
                 };
+                let _ = sender.output(AppMsg::SetCanGoForward(cangoforward));
                 sender.output(AppMsg::SetCanGoForward(cangoforward));
             }
             ListMsg::Select(key) => {

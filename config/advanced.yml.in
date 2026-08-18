@@ -5,9 +5,6 @@ config_id: advanced
 config_type: xinux
 imperative_timezone: true
 steps:
-- welcome
-- keyboard
-- location
 - !user
   root: true
   hostname: true

@@ -75,7 +75,8 @@ pub fn to_ascii_alphanumeric(text: &str) -> String {
 
 #[derive(Debug)]
 pub enum UserMsg {
-    SetConfig(bool, bool, String),
+    CheckSelected,
+    SetConfig(bool, bool),
     Update(UserDataPatch),
 }
 
@@ -197,6 +198,7 @@ impl SimpleComponent for UserModel {
                             set_title: &gettext("Hostname"),
                             #[watch]
                             set_css_classes: model.field_css("hostname"),
+                            set_text: "xinux",
                             connect_changed[sender] => move |entry| {
                                 sender.input(UserMsg::Update(UserDataPatch{ hostname: Some(entry.text().to_string()), ..Default::default()}));
                             },
@@ -261,14 +263,15 @@ impl SimpleComponent for UserModel {
                 ..Default::default()
             },
             validation: None,
-            dirty: false,
             tracker: 0,
+            dirty: true,
         };
         let username_row = &model.username_row;
         let confirm_password_row = &model.confirm_password_row;
         let confirm_root_password_row = &model.confirm_root_password_row;
         let hostnamerow = &model.hostnamerow;
         let widgets = view_output!();
+
         ComponentParts { model, widgets }
     }
 
@@ -276,7 +279,13 @@ impl SimpleComponent for UserModel {
         self.reset();
         self.data.reset();
         match msg {
-            UserMsg::SetConfig(root, showhostname, hostname) => {
+            UserMsg::CheckSelected => {
+                sender.input(UserMsg::Update(UserDataPatch {
+                    ..Default::default()
+                }));
+                let _ = sender.output(AppMsg::SetCanGoForward(*&self.validation.is_none()));
+            }
+            UserMsg::SetConfig(root, showhostname) => {
                 self.showrootpassword = root;
 
                 if self.showrootpassword {
@@ -285,8 +294,7 @@ impl SimpleComponent for UserModel {
                 }
 
                 self.showhostname = showhostname;
-                self.data.hostname = hostname.to_string();
-                self.hostnamerow.set_text(&self.data.hostname);
+                self.dirty = true;
             }
             UserMsg::Update(patch) => {
                 self.data.apply(patch.clone());
@@ -296,12 +304,9 @@ impl SimpleComponent for UserModel {
                     self.username_row.set_text(&self.data.username);
                 }
 
-                self.validation = self
-                    .data
-                    .validate()
-                    .map_or_else(|report| Some(report), |_| None);
+                self.validation = self.data.validate().map_or_else(Some, |_| None);
 
-                self.dirty = true;
+                self.dirty = self.validation.is_some();
 
                 if self.validation.is_none() {
                     let UserData {
@@ -322,9 +327,9 @@ impl SimpleComponent for UserModel {
                         rootpassword,
                         autologin,
                     })));
-                    let _ = sender.output(AppMsg::SetCanGoForward(true));
+                    sender.output(AppMsg::SetCanGoForward(true));
                 } else {
-                    let _ = sender.output(AppMsg::SetUserConfig(None));
+                    sender.output(AppMsg::SetUserConfig(None));
                     let _ = sender.output(AppMsg::SetCanGoForward(false));
                 }
             }

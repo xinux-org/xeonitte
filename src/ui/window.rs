@@ -3,6 +3,7 @@ use crate::{
     ui::{
         error::error_model::{ErrorModel, ErrorMsg},
         install::install_model::{INSTALL_BROKER, InstallModel, InstallMsg},
+        install_mode::install_mode::{InstallModeModel, InstallModeMsg},
         keyboard::keyboard_model::{KeyboardModel, KeyboardMsg},
         list::list_model::{ListInit, ListModel, ListMsg},
         partitions::partition_model::{
@@ -13,8 +14,7 @@ use crate::{
         summary::summary_model::{SummaryModel, SummaryMsg},
         timezone::timezone_model::{TimeZoneModel, TimeZoneMsg},
         user::user_model::{UserModel, UserMsg},
-        welcome::welcome_model::WelcomeModel,
-        welcome::welcome_model::WelcomeMsg,
+        welcome::welcome_model::{WelcomeModel, WelcomeMsg},
     },
     utils::{
         disko::{
@@ -24,7 +24,7 @@ use crate::{
         i18n::i18n_f,
         install::{InstallAsyncModel, InstallAsyncMsg},
         language::{get_country, get_lang},
-        parse::{Choice, ChoiceEnum, InstallationConfig, StepType, XeonitteConfig, parse_config},
+        parse::{Choice, InstallationConfig, StepType, XeonitteConfig, parse_config},
         report::ErrorPhase,
     },
 };
@@ -37,6 +37,7 @@ use std::{
     collections::{BTreeMap, HashMap},
     convert::identity,
     process::Command,
+    thread, time,
 };
 
 #[tracker::track]
@@ -52,6 +53,8 @@ pub struct AppModel {
     keyboard: Controller<KeyboardModel>,
     #[tracker::no_eq]
     timezone: Controller<TimeZoneModel>,
+    #[tracker::no_eq]
+    install_mode: Controller<InstallModeModel>,
     #[tracker::no_eq]
     partition: Controller<PartitionModel>,
     #[tracker::no_eq]
@@ -73,7 +76,7 @@ pub struct AppModel {
     can_go_forward: bool,
     carousel: adw::Carousel,
     #[tracker::no_eq]
-    carouselpages: HashMap<usize, StepType>,
+    carouselpages: Vec<StepType>,
     current_page: u32,
 
     languageconfig: Option<String>,
@@ -106,7 +109,7 @@ pub enum AppMsg {
     SetCanGoBack(bool),
     SetCanGoForward(bool),
     SetStackPage(StackPage),
-    SetStackPageConfig(StackPage, Option<InstallationConfig>),
+    SetStackPageConfig(StackPage, Option<InstallationConfig>, usize),
     SetLanguageConfig(Option<String>),
     SetKeyboardConfig(Option<String>),
     SetTimezoneConfig(Option<String>),
@@ -138,7 +141,6 @@ pub enum AppAsyncMsg {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum StackPage {
-    FrontPage,
     Carousel,
     Install,
     Finished,
@@ -161,7 +163,7 @@ impl Component for AppModel {
             set_default_height: 900,
             connect_close_request[sender] => move |_| {
                 debug!("Caught close request");
-                if model.page == StackPage::FrontPage || model.page == StackPage::Install {
+                if model.page == StackPage::Install {
                     sender.input(AppMsg::QuitDialog);
                     relm4::gtk::glib::Propagation::Stop
                 } else {
@@ -181,7 +183,7 @@ impl Component for AppModel {
                     #[wrap(Some)]
                     #[transition(Crossfade)]
                     set_title_widget = match model.page {
-                        (StackPage::FrontPage | StackPage::NoInternet) => {
+                        (StackPage::NoInternet) => {
                             gtk::Label {
                                 #[watch]
                                 // Translators: Do NOT translate the '{}'
@@ -219,24 +221,6 @@ impl Component for AppModel {
 
                 #[transition(SlideLeftRight)]
                 match model.page {
-                    StackPage::FrontPage => {
-                        gtk::Box {
-                            set_margin_all: 20,
-                            #[local_ref]
-                            selectbox -> gtk::FlowBox {
-                                set_orientation: gtk::Orientation::Horizontal,
-                                set_halign: gtk::Align::Center,
-                                set_valign: gtk::Align::Center,
-                                set_hexpand: true,
-                                set_column_spacing: 20,
-                                set_row_spacing: 20,
-                                set_selection_mode: gtk::SelectionMode::None,
-                                #[watch]
-                                set_max_children_per_line: selectbox.iter_children().count() as u32,
-                                set_homogeneous: true,
-                            }
-                        }
-                    },
                     StackPage::Carousel => {
                         gtk::Overlay {
                             #[local_ref]
@@ -286,13 +270,13 @@ impl Component for AppModel {
                                     set_height_request: 40,
                                     set_width_request: 40,
                                     #[watch]
-                                    set_css_classes: if model.current_page == main_carousel.n_pages() - 1 { &["circular", "suggested-action"] } else { &["circular"] },
+                                    set_css_classes: if model.current_page.eq(&main_carousel.n_pages().checked_sub(1).unwrap_or_default()) { &["circular", "suggested-action"] } else { &["circular"] },
                                     set_halign: gtk::Align::Start,
                                     set_valign: gtk::Align::Center,
                                     set_icon_name: "go-next-symbolic",
                                     connect_clicked[main_carousel, sender] => move |_| {
                                         let i = adw::Carousel::position(&main_carousel) as u32;
-                                        if i < main_carousel.n_pages() -1 {
+                                        if i < main_carousel.n_pages().checked_sub(1).unwrap_or_default() {
                                             let w = main_carousel.nth_page(i+1);
                                             main_carousel.scroll_to(&w, true);
                                             sender.input(AppMsg::ChangePage(i + 1));
@@ -365,6 +349,8 @@ impl Component for AppModel {
         root: Self::Root,
         sender: ComponentSender<Self>,
     ) -> ComponentParts<Self> {
+        let ten_millis = time::Duration::from_secs(1);
+        thread::sleep(ten_millis);
         let config = parse_config().expect("Failed to parse config");
         let welcomepage = WelcomeModel::builder()
             .launch(())
@@ -376,6 +362,10 @@ impl Component for AppModel {
         println!("Keyboard page launched");
         let timezonepage = TimeZoneModel::builder()
             .launch(())
+            .forward(sender.input_sender(), identity);
+        println!("Timezone page launched");
+        let instal_mode_page = InstallModeModel::builder()
+            .launch(config.clone())
             .forward(sender.input_sender(), identity);
         println!("Timezone page launched");
         let partitionpage = PartitionModel::builder()
@@ -411,7 +401,7 @@ impl Component for AppModel {
             .map(|res| res.status().is_success())
             .map_or(StackPage::NoInternet, |status| {
                 if status {
-                    StackPage::FrontPage
+                    StackPage::Carousel
                 } else {
                     StackPage::NoInternet
                 }
@@ -432,7 +422,7 @@ impl Component for AppModel {
                     }
                     tokio::time::sleep(std::time::Duration::from_secs(1)).await;
                 }
-                AppAsyncMsg::SetPage(StackPage::FrontPage)
+                AppAsyncMsg::SetPage(StackPage::Carousel)
             });
         }
 
@@ -443,6 +433,7 @@ impl Component for AppModel {
             welcome: welcomepage,
             keyboard: keyboardpage,
             timezone: timezonepage,
+            install_mode: instal_mode_page,
             partition: partitionpage,
             user: userpage,
             summary: summarypage,
@@ -454,7 +445,7 @@ impl Component for AppModel {
             can_go_back: true,
             can_go_forward: true,
             carousel: adw::Carousel::new(),
-            carouselpages: HashMap::new(),
+            carouselpages: Vec::new(),
             current_page: 0,
             installworker,
             languageconfig: None,
@@ -466,85 +457,18 @@ impl Component for AppModel {
             tracker: 0,
         };
 
+        sender.input(AppMsg::SetStackPageConfig(
+            StackPage::Carousel,
+            model
+                .config
+                .choices
+                .iter()
+                .cloned()
+                .find(|x| x.config.config_id == "init")
+                .and_then(move |x| x.config.into()),
+            0,
+        ));
         let main_carousel = &model.carousel;
-        let selectbox = gtk::FlowBox::new();
-
-        for item in &model.config.choices {
-            match item {
-                ChoiceEnum::Configuration { file: _, config } => {
-                    view! {
-                        button = gtk::Button {
-                            set_width_request: 200,
-                            set_height_request: 200,
-                            set_halign: gtk::Align::Center,
-                            set_valign: gtk::Align::Center,
-                            connect_clicked[sender, config] => move |_| {
-                                sender.input(AppMsg::SetStackPageConfig(StackPage::Carousel, Some(config.clone())));
-                            },
-                            gtk::Box {
-                                set_orientation: gtk::Orientation::Vertical,
-                                set_halign: gtk::Align::Center,
-                                set_valign: gtk::Align::Center,
-                                set_spacing: 10,
-                                set_margin_all: 10,
-                                gtk::Image {
-                                    set_icon_name: Some(&config.config_logo),
-                                    set_pixel_size: 80,
-                                    set_halign: gtk::Align::Center,
-                                    set_valign: gtk::Align::Center,
-                                },
-                                gtk::Label {
-                                    set_label: &gettext(&config.config_name),
-                                    set_halign: gtk::Align::Center,
-                                    set_valign: gtk::Align::Center,
-                                    set_wrap: true,
-                                    set_justify: gtk::Justification::Center,
-                                }
-                            }
-
-                        }
-                    }
-                    selectbox.append(&button);
-                }
-                ChoiceEnum::Live => {
-                    view! {
-                        button = gtk::Button {
-                            set_width_request: 200,
-                            set_height_request: 200,
-                            set_halign: gtk::Align::Center,
-                            set_valign: gtk::Align::Center,
-                            connect_clicked => move |_| {
-                                relm4::main_application().quit();
-                            },
-                            gtk::Box {
-                                set_orientation: gtk::Orientation::Vertical,
-                                set_halign: gtk::Align::Center,
-                                set_valign: gtk::Align::Center,
-                                set_spacing: 10,
-                                set_margin_all: 10,
-                                gtk::Image {
-                                    set_icon_name: Some("preferences-desktop-display-symbolic"),
-                                    set_pixel_size: 80,
-                                    set_halign: gtk::Align::Center,
-                                    set_valign: gtk::Align::Center,
-                                },
-                                gtk::Label {
-                                    // Translators: Do NOT translate the '{}'
-                                    // The string reads "Try {distribution name} live"
-                                    set_label: i18n_f("Try {} live", &[&model.config.distribution_name]).as_str(),
-                                    set_halign: gtk::Align::Center,
-                                    set_valign: gtk::Align::Center,
-                                    set_wrap: true,
-                                    set_justify: gtk::Justification::Center,
-                                }
-                            }
-
-                        }
-                    }
-                    selectbox.append(&button);
-                }
-            }
-        }
 
         let installpage = model.install.widget().clone();
         let errorpage = model.error.widget().clone();
@@ -565,7 +489,7 @@ impl Component for AppModel {
                 trace!("AppMsg::ChangePage: {}", page);
                 self.can_go_forward = self.current_page > page;
 
-                if let Some(data) = self.carouselpages.get(&(page as usize)) {
+                if let Some(data) = self.carouselpages.get(page as usize) {
                     match data {
                         StepType::Welcome => {
                             self.welcome.emit(WelcomeMsg::CheckSelected);
@@ -576,8 +500,17 @@ impl Component for AppModel {
                         StepType::Location => {
                             self.timezone.emit(TimeZoneMsg::CheckSelected);
                         }
+                        StepType::InstallMode => {
+                            self.install_mode.emit(InstallModeMsg::CheckSelected);
+                        }
                         StepType::Partitioning => {
                             self.partition.emit(PartitionMsg::CheckSelected);
+                        }
+                        StepType::User {
+                            root: _,
+                            hostname: _,
+                        } => {
+                            self.user.emit(UserMsg::CheckSelected);
                         }
                         StepType::Summary => {
                             self.summary.emit(SummaryMsg::SetConfig(
@@ -617,62 +550,70 @@ impl Component for AppModel {
                 self.can_go_back = can_go_back;
             }
             AppMsg::SetCanGoForward(can_go_forward) => {
-                trace!("Carousel can go forward: {}", can_go_forward);
                 self.can_go_forward = can_go_forward;
             }
             AppMsg::SetStackPage(page) => {
                 debug!("StackPage: {:?}", page);
-                if page == self.page {
-                    return;
+                if page.ne(&self.page) {
+                    self.page = page;
                 }
-                self.page = page;
             }
-            AppMsg::SetStackPageConfig(page, installconfig) => {
-                debug!("StackPage: {:?}", page);
-                debug!("Config: {:?}", installconfig);
-                if page == self.page {
-                    return;
-                }
+            AppMsg::SetStackPageConfig(page, installconfig, index) => {
+                trace!("StackPage: {:?}", page);
+                trace!("Config: {:?}", installconfig);
                 self.page = page;
                 self.installconfig = installconfig;
+
                 if let Some(cfg) = &self.installconfig {
-                    let mut i = 0;
-                    for step in &cfg.steps {
+                    if index > 0 {
+                        let init_pages_count = index.saturating_sub(1) as u32;
+                        while self.carousel.n_pages() > init_pages_count {
+                            let last = self.carousel.n_pages() - 1;
+                            let page = self.carousel.nth_page(last);
+                            self.carousel.remove(&page);
+                        }
+                        self.carouselpages.truncate(init_pages_count as usize);
+                    }
+
+                    let steps: Vec<&StepType> = cfg
+                        .steps
+                        .iter()
+                        .filter(|step| !self.carouselpages.contains(step))
+                        .collect();
+                    for step in &steps {
                         match step {
                             StepType::Welcome => {
                                 trace!("Welcome append");
                                 self.carousel.append(self.welcome.widget());
-                                self.carouselpages.insert(i, StepType::Welcome);
-                                i += 1;
+                                self.carouselpages.push(StepType::Welcome);
                             }
                             StepType::Keyboard => {
                                 trace!("Keyboard append");
                                 self.carousel.append(self.keyboard.widget());
-                                self.carouselpages.insert(i, StepType::Keyboard);
-                                i += 1;
+                                self.carouselpages.push(StepType::Keyboard);
                             }
                             StepType::Location => {
                                 trace!("Timezone append");
                                 self.carousel.append(self.timezone.widget());
-                                self.carouselpages.insert(i, StepType::Location);
-                                i += 1;
+                                self.carouselpages.push(StepType::Location);
+                            }
+                            StepType::InstallMode => {
+                                trace!("Install Mode append");
+                                self.carousel.append(self.install_mode.widget());
+                                self.carouselpages.push(StepType::InstallMode);
                             }
                             StepType::Partitioning => {
                                 trace!("Partitioning append");
                                 self.carousel.append(self.partition.widget());
-                                self.carouselpages.insert(i, StepType::Partitioning);
-                                i += 1;
+                                self.carouselpages.push(StepType::Partitioning);
                             }
                             StepType::User { root, hostname } => {
                                 trace!("User append");
                                 self.carousel.append(self.user.widget());
-                                self.carouselpages.insert(
-                                    i,
-                                    StepType::User {
-                                        root: *root,
-                                        hostname: *hostname,
-                                    },
-                                );
+                                self.carouselpages.push(StepType::User {
+                                    root: *root,
+                                    hostname: *hostname,
+                                });
                                 self.user.emit(UserMsg::SetConfig(
                                     if let Some(root) = root { *root } else { false },
                                     if let Some(hostname) = hostname {
@@ -680,17 +621,14 @@ impl Component for AppModel {
                                     } else {
                                         false
                                     },
-                                    self.config.default_hostname.to_string(),
                                 ));
                                 self.summary
                                     .emit(SummaryMsg::ShowHostname(hostname.unwrap_or(false)));
-                                i += 1;
                             }
                             StepType::Summary => {
                                 trace!("Summary append");
                                 self.carousel.append(self.summary.widget());
-                                self.carouselpages.insert(i, StepType::Summary);
-                                i += 1;
+                                self.carouselpages.push(StepType::Summary);
                             }
                             StepType::List {
                                 id,
@@ -711,28 +649,14 @@ impl Component for AppModel {
                                     .forward(sender.input_sender(), identity);
                                 self.carousel.append(listpage.widget());
                                 self.list.insert(title.to_string(), listpage);
-                                self.carouselpages.insert(
-                                    i,
-                                    StepType::List {
-                                        id: id.to_string(),
-                                        multiple: *multiple,
-                                        required: *required,
-                                        title: title.to_string(),
-                                        choices: choices.clone(),
-                                    },
-                                );
-
-                                let initial_config = choices
-                                    .iter()
-                                    .filter_map(|m| m.iter().find(|(_, choice)| choice.default))
-                                    .next()
-                                    .map(|(key, choice)| {
-                                        HashMap::from([(key.clone(), choice.clone())])
-                                    })
-                                    .unwrap_or_default();
-
-                                self.listconfig.insert(id.to_string(), initial_config);
-                                i += 1;
+                                self.carouselpages.push(StepType::List {
+                                    id: id.to_string(),
+                                    multiple: *multiple,
+                                    required: *required,
+                                    title: title.to_string(),
+                                    choices: choices.clone(),
+                                });
+                                self.listconfig.insert(id.to_string(), HashMap::new());
                             }
                             _ => {
                                 warn!("Unimplemented step: {:?}", step);
@@ -740,7 +664,13 @@ impl Component for AppModel {
                         }
                     }
                 }
-                sender.input(AppMsg::ChangePage(0));
+                if index > 0 {
+                    let i = index.saturating_sub(2) as u32;
+                    sender.input(AppMsg::SetCanGoForward(true));
+                    sender.input(AppMsg::ChangePage(i));
+                } else {
+                    sender.input(AppMsg::ChangePage(0));
+                }
             }
             AppMsg::SetLanguageConfig(language) => {
                 self.languageconfig = language;

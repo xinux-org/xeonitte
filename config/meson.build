@@ -1,3 +1,18 @@
+# Initial
+yaml_build = custom_target(
+  'init.yml',
+  input: 'init.yml.in',
+  output: 'init.yml',
+  console: true,
+  install: true,
+  install_dir: pkgconfdir / 'xeonitte',
+  command: [
+    ymlconvert,
+    '@INPUT@',
+    '@OUTPUT@'
+  ]
+)
+
 # Basic
 yaml_build = custom_target(
   'basic.yml',
@@ -30,6 +45,7 @@ yaml_build = custom_target(
 
 install_data('config.yml', install_dir : pkgconfdir / 'xeonitte')
 
+install_subdir('init', install_dir : pkgconfdir / 'xeonitte')
 install_subdir('basic', install_dir : pkgconfdir / 'xeonitte')
 install_subdir('advanced', install_dir : pkgconfdir / 'xeonitte')
 

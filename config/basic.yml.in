@@ -5,9 +5,6 @@ config_id: basic
 config_type: xinux
 imperative_timezone: true
 steps:
-- welcome
-- keyboard
-- location
 - !user
 - partitioning
 - summary

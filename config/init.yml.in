@@ -1,0 +1,11 @@
+---
+config_name: _("Initial Pages")
+config_logo: emoji-symbols-symbolic
+config_id: init
+config_type: xinux
+imperative_timezone: true
+steps:
+- welcome
+- keyboard
+- location
+- install_mode
