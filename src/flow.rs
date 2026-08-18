@@ -45,12 +45,18 @@ impl InstallFlow {
     pub fn steps(&self) -> Vec<Step> {
         match self {
             InstallFlow::Basic => vec![
-                Step::User { root: false, hostname: false },
+                Step::User {
+                    root: false,
+                    hostname: false,
+                },
                 Step::Partitioning,
                 Step::Summary,
             ],
             InstallFlow::Advanced => vec![
-                Step::User { root: true, hostname: true },
+                Step::User {
+                    root: true,
+                    hostname: true,
+                },
                 Step::PackageManagers,
                 Step::KernelSelection,
                 Step::Partitioning,
@@ -61,7 +67,12 @@ impl InstallFlow {
 }
 
 pub fn init_steps() -> Vec<Step> {
-    vec![Step::Welcome, Step::Keyboard, Step::Location, Step::InstallMode]
+    vec![
+        Step::Welcome,
+        Step::Keyboard,
+        Step::Location,
+        Step::InstallMode,
+    ]
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -97,29 +108,41 @@ pub fn package_manager_choices() -> Vec<HashMap<String, Choice>> {
 
 pub fn kernel_choices() -> Vec<HashMap<String, Choice>> {
     vec![
-        HashMap::from([("LTS".to_string(), Choice {
-            description: Some("Install the latest LTS kernel".to_string()),
-            packages: None,
-            default: true,
-            config: None,
-        })]),
-        HashMap::from([("Latest".to_string(), Choice {
-            description: Some("Install the latest kernel".to_string()),
-            packages: None,
-            default: false,
-            config: Some("boot.kernelPackages = pkgs.linuxPackages_latest;".to_string()),
-        })]),
-        HashMap::from([("Libre".to_string(), Choice {
-            description: Some("Install the libre kernel".to_string()),
-            packages: None,
-            default: false,
-            config: Some("boot.kernelPackages = pkgs.linuxPackages_libre;".to_string()),
-        })]),
-        HashMap::from([("Zen".to_string(), Choice {
-            description: Some("Install the Zen kernel".to_string()),
-            packages: None,
-            default: false,
-            config: Some("boot.kernelPackages = pkgs.linuxPackages_zen;".to_string()),
-        })]),
+        HashMap::from([(
+            "LTS".to_string(),
+            Choice {
+                description: Some("Install the latest LTS kernel".to_string()),
+                packages: None,
+                default: true,
+                config: None,
+            },
+        )]),
+        HashMap::from([(
+            "Latest".to_string(),
+            Choice {
+                description: Some("Install the latest kernel".to_string()),
+                packages: None,
+                default: false,
+                config: Some("boot.kernelPackages = pkgs.linuxPackages_latest;".to_string()),
+            },
+        )]),
+        HashMap::from([(
+            "Libre".to_string(),
+            Choice {
+                description: Some("Install the libre kernel".to_string()),
+                packages: None,
+                default: false,
+                config: Some("boot.kernelPackages = pkgs.linuxPackages_libre;".to_string()),
+            },
+        )]),
+        HashMap::from([(
+            "Zen".to_string(),
+            Choice {
+                description: Some("Install the Zen kernel".to_string()),
+                packages: None,
+                default: false,
+                config: Some("boot.kernelPackages = pkgs.linuxPackages_zen;".to_string()),
+            },
+        )]),
     ]
 }
