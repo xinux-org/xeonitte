@@ -769,11 +769,7 @@ impl AppModel {
         if let Some(partition_schema) = partition.clone() {
             match partition_schema {
                 PartitionSchema::FullDisk(FullDiskOptions {
-                    device,
-                    encryption,
-                    passphrase,
-                    disk_size,
-                    hibernation,
+                    device, encryption, ..
                 }) => {
                     devices = if encryption {
                         luks_encrypted(device, LUKS_PASSWORD_FILE)

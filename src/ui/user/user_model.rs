@@ -6,7 +6,7 @@ use relm4::*;
 use struct_patch::Patch;
 
 #[tracker::track]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Validate, Default, Debug, Clone, Patch)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Validate, Debug, Clone, Patch)]
 #[patch(attribute(derive(Debug, Default, Clone)))]
 #[garde(allow_unvalidated)]
 pub struct UserData {
@@ -30,6 +30,23 @@ pub struct UserData {
 
     #[garde(skip)]
     pub autologin: bool,
+}
+
+#[cfg(debug_assertions)]
+impl Default for UserData {
+    fn default() -> Self {
+        Self {
+            name: "a".to_string(),
+            username: "a".to_string(),
+            password: "a".to_string(),
+            confirm_password: "a".to_string(),
+            hostname: "xinux".to_string(),
+            root_password: "a".to_string().into(),
+            confirm_root_password: "a".to_string().into(),
+            autologin: false,
+            tracker: 0,
+        }
+    }
 }
 
 #[tracker::track]
@@ -109,15 +126,21 @@ impl SimpleComponent for UserModel {
                         set_selection_mode: gtk::SelectionMode::None,
                         adw::EntryRow {
                             #[watch]
+                            #[block_signal(toggle_handler_name)]
+                            set_text: &model.data.name,
+                            #[watch]
                             set_title: &gettext("Name"),
                             #[watch]
                             set_css_classes: model.field_css("name"),
                             connect_changed[sender] => move |entry| {
                                 sender.input(UserMsg::Update(UserDataPatch { name: Some(entry.text().to_string()), ..Default::default()}));
-                            }
+                            } @toggle_handler_name
                         },
                         #[local_ref]
                         username_row -> adw::EntryRow {
+                            #[watch]
+                            #[block_signal(toggle_handler_username)]
+                            set_text: &model.data.username,
                             #[watch]
                             set_title: &gettext("Username"),
                             #[watch]
@@ -149,26 +172,32 @@ impl SimpleComponent for UserModel {
                             },
                             connect_changed[sender] => move |entry| {
                                 sender.input(UserMsg::Update(UserDataPatch { username: Some(entry.text().to_string()), ..Default::default()}));
-                            },
+                            } @toggle_handler_username,
                         },
                         adw::PasswordEntryRow {
+                            #[watch]
+                            #[block_signal(toggle_handler_passwd)]
+                            set_text: &model.data.password,
                             #[watch]
                             set_title: &gettext("Password"),
                             #[watch]
                             set_css_classes: model.field_css("password"),
                             connect_changed[sender] => move |entry| {
                                 sender.input(UserMsg::Update(UserDataPatch {password: Some(entry.text().to_string()), ..Default::default()}));
-                            }
+                            } @toggle_handler_passwd
                         },
                         #[local_ref]
                         confirm_password_row -> adw::PasswordEntryRow {
+                            #[watch]
+                            #[block_signal(toggle_handler_conf_passd)]
+                            set_text: &model.data.confirm_password,
                             #[watch]
                             set_title: &gettext("Confirm Password"),
                             #[watch]
                             set_css_classes: model.field_css("confirm_password"),
                             connect_changed[sender] => move |entry| {
                                 sender.input(UserMsg::Update(UserDataPatch {confirm_password: Some(entry.text().to_string()), ..Default::default()}));
-                            }
+                            } @toggle_handler_conf_passd
                         },
                         adw::ActionRow {
                             #[watch]
