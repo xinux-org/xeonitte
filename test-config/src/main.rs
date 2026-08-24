@@ -6,7 +6,6 @@ use xeonitte::modules::{disk::*, nix::*};
 
 const TMPDIR: &str = "/nix/var/nix/builds/xeonitte";
 
-
 const GB: u64 = 1024 * 1024 * 1024;
 
 fn simple_part(label: &str, gib: u64) -> PartitionDef {
@@ -24,7 +23,8 @@ fn disk_to_nix_mod(d: &Disk) -> NixModule {
         .add_partition(simple_part("a", 42))
         .unwrap()
         .add_partition(simple_part("b", 42))
-        .unwrap().to_nix_module()
+        .unwrap()
+        .to_nix_module()
 }
 
 fn disk_to_layout(d: &Disk) -> DiskLayout {
@@ -37,8 +37,6 @@ fn dvc_list() {
 }
 
 pub fn samp() {
-
-
     let total = 100 * GB;
     let layout = DiskLayout::new("/dev/sda", total)
         .add_partition(simple_part("a", 30))
@@ -46,22 +44,39 @@ pub fn samp() {
         .add_partition(simple_part("b", 20))
         .unwrap();
 
-
     // layouts_to_nix_module
 
+    let d = Disk {
+        name: "/dev/sda2".into(),
+        id: Some("wwn-0x5000039cb56093a5".into()),
+        size: GB * 100,
+        partitions: Vec::new(),
+    };
+
+    let rrr = disk_to_layout(&d)
+        .add_partition(simple_part("a", 4))
+        .unwrap()
+        .add_partition(simple_part("b", 400)).unwrap();
 
     let r: Vec<NixModule> = Disk::list().iter().map(disk_to_nix_mod).collect();
     let a = r.iter().fold(NixModule::new(), |x, y| x.merge(y.clone()));
-    let bp =  match std::path::absolute("test-config/generated/simple.nix") {
+    let bp = match std::path::absolute("test-config/generated/simple.nix") {
         Ok(d) => d,
-        Err(_) => PathBuf::new()
+        Err(_) => PathBuf::new(),
     };
+
+
+    let f: Size<GiB> = rrr.free_space();
+
     println!("data: {:?}", bp);
-    
+    println!("free space: {:?}", f.to_disko_str());
 
     let smp2: Vec<DiskLayout> = Disk::list().iter().map(disk_to_layout).collect();
     let sm = layouts_to_nix_module(&smp2);
-    std::fs::write(bp, a.render());
+
+
+    let nx_module = rrr.to_nix_module().render();
+    std::fs::write(bp,nx_module) ;
     println!("done");
 }
 
