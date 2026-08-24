@@ -1,5 +1,27 @@
 {
   "nodes": {
+    "disko": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1781152676,
+        "narHash": "sha256-RxWs5ND31KzTG7wvMM+PMfUjyNpmIEr999lqNARaM5o=",
+        "ref": "master",
+        "rev": "ff8702b4de27f72b4c78573dfb89ec74e36abdf1",
+        "shallow": true,
+        "type": "git",
+        "url": "https://git.oss.uzinfocom.uz/mirrors/disko"
+      },
+      "original": {
+        "ref": "master",
+        "shallow": true,
+        "type": "git",
+        "url": "https://git.oss.uzinfocom.uz/mirrors/disko"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -166,6 +188,7 @@
     },
     "root": {
       "inputs": {
+        "disko": "disko",
         "nixpkgs": "nixpkgs",
         "xinux-lib": "xinux-lib"
       }
