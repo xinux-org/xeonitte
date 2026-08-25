@@ -52,7 +52,7 @@ pub fn run() {
 
 fn write(name: &str, nix: String) {
     let path = Path::new(OUT_DIR).join(format!("{name}.nix"));
-    fs::write(&path, &nix).unwrap_or_else(|e| panic!("failed to write {name}.nix: {e}"));
+    fs::write(&path, &nix).unwrap_or_else(|e| println!("failed to write {name}.nix: {e}"));
     println!("wrote {}", path.display());
 }
 
