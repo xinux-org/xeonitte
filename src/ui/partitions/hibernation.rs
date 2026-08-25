@@ -2,6 +2,7 @@ use crate::ui::partitions::partition_model::PartitionMsg;
 use gettextrs::gettext;
 use relm4::{adw::prelude::*, *};
 
+#[derive(Debug)]
 pub struct Hibernation {
     pub enabled: bool,
 }

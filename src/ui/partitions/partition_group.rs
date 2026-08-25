@@ -11,7 +11,7 @@ use relm4::{adw::prelude::*, factory::*, *};
 use size::Size;
 use std::ops::{AddAssign, SubAssign};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct PartitionGroup {
     pub name: String,
     pub partitions: FactoryVecDeque<Partition>,

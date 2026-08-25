@@ -5,10 +5,11 @@ use reqwest::blocking::multipart;
 use std::path::{Path, PathBuf};
 use utils::config::{CONFIG, Config};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum ErrorPhase {
     Setup,
     Partition,
+    #[default]
     Configuration,
     Installation,
     PostInstall,

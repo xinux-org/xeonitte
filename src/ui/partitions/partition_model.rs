@@ -18,10 +18,25 @@ use log::{debug, error, info, trace};
 use relm4::{adw::prelude::*, factory::*, *};
 use serde::{Deserialize, Serialize};
 use size::Size;
-use std::{collections::HashMap, convert::identity, process::Command};
+use std::{any::Any, collections::HashMap, convert::identity, process::Command};
 
+// pub struct WrappedFactoryDeque<T: FactoryComponent<Index = DynamicIndex>>(FactoryVecDeque<T>);
+// impl<T: FactoryComponent<Index = DynamicIndex>> PartialEq for WrappedFactoryDeque<T> {
+//     fn eq(&self, other: &Self) -> bool {
+//         self.0.type_id() == other.0.type_id()
+//     }
+// }
+// impl<T: FactoryComponent<Index = DynamicIndex>> Into<FactoryVecDeque<T>>
+//     for WrappedFactoryDeque<T>
+// {
+//     fn into(self) -> FactoryVecDeque<T> {
+//         self.0
+//     }
+// }
+
+#[derive(Debug, Default, PartialEq, Clone)]
 pub struct PartitionModel {
-    disks: FactoryVecDeque<WholeDisk>,
+    disks: Option<FactoryVecDeque<WholeDisk>>,
     method: PartitionMethod,
     partition_groups: FactoryVecDeque<PartitionGroup>,
     diskgroupbtn: gtk::CheckButton,
@@ -57,7 +72,7 @@ pub enum PartitionMethod {
     Advanced,
 }
 
-#[derive(Serialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct FullDiskOptions {
     pub device: String,
     pub encryption: bool,
@@ -66,7 +81,7 @@ pub struct FullDiskOptions {
     pub disk_size: u64,
 }
 
-#[derive(Serialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone, PartialEq, Eq)]
 pub struct CustomOptions {
     pub partitions: HashMap<String, CustomPartition>,
     pub encryption: bool,
@@ -74,13 +89,13 @@ pub struct CustomOptions {
     pub disk_size: u64,
 }
 
-#[derive(Serialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone, Eq, PartialEq)]
 pub enum PartitionSchema {
     FullDisk(FullDiskOptions),
     Custom(CustomOptions),
 }
 
-#[derive(Serialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone, PartialEq, Eq, PartialOrd)]
 pub struct CustomPartition {
     pub format: Option<String>,
     pub mountpoint: Option<String>,

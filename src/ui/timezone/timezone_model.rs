@@ -4,13 +4,13 @@ use crate::utils::report::ErrorPhase;
 use adw::prelude::*;
 use gettextrs::gettext;
 use gnome_desktop::{self, WallClockExt};
-use log::{debug, trace};
+use log::debug;
 use relm4::gtk::glib::{self, TimeZone};
 use relm4::*;
 use std::{collections::HashMap, process::Command};
 
 #[tracker::track]
-#[derive(Debug)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct TimeZoneModel {
     timezones: Vec<(String, Vec<(String, TimeZone)>)>,
     language: Option<String>,

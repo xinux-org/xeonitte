@@ -5,6 +5,7 @@ use gtk::prelude::{BoxExt, ButtonExt, OrientableExt, WidgetExt};
 use relm4::*;
 use relm4::{ComponentParts, ComponentSender, RelmWidgetExt, SimpleComponent, gtk};
 
+#[derive(Debug, PartialEq, Clone, Default)]
 pub struct InstallModeModel {
     selected: Option<InstallFlow>,
 }

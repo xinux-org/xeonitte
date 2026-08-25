@@ -8,7 +8,7 @@ pub type Attrs<T> = BTreeMap<String, T>;
 
 pub const LUKS_PASSWORD_FILE: &str = "/run/xeonitte-luks.key";
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
 pub struct Devices {
     #[serde(default, skip_serializing_if = "Attrs::is_empty")]
     pub disk: Attrs<Disk>,
@@ -65,7 +65,7 @@ fn partition_has_luks(content: &PartitionContent) -> bool {
     }
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
 pub struct Disk {
     // `/dev/...` path. Required.
     pub device: String,
@@ -76,7 +76,7 @@ pub struct Disk {
     pub content: Option<DeviceContent>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum DeviceContent {
     Gpt(Gpt),
@@ -86,7 +86,7 @@ pub enum DeviceContent {
     Swap(Swap),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum PartitionContent {
     Luks(Luks),
@@ -94,7 +94,7 @@ pub enum PartitionContent {
     Swap(Swap),
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
 pub struct Gpt {
     #[serde(default, skip_serializing_if = "Attrs::is_empty")]
     pub partitions: Attrs<Partition>,
@@ -106,7 +106,7 @@ pub struct Gpt {
     pub efi_gpt_partition_first: Option<bool>,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
 pub struct Partition {
     // sgdisk typecode (e.g. `"EF00"`, `"8300"`, `"8200"`) or a full type GUID.
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
@@ -236,7 +236,7 @@ pub struct Filesystem {
     pub extra_args: Vec<String>,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
 pub struct Luks {
     pub name: String,
 
@@ -281,7 +281,7 @@ pub enum DiscardPolicy {
     Both,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(untagged)]
 pub enum NixValue {
     Bool(bool),

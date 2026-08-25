@@ -4,7 +4,7 @@ use crate::{
 };
 use relm4::{adw::prelude::*, factory::*, *};
 
-#[derive(Default, Debug, PartialEq, Eq, Clone)]
+#[derive(Default, Debug, PartialEq, Clone)]
 pub struct WholeDisk {
     pub name: String,
     pub size: u64,
@@ -47,5 +47,10 @@ impl FactoryComponent for WholeDisk {
 
     fn init_model(parent: Self::Init, _index: &DynamicIndex, _sender: FactorySender<Self>) -> Self {
         parent
+    }
+}
+impl CloneableFactoryComponent for WholeDisk {
+    fn get_init(&self) -> Self::Init {
+        Self::default()
     }
 }

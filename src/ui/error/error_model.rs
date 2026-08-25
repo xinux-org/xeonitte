@@ -7,8 +7,9 @@ use adw::prelude::*;
 use gettextrs::gettext;
 use log::error;
 use relm4::*;
-use std::process::Command;
+use std::{default, process::Command};
 
+#[derive(Debug, PartialEq, Clone, Default)]
 pub struct ErrorModel {
     messegebuffer: gtk::TextBuffer,
     uploadbutton: UploadButton,
@@ -18,9 +19,10 @@ pub struct ErrorModel {
     message: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone, Default)]
 pub enum UploadButton {
     Button,
+    #[default]
     Loading,
     Url,
 }

@@ -43,24 +43,34 @@ impl InstallFlow {
     }
 
     pub fn steps(&self) -> Vec<Step> {
+        use Step::*;
+
         match self {
             InstallFlow::Basic => vec![
-                Step::User {
+                Welcome,
+                Keyboard,
+                Location,
+                InstallMode,
+                User {
                     root: false,
                     hostname: false,
                 },
-                Step::Partitioning,
-                Step::Summary,
+                Partitioning,
+                Summary,
             ],
             InstallFlow::Advanced => vec![
-                Step::User {
+                Welcome,
+                Keyboard,
+                Location,
+                InstallMode,
+                User {
                     root: true,
                     hostname: true,
                 },
-                Step::PackageManagers,
-                Step::KernelSelection,
-                Step::Partitioning,
-                Step::Summary,
+                PackageManagers,
+                KernelSelection,
+                Partitioning,
+                Summary,
             ],
         }
     }

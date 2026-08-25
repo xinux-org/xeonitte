@@ -42,43 +42,12 @@ use std::{
     thread, time,
 };
 
+use struct_patch::Patch;
+
 #[tracker::track]
-pub struct AppModel {
-    page: StackPage,
-    #[tracker::no_eq]
-    install_flow: Option<InstallFlow>,
-    #[tracker::no_eq]
-    welcome: Controller<WelcomeModel>,
-    #[tracker::no_eq]
-    keyboard: Controller<KeyboardModel>,
-    #[tracker::no_eq]
-    timezone: Controller<TimeZoneModel>,
-    #[tracker::no_eq]
-    install_mode: Controller<InstallModeModel>,
-    #[tracker::no_eq]
-    partition: Controller<PartitionModel>,
-    #[tracker::no_eq]
-    user: Controller<UserModel>,
-    #[tracker::no_eq]
-    summary: Controller<SummaryModel>,
-    #[tracker::no_eq]
-    install: Controller<InstallModel>,
-    #[tracker::no_eq]
-    package_managers: Controller<ListModel>,
-    #[tracker::no_eq]
-    kernel_selection: Controller<ListModel>,
-    #[tracker::no_eq]
-    error: Controller<ErrorModel>,
-    #[tracker::no_eq]
-    quitdialog: Controller<QuitDialogModel>,
-
-    is_transitioning: bool,
-    #[tracker::no_eq]
-    carousel: adw::Carousel,
-    #[tracker::no_eq]
-    carouselpages: Vec<Step>,
-    current_page: u32,
-
+#[derive(Default, Debug, Clone, Patch)]
+#[patch(attribute(derive(Debug, Default, Clone)))]
+pub struct ConfigData {
     languageconfig: Option<String>,
     keyboardconfig: Option<String>,
     timezoneconfig: Option<String>,
@@ -90,6 +59,55 @@ pub struct AppModel {
 
     #[tracker::no_eq]
     listconfig: HashMap<String, HashMap<String, Choice>>,
+}
+
+#[tracker::track]
+#[derive(Default, Debug, Clone, Patch)]
+#[patch(attribute(derive(Debug, Default, Clone)))]
+pub struct CarouselData {
+    is_transitioning: bool,
+    #[tracker::no_eq]
+    carousel: adw::Carousel,
+    #[tracker::no_eq]
+    carouselpages: Vec<Step>,
+    current_page: u32,
+}
+
+#[tracker::track]
+#[derive(Default, Debug, Clone, Patch)]
+#[patch(attribute(derive(Debug, Default, Clone)))]
+pub struct PagesData {
+    #[tracker::no_eq]
+    install_flow: Option<InstallFlow>,
+    #[tracker::no_eq]
+    welcome: WelcomeModel,
+    #[tracker::no_eq]
+    keyboard: KeyboardModel,
+    #[tracker::no_eq]
+    timezone: TimeZoneModel,
+    #[tracker::no_eq]
+    install_mode: InstallModeModel,
+    #[tracker::no_eq]
+    partition: PartitionModel,
+    #[tracker::no_eq]
+    user: UserModel,
+    #[tracker::no_eq]
+    summary: SummaryModel,
+    #[tracker::no_eq]
+    install: InstallModel,
+    #[tracker::no_eq]
+    package_managers: ListModel,
+    #[tracker::no_eq]
+    kernel_selection: ListModel,
+    #[tracker::no_eq]
+    error: ErrorModel,
+    #[tracker::no_eq]
+    quitdialog: QuitDialogModel,
+}
+
+#[tracker::track]
+pub struct AppModel {
+    page: StackPage,
 
     #[tracker::no_eq]
     installworker: WorkerController<InstallAsyncModel>,
@@ -443,13 +461,6 @@ impl Component for AppModel {
             carouselpages: Vec::new(),
             current_page: 0,
             installworker,
-            languageconfig: None,
-            keyboardconfig: None,
-            timezoneconfig: None,
-            partitionconfig: None,
-            userconfig: None,
-            diskoconfig: Devices::default(),
-            listconfig: HashMap::new(),
             tracker: 0,
         };
 
@@ -514,22 +525,21 @@ impl Component for AppModel {
                 self.carousel.scroll_to(&w, true);
             }
 
-            AppMsg::PageChanged(idx) => {
-                trace!("AppMsg::PageChanged: {}", idx);
-                self.is_transitioning = false;
-                self.current_page = idx;
+            // AppMsg::PageChanged(idx) => {
+            //     trace!("AppMsg::PageChanged: {}", idx);
+            //     self.is_transitioning = false;
+            //     self.current_page = idx;
 
-                if let Some(Step::Summary) = self.carouselpages.get(idx as usize) {
-                    self.summary.emit(SummaryMsg::SetConfig(
-                        self.languageconfig.clone(),
-                        self.keyboardconfig.clone(),
-                        self.timezoneconfig.clone(),
-                        self.partitionconfig.clone(),
-                        Box::new(self.userconfig.clone()),
-                    ));
-                }
-            }
-
+            //     if let Some(Step::Summary) = self.carouselpages.get(idx as usize) {
+            //         self.summary.emit(SummaryMsg::SetConfig(
+            //             self.languageconfig.clone(),
+            //             self.keyboardconfig.clone(),
+            //             self.timezoneconfig.clone(),
+            //             self.partitionconfig.clone(),
+            //             Box::new(self.userconfig.clone()),
+            //         ));
+            //     }
+            // }
             AppMsg::SetStackPage(page) => {
                 debug!("StackPage: {:?}", page);
                 if page.ne(&self.page) {
@@ -540,49 +550,72 @@ impl Component for AppModel {
             AppMsg::SelectFlow(flow) => {
                 debug!("SelectFlow: {:?}", flow);
 
-                // Trim carousel back to init pages only.
-                let init_len = init_steps().len() as u32;
-                while self.carousel.n_pages() > init_len {
-                    let last = self.carousel.n_pages() - 1;
-                    let page = self.carousel.nth_page(last);
-                    self.carousel.remove(&page);
-                }
-                self.carouselpages.truncate(init_len as usize);
+                // Set state to zero
+                // self.userconfig = None;
+                // self.partitionconfig = None;
+                // self.listconfig = HashMap::new();
 
-                // Reset flow-specific state from the previous selection.
-                self.userconfig = None;
-                self.partitionconfig = None;
-                self.listconfig = HashMap::new();
-
-                // Append the new flow's pages.
-                for step in flow.steps() {
-                    match &step {
-                        Step::User { root, hostname } => {
-                            self.carousel.append(self.user.widget());
-                            self.user.emit(UserMsg::SetConfig(*root, *hostname));
-                            self.summary.emit(SummaryMsg::ShowHostname(*hostname));
+                let that = |flow: InstallFlow| {
+                    let new_carousel = adw::Carousel::new();
+                    let new_config = ConfigData::default();
+                    for step in flow.steps() {
+                        use Step::*;
+                        match &step {
+                            Welcome => {
+                                new_carousel.append(self.welcome.widget());
+                            }
+                            Keyboard => {
+                                new_carousel.append(self.keyboard.widget());
+                            }
+                            Location => {
+                                new_carousel.append(self.timezone.widget());
+                            }
+                            InstallMode => {
+                                new_carousel.append(self.install_mode.widget());
+                            }
+                            User { root, hostname } => {
+                                new_carousel.append(self.user.widget());
+                                self.user.emit(UserMsg::SetConfig(*root, *hostname));
+                                self.summary.emit(SummaryMsg::ShowHostname(*hostname));
+                            }
+                            PackageManagers => {
+                                new_carousel.append(self.package_managers.widget());
+                                new_config
+                                    .listconfig
+                                    .insert("PACKAGEMANAGERS".to_string(), HashMap::new());
+                            }
+                            KernelSelection => {
+                                new_carousel.append(self.kernel_selection.widget());
+                                new_config
+                                    .listconfig
+                                    .insert("KERNEL".to_string(), HashMap::new());
+                            }
+                            Partitioning => {
+                                new_carousel.append(self.partition.widget());
+                            }
+                            Summary => {
+                                new_carousel.append(self.summary.widget());
+                            }
+                            _ => {}
                         }
-                        Step::PackageManagers => {
-                            self.carousel.append(self.package_managers.widget());
-                            self.listconfig
-                                .insert("PACKAGEMANAGERS".to_string(), HashMap::new());
-                        }
-                        Step::KernelSelection => {
-                            self.carousel.append(self.kernel_selection.widget());
-                            self.listconfig.insert("KERNEL".to_string(), HashMap::new());
-                        }
-                        Step::Partitioning => {
-                            self.carousel.append(self.partition.widget());
-                        }
-                        Step::Summary => {
-                            self.carousel.append(self.summary.widget());
-                        }
-                        _ => {}
+                        self.carouselpages.push(step);
                     }
-                    self.carouselpages.push(step);
-                }
+                    (new_carousel, new_config)
+                };
 
                 self.install_flow = Some(flow);
+                // Trim carousel back to init pages only.
+                // let len = flow.steps().len() as u32;
+                // while self.carousel.n_pages() > len {
+                //     let last = self.carousel.n_pages() - 1;
+                //     let page = self.carousel.nth_page(last);
+                //     self.carousel.remove(&page);
+                // }
+                // self.carouselpages.truncate(len as usize);
+
+                // Reset flow-specific state from the previous selection.
+
+                // Append the new flow's pages.
             }
 
             AppMsg::SetLanguageConfig(language) => {

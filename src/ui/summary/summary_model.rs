@@ -8,6 +8,7 @@ use log::debug;
 use relm4::{factory::*, *};
 
 #[tracker::track]
+#[derive(Debug)]
 pub struct SummaryModel {
     languageconfig: Option<String>,
     keyboardconfig: Option<String>,

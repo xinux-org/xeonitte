@@ -7,6 +7,7 @@ use log::info;
 use relm4::*;
 
 #[tracker::track]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct WelcomeModel {
     showall: bool,
     selected: Option<String>,

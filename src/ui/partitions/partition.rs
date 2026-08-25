@@ -2,7 +2,7 @@ use crate::ui::partitions::partition_model::{PARTITION_BROKER, PartitionMsg};
 use gettextrs::gettext;
 use relm4::{adw::prelude::*, factory::*, *};
 
-#[derive(Default, Debug, PartialEq, Eq, Clone)]
+#[derive(Default, Debug, PartialEq, Clone)]
 pub struct Partition {
     pub name: String,
     pub size: u64,
@@ -15,7 +15,7 @@ pub struct Partition {
     pub donotformat: String,
 }
 
-#[derive(Default, Debug, PartialEq, Eq, Clone)]
+#[derive(Default, Debug, PartialEq, Clone)]
 pub struct PartitionInit {
     pub name: String,
     pub size: u64,

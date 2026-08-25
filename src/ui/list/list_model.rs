@@ -5,6 +5,7 @@ use relm4::{factory::*, *};
 use std::collections::HashMap;
 
 #[tracker::track]
+#[derive(Debug)]
 pub struct ListModel {
     id: String,
     title: String,
@@ -163,6 +164,7 @@ impl SimpleComponent for ListModel {
 use relm4::{adw, factory::FactoryComponent};
 
 #[tracker::track]
+#[derive(Debug)]
 pub struct ListItem {
     title: String,
     description: String,

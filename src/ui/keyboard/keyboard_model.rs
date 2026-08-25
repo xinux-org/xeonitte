@@ -8,7 +8,7 @@ use relm4::*;
 use std::process::Command;
 
 #[tracker::track]
-#[derive(Debug)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct KeyboardModel {
     #[allow(clippy::type_complexity)]
     layouts: Vec<(String, (String, String, String, String))>,

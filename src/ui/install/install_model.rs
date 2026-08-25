@@ -3,7 +3,6 @@ use crate::{
     ui::window::AppMsg,
     utils::{parse::parse_branding, report::ErrorPhase},
 };
-use adw::prelude::*;
 use anyhow::Context;
 use gtk::gio;
 use log::{debug, error};
@@ -11,6 +10,7 @@ use relm4::{factory::*, *};
 use std::{fs::File, process::Command};
 use vte::{self, TerminalExt, TerminalExtManual};
 
+#[derive(Debug)]
 pub struct InstallModel {
     terminal: vte::Terminal,
     progressbar_title: String,
