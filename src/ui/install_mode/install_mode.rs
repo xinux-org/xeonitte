@@ -10,7 +10,7 @@ pub struct InstallModeModel {
     selected: Option<InstallFlow>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum InstallModeMsg {
     SetSelected(InstallFlow),
 }

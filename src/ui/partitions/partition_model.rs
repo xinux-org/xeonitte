@@ -38,16 +38,16 @@ use std::{any::Any, collections::HashMap, convert::identity, process::Command};
 pub struct PartitionModel {
     disks: Option<FactoryVecDeque<WholeDisk>>,
     method: Option<PartitionMethod>,
-    partition_groups: FactoryVecDeque<PartitionGroup>,
+    partition_groups: Option<FactoryVecDeque<PartitionGroup>>,
     diskgroupbtn: gtk::CheckButton,
     schema: Option<PartitionSchema>,
     efi: bool,
     encryption_enabled: bool,
-    luks_password: Controller<LuksPasswordComponent>,
-    hibernation: Controller<Hibernation>,
+    luks_password: Option<Controller<LuksPasswordComponent>>,
+    hibernation: Option<Controller<Hibernation>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum PartitionMsg {
     SetMethod(PartitionMethod),
     SetFullDisk(String, u64),

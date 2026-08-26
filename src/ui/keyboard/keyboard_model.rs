@@ -22,7 +22,7 @@ pub struct KeyboardModel {
     xkb: XkbInfo,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum KeyboardMsg {
     ToggleShowall,
     SetSelected(Option<String>),

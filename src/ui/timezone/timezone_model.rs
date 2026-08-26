@@ -23,7 +23,7 @@ pub struct TimeZoneModel {
     timelist: HashMap<TimeZone, gtk::Label>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum TimeZoneMsg {
     ToggleShowall,
     SetSelected(Option<String>),

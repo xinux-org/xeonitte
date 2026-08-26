@@ -45,9 +45,8 @@ use std::{
 use struct_patch::Patch;
 
 #[tracker::track]
-#[derive(Default, Debug, Clone, Patch, PartialEq)]
-#[patch(attribute(derive(Debug, Default, Clone)))]
-pub struct ConfigData {
+#[derive(Default, Debug, Clone, PartialEq)]
+pub struct InstallConfigData {
     languageconfig: Option<String>,
     keyboardconfig: Option<String>,
     timezoneconfig: Option<String>,
@@ -62,9 +61,8 @@ pub struct ConfigData {
 }
 
 #[tracker::track]
-#[derive(Default, Debug, Clone, Patch, PartialEq)]
-#[patch(attribute(derive(Debug, Default, Clone)))]
-pub struct CarouselData {
+#[derive(Default, Debug, Clone, PartialEq)]
+pub struct Carousel {
     page: StackPage,
     is_transitioning: bool,
     #[tracker::no_eq]
@@ -72,48 +70,53 @@ pub struct CarouselData {
     #[tracker::no_eq]
     carouselpages: Vec<Step>,
     current_page: u32,
+    #[tracker::no_eq]
+    install_flow: Option<InstallFlow>,
+}
+
+#[tracker::track]
+#[derive(Default, Debug, Clone, PartialEq)]
+pub struct Pages {
+    #[tracker::no_eq]
+    welcome: Option<Controller<WelcomeModel>>,
+    #[tracker::no_eq]
+    keyboard: Option<Controller<KeyboardModel>>,
+    #[tracker::no_eq]
+    timezone: Option<Controller<TimeZoneModel>>,
+    #[tracker::no_eq]
+    install_mode: Option<Controller<InstallModeModel>>,
+    #[tracker::no_eq]
+    partition: Option<Controller<PartitionModel>>,
+    #[tracker::no_eq]
+    user: Option<Controller<UserModel>>,
+    #[tracker::no_eq]
+    summary: Option<Controller<SummaryModel>>,
+    #[tracker::no_eq]
+    install: Option<Controller<InstallModel>>,
+    #[tracker::no_eq]
+    package_managers: Option<Controller<ListModel>>,
+    #[tracker::no_eq]
+    kernel_selection: Option<Controller<ListModel>>,
+    #[tracker::no_eq]
+    error: Option<Controller<ErrorModel>>,
+    #[tracker::no_eq]
+    quitdialog: Option<Controller<QuitDialogModel>>,
 }
 
 #[tracker::track]
 #[derive(Default, Debug, Clone, Patch, PartialEq)]
 #[patch(attribute(derive(Debug, Default, Clone)))]
-pub struct PagesData {
-    #[tracker::no_eq]
-    install_flow: Option<InstallFlow>,
-    #[tracker::no_eq]
-    welcome: WelcomeModel,
-    #[tracker::no_eq]
-    keyboard: KeyboardModel,
-    #[tracker::no_eq]
-    timezone: TimeZoneModel,
-    #[tracker::no_eq]
-    install_mode: InstallModeModel,
-    #[tracker::no_eq]
-    partition: PartitionModel,
-    #[tracker::no_eq]
-    user: UserModel,
-    #[tracker::no_eq]
-    summary: SummaryModel,
-    #[tracker::no_eq]
-    install: InstallModel,
-    #[tracker::no_eq]
-    package_managers: ListModel,
-    #[tracker::no_eq]
-    kernel_selection: ListModel,
-    #[tracker::no_eq]
-    error: ErrorModel,
-    #[tracker::no_eq]
-    quitdialog: QuitDialogModel,
+pub struct Data {
+    install_config_data: InstallConfigData,
+    carousel: Carousel,
+    pages: Pages,
 }
 
 #[tracker::track]
 pub struct AppModel {
     #[tracker::no_eq]
     installworker: WorkerController<InstallAsyncModel>,
-
-    config_data: ConfigData,
-    carousel_data: CarouselData,
-    pages_data: PagesData,
+    data: Data,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -130,22 +133,20 @@ pub struct UserConfig {
 pub enum AppMsg {
     QuitDialog,
     InitPages,
-    RequestNext,
     RequestPrev,
-    PageChanged(u32),
-    SetStackPage(StackPage),
-    SelectFlow(InstallFlow),
-    SetLanguageConfig(Option<String>),
-    SetKeyboardConfig(Option<String>),
-    SetTimezoneConfig(Option<String>),
-    SetPartitionConfig(Option<PartitionSchema>),
-    SetUserConfig(Option<UserConfig>),
-    SetListConfig(String, HashMap<String, Choice>),
+    RequestNext,
     Install,
     FinishInstall,
     RunNextCommand,
-    Finished,
     Error(ErrorPhase, String),
+    UpdateData(DataPatch),
+    SetStackPage(StackPage),
+    SelectFlow(InstallFlow),
+    PageChanged(u32),
+
+    SetLanguageConfig(Option<String>),
+    SetPartitionConfig(Option<PartitionSchema>),
+    SetListConfig(String, HashMap<String, Choice>),
 }
 
 impl AppMsg {
@@ -186,7 +187,7 @@ impl Component for AppModel {
             set_default_height: 900,
             connect_close_request[sender] => move |_| {
                 debug!("Caught close request");
-                if model.page == StackPage::Install {
+                if model.data.carousel.page == StackPage::Install {
                     sender.input(AppMsg::QuitDialog);
                     relm4::gtk::glib::Propagation::Stop
                 } else {
@@ -205,7 +206,7 @@ impl Component for AppModel {
                     add_css_class: "flat",
                     #[wrap(Some)]
                     #[transition(Crossfade)]
-                    set_title_widget = match model.page {
+                    set_title_widget = match model.data.carousel.page {
                         (StackPage::NoInternet) => {
                             gtk::Label {
                                 #[watch]
@@ -241,7 +242,7 @@ impl Component for AppModel {
                 },
 
                 #[transition(SlideLeftRight)]
-                match model.page {
+                match model.data.carousel.page {
                     StackPage::Carousel => {
                         gtk::Overlay {
                             #[local_ref]
@@ -258,7 +259,7 @@ impl Component for AppModel {
                             add_overlay = &gtk::Revealer {
                                 set_transition_type: gtk::RevealerTransitionType::Crossfade,
                                 #[watch]
-                                set_reveal_child: model.current_page > 0 && !model.is_transitioning,
+                                set_reveal_child: model.data.carousel.current_page > 0 && !model.data.carousel.is_transitioning,
                                 set_halign: gtk::Align::Start,
                                 set_valign: gtk::Align::Center,
                                 set_margin_all: 20,
@@ -279,7 +280,7 @@ impl Component for AppModel {
                             add_overlay = &gtk::Revealer {
                                 set_transition_type: gtk::RevealerTransitionType::Crossfade,
                                 #[watch]
-                                set_reveal_child: model.can_advance() && !model.is_transitioning,
+                                set_reveal_child: model.can_advance() && !model.data.carousel.is_transitioning,
                                 set_halign: gtk::Align::End,
                                 set_valign: gtk::Align::Center,
                                 set_margin_all: 20,
@@ -289,7 +290,7 @@ impl Component for AppModel {
                                     set_height_request: 40,
                                     set_width_request: 40,
                                     #[watch]
-                                    set_css_classes: if model.current_page.eq(&main_carousel.n_pages().checked_sub(1).unwrap_or_default()) { &["circular", "suggested-action"] } else { &["circular"] },
+                                    set_css_classes: if model.data.carousel.current_page.eq(&main_carousel.n_pages().checked_sub(1).unwrap_or_default()) { &["circular", "suggested-action"] } else { &["circular"] },
                                     set_halign: gtk::Align::Start,
                                     set_valign: gtk::Align::Center,
                                     set_icon_name: "go-next-symbolic",
@@ -446,31 +447,43 @@ impl Component for AppModel {
         let carousel = adw::Carousel::new();
 
         let model = AppModel {
-            page: startpage,
-            install_flow: None,
-            welcome,
-            keyboard,
-            timezone,
-            install_mode,
-            partition,
-            user,
-            summary,
-            install,
-            package_managers,
-            kernel_selection,
-            error,
-            quitdialog,
-            is_transitioning: false,
-            carousel,
-            carouselpages: Vec::new(),
-            current_page: 0,
+            // page: startpage,
+            // install_flow: None,
+            // carousel,
+            // carouselpages: Vec::new(),
+            // current_page: 0,
             installworker,
             tracker: 0,
+            data: Data {
+                install_config_data: InstallConfigData::default(),
+                carousel: Carousel {
+                    page: startpage,
+                    is_transitioning: false,
+                    carousel,
+                    ..Default::default()
+                },
+                pages: Pages {
+                    welcome: welcome.into(),
+                    keyboard: keyboard.into(),
+                    timezone: timezone.into(),
+                    install_mode: install_mode.into(),
+                    partition: partition.into(),
+                    user: user.into(),
+                    summary: summary.into(),
+                    install: install.into(),
+                    package_managers: package_managers.into(),
+                    kernel_selection: kernel_selection.into(),
+                    error: error.into(),
+                    quitdialog: quitdialog.into(),
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
         };
 
-        let main_carousel = &model.carousel;
-        let installpage = model.install.widget().clone();
-        let errorpage = model.error.widget().clone();
+        let main_carousel = &model.data.carousel.carousel;
+        let installpage = model.data.pages.install.as_ref().unwrap().widget().clone();
+        let errorpage = model.data.pages.error.as_ref().unwrap().widget().clone();
         let widgets = view_output!();
 
         sender.input(AppMsg::InitPages);
@@ -482,72 +495,139 @@ impl Component for AppModel {
         self.reset();
         match msg {
             AppMsg::QuitDialog => {
-                self.quitdialog
+                self.data
+                    .pages
+                    .quitdialog
+                    .as_ref()
+                    .unwrap()
                     .widget()
                     .present(relm4::main_application().active_window().as_ref());
             }
 
             AppMsg::InitPages => {
+                let new_carousel = adw::Carousel::new();
+                let mut new_carousel_pages = Vec::new();
                 for step in init_steps() {
                     match &step {
-                        Step::Welcome => self.carousel.append(self.welcome.widget()),
-                        Step::Keyboard => self.carousel.append(self.keyboard.widget()),
-                        Step::Location => self.carousel.append(self.timezone.widget()),
-                        Step::InstallMode => self.carousel.append(self.install_mode.widget()),
+                        Step::Welcome => {
+                            new_carousel.append(self.data.pages.welcome.as_ref().unwrap().widget())
+                        }
+                        Step::Keyboard => {
+                            new_carousel.append(self.data.pages.keyboard.as_ref().unwrap().widget())
+                        }
+                        Step::Location => {
+                            new_carousel.append(self.data.pages.timezone.as_ref().unwrap().widget())
+                        }
+                        Step::InstallMode => new_carousel
+                            .append(self.data.pages.install_mode.as_ref().unwrap().widget()),
                         _ => {}
                     }
-                    self.carouselpages.push(step);
+                    new_carousel_pages.push(step);
                 }
+                sender.input(AppMsg::UpdateData(DataPatch {
+                    carousel: Carousel {
+                        carousel: new_carousel,
+                        carouselpages: new_carousel_pages,
+                        ..Default::default()
+                    }
+                    .into(),
+                    ..Default::default()
+                }));
+
+                // self.data.carousel.apply(CarouselPatch {
+                //     page: (),
+                //     is_transitioning: (),
+                //     carousel: (),
+                //     carouselpages: (),
+                //     current_page: (),
+                //     install_flow: (),
+                //     tracker: (),
+                // });
+            }
+
+            AppMsg::UpdateData(patch) => {
+                self.data.apply(patch);
             }
 
             AppMsg::RequestNext => {
-                trace!("AppMsg::RequestNext (page {})", self.current_page);
-                if self.is_transitioning {
+                let carousel = self.data.carousel.clone();
+                trace!("AppMsg::RequestNext (page {})", carousel.current_page);
+                if carousel.is_transitioning {
                     return;
                 }
                 if !self.can_advance() {
                     return;
                 }
-                let next = self.current_page + 1;
-                if next >= self.carousel.n_pages() {
+                let next = carousel.current_page + 1;
+                if next >= carousel.carousel.n_pages() {
                     sender.input(AppMsg::SetStackPage(StackPage::Install));
                     sender.input(AppMsg::Install);
                 } else {
-                    self.is_transitioning = true;
-                    let w = self.carousel.nth_page(next);
-                    self.carousel.scroll_to(&w, true);
+                    sender.input(AppMsg::UpdateData(DataPatch {
+                        carousel: Carousel {
+                            is_transitioning: true,
+                            ..Default::default()
+                        }
+                        .into(),
+                        ..Default::default()
+                    }));
+                    let w = carousel.carousel.nth_page(next);
+                    self.data.carousel.carousel.scroll_to(&w, true);
                 }
             }
 
             AppMsg::RequestPrev => {
-                trace!("AppMsg::RequestPrev (page {})", self.current_page);
-                if self.is_transitioning || self.current_page == 0 {
+                let Carousel {
+                    carousel,
+                    current_page,
+                    is_transitioning,
+                    ..
+                } = self.data.carousel.clone();
+                trace!("AppMsg::RequestPrev (page {})", current_page);
+                if is_transitioning || current_page == 0 {
                     return;
                 }
-                self.is_transitioning = true;
-                let w = self.carousel.nth_page(self.current_page - 1);
-                self.carousel.scroll_to(&w, true);
+                self.data.carousel.set_is_transitioning(true);
+                let w = carousel.nth_page(current_page - 1);
+                carousel.scroll_to(&w, true);
             }
 
-            // AppMsg::PageChanged(idx) => {
-            //     trace!("AppMsg::PageChanged: {}", idx);
-            //     self.is_transitioning = false;
-            //     self.current_page = idx;
+            AppMsg::PageChanged(idx) => {
+                trace!("AppMsg::PageChanged: {}", idx);
+                sender.input(AppMsg::UpdateData(DataPatch {
+                    carousel: Carousel {
+                        is_transitioning: false,
+                        current_page: idx,
+                        ..Default::default()
+                    }
+                    .into(),
+                    ..Default::default()
+                }));
 
-            //     if let Some(Step::Summary) = self.carouselpages.get(idx as usize) {
-            //         self.summary.emit(SummaryMsg::SetConfig(
-            //             self.languageconfig.clone(),
-            //             self.keyboardconfig.clone(),
-            //             self.timezoneconfig.clone(),
-            //             self.partitionconfig.clone(),
-            //             Box::new(self.userconfig.clone()),
-            //         ));
-            //     }
-            // }
+                let carousel = self.data.carousel.clone();
+                let pages = self.data.pages.clone();
+                let install = self.data.install_config_data.clone();
+                if let Some(Step::Summary) = carousel.carouselpages.get(idx as usize) {
+                    pages.summary.unwrap().emit(SummaryMsg::SetConfig(
+                        install.languageconfig.clone(),
+                        install.keyboardconfig.clone(),
+                        install.timezoneconfig.clone(),
+                        install.partitionconfig.clone(),
+                        Box::new(install.userconfig.clone()),
+                    ));
+                }
+            }
             AppMsg::SetStackPage(page) => {
                 debug!("StackPage: {:?}", page);
-                if page.ne(&self.page) {
-                    self.page = page;
+                if page.ne(&self.data.carousel.page) {
+                    sender.input(AppMsg::UpdateData(DataPatch {
+                        carousel: Carousel {
+                            page,
+                            ..Default::default()
+                        }
+                        .into(),
+                        ..Default::default()
+                    }));
                 }
             }
 
@@ -559,55 +639,73 @@ impl Component for AppModel {
                 // self.partitionconfig = None;
                 // self.listconfig = HashMap::new();
 
-                let that = |flow: InstallFlow| {
-                    let new_carousel = adw::Carousel::new();
-                    let new_config = ConfigData::default();
-                    for step in flow.steps() {
-                        use Step::*;
-                        match &step {
-                            Welcome => {
-                                new_carousel.append(self.welcome.widget());
-                            }
-                            Keyboard => {
-                                new_carousel.append(self.keyboard.widget());
-                            }
-                            Location => {
-                                new_carousel.append(self.timezone.widget());
-                            }
-                            InstallMode => {
-                                new_carousel.append(self.install_mode.widget());
-                            }
-                            User { root, hostname } => {
-                                new_carousel.append(self.user.widget());
-                                self.user.emit(UserMsg::SetConfig(*root, *hostname));
-                                self.summary.emit(SummaryMsg::ShowHostname(*hostname));
-                            }
-                            PackageManagers => {
-                                new_carousel.append(self.package_managers.widget());
-                                new_config
-                                    .listconfig
-                                    .insert("PACKAGEMANAGERS".to_string(), HashMap::new());
-                            }
-                            KernelSelection => {
-                                new_carousel.append(self.kernel_selection.widget());
-                                new_config
-                                    .listconfig
-                                    .insert("KERNEL".to_string(), HashMap::new());
-                            }
-                            Partitioning => {
-                                new_carousel.append(self.partition.widget());
-                            }
-                            Summary => {
-                                new_carousel.append(self.summary.widget());
-                            }
-                            _ => {}
+                let new_carousel = adw::Carousel::new();
+                let mut new_carousel_pages = Vec::new();
+                let mut new_config = InstallConfigData::default();
+                let pages = self.data.pages.clone();
+                for step in flow.steps() {
+                    use Step::*;
+                    match &step {
+                        Welcome => {
+                            new_carousel.append(pages.welcome.clone().unwrap().widget());
                         }
-                        self.carouselpages.push(step);
+                        Keyboard => {
+                            new_carousel.append(pages.keyboard.clone().unwrap().widget());
+                        }
+                        Location => {
+                            new_carousel.append(pages.timezone.clone().unwrap().widget());
+                        }
+                        InstallMode => {
+                            new_carousel.append(pages.install_mode.clone().unwrap().widget());
+                        }
+                        User { root, hostname } => {
+                            new_carousel.append(pages.user.clone().unwrap().widget());
+                            pages
+                                .user
+                                .clone()
+                                .unwrap()
+                                .emit(UserMsg::SetConfig(*root, *hostname));
+                            pages
+                                .summary
+                                .clone()
+                                .unwrap()
+                                .emit(SummaryMsg::ShowHostname(*hostname));
+                        }
+                        PackageManagers => {
+                            new_carousel.append(pages.package_managers.clone().unwrap().widget());
+                            new_config
+                                .listconfig
+                                .insert("PACKAGEMANAGERS".to_string(), HashMap::new());
+                        }
+                        KernelSelection => {
+                            new_carousel.append(pages.kernel_selection.clone().unwrap().widget());
+                            new_config
+                                .listconfig
+                                .insert("KERNEL".to_string(), HashMap::new());
+                        }
+                        Partitioning => {
+                            new_carousel.append(pages.partition.clone().unwrap().widget());
+                        }
+                        Summary => {
+                            new_carousel.append(pages.summary.clone().unwrap().widget());
+                        }
+                        _ => {}
                     }
-                    (new_carousel, new_config)
-                };
+                    new_carousel_pages.push(step);
+                }
+                sender.input(AppMsg::UpdateData(DataPatch {
+                    install_config_data: new_config.into(),
+                    carousel: Carousel {
+                        carousel: new_carousel,
+                        carouselpages: new_carousel_pages,
+                        ..Default::default()
+                    }
+                    .into(),
+                    ..Default::default()
+                }));
+                // (new_carousel, new_config)
 
-                self.install_flow = Some(flow);
+                // self.install_flow = Some(flow);
                 // Trim carousel back to init pages only.
                 // let len = flow.steps().len() as u32;
                 // while self.carousel.n_pages() > len {
@@ -623,71 +721,86 @@ impl Component for AppModel {
             }
 
             AppMsg::SetLanguageConfig(language) => {
-                self.languageconfig = language;
+                let pages = self.data.pages.clone();
+                let install = self.data.install_config_data.clone();
+                self.data.install_config_data.set_languageconfig(language);
 
-                self.package_managers
-                    .emit(ListMsg::SetLocale(self.languageconfig.clone()));
-                self.kernel_selection
-                    .emit(ListMsg::SetLocale(self.languageconfig.clone()));
-                self.install
-                    .emit(InstallMsg::SetLocale(self.languageconfig.clone()));
+                pages
+                    .package_managers
+                    .unwrap()
+                    .emit(ListMsg::SetLocale(install.languageconfig.clone()));
+                pages
+                    .kernel_selection
+                    .unwrap()
+                    .emit(ListMsg::SetLocale(install.languageconfig.clone()));
+                pages
+                    .install
+                    .unwrap()
+                    .emit(InstallMsg::SetLocale(install.languageconfig.clone()));
 
-                if let Some(language) = &self.languageconfig
+                if let Some(language) = &install.languageconfig
                     && let (Ok(lang), Ok(country)) = (
                         get_lang(language.to_string()),
                         get_country(language.to_string()),
                     )
                 {
-                    self.keyboard.emit(KeyboardMsg::SetCountry(lang, country));
+                    pages
+                        .keyboard
+                        .unwrap()
+                        .emit(KeyboardMsg::SetCountry(lang, country));
                 }
-            }
-
-            AppMsg::SetKeyboardConfig(keyboard) => {
-                self.keyboardconfig = keyboard;
-            }
-
-            AppMsg::SetTimezoneConfig(timezone) => {
-                self.timezoneconfig = timezone;
             }
 
             AppMsg::SetPartitionConfig(partition) => {
                 let devices = Devices { disk: Attrs::new() };
                 self.set_partition_config(&partition, devices);
-                self.partitionconfig = partition;
-            }
-
-            AppMsg::SetUserConfig(user) => {
-                self.userconfig = user;
+                sender.input(AppMsg::UpdateData(DataPatch {
+                    install_config_data: InstallConfigData {
+                        partitionconfig: partition,
+                        ..Default::default()
+                    }
+                    .into(),
+                    ..Default::default()
+                }));
             }
 
             AppMsg::SetListConfig(id, list) => {
                 info!("SetListConfig: {} {:?}", id, list);
-                self.listconfig.insert(id, list);
+                self.data.install_config_data.listconfig.insert(id, list);
+                // sender.input(AppMsg::UpdateData(DataPatch {
+                //     install_config_data: InstallConfigData {
+                //         listconfig: self.data.install_config_data.listconfig.insert(id, list)
+                //             ..Default::default(),
+                //     }
+                //     .into(),
+                //     ..Default::default()
+                // }));
             }
 
             AppMsg::Install => {
                 debug!("Installing!");
-                if let Some(flow) = &self.install_flow {
+                let install = self.data.install_config_data.clone();
+                if let Some(flow) = &self.data.carousel.install_flow {
                     self.installworker.emit(InstallAsyncMsg::Install(
                         flow.config_id().to_string(),
-                        self.languageconfig.clone(),
-                        self.timezoneconfig.clone(),
-                        self.keyboardconfig.clone(),
-                        Box::new(self.partitionconfig.clone()),
-                        Box::new(self.userconfig.clone()),
-                        self.listconfig.clone(),
+                        install.languageconfig.clone(),
+                        install.timezoneconfig.clone(),
+                        install.keyboardconfig.clone(),
+                        Box::new(install.partitionconfig.clone()),
+                        Box::new(install.userconfig.clone()),
+                        install.listconfig.clone(),
                         flow.config_type(),
                         flow.imperative_timezone(),
-                        self.diskoconfig.clone(),
+                        install.diskoconfig.clone(),
                     ));
                 }
             }
 
             AppMsg::FinishInstall => {
                 debug!("Finishing install!");
-                if let Some(flow) = &self.install_flow {
+                if let Some(flow) = &self.data.carousel.install_flow {
                     self.installworker.emit(InstallAsyncMsg::FinishInstall(
-                        self.timezoneconfig.clone(),
+                        self.data.install_config_data.timezoneconfig.clone(),
                         flow.imperative_timezone(),
                         vec![],
                     ));
@@ -699,15 +812,26 @@ impl Component for AppModel {
                 self.installworker.emit(InstallAsyncMsg::RunNextCommand);
             }
 
-            AppMsg::Finished => {
-                debug!("Finished!");
-                self.page = StackPage::Finished;
-            }
-
+            // AppMsg::Finished => {
+            //     debug!("Finished!");
+            //     self.page = StackPage::Finished;
+            // }
             AppMsg::Error(phase, message) => {
                 error!("Error in {phase} phase: {message}");
-                self.page = StackPage::Error;
-                self.error.emit(ErrorMsg::Show(phase, message));
+                sender.input(AppMsg::UpdateData(DataPatch {
+                    carousel: Carousel {
+                        page: StackPage::Error,
+                        ..Default::default()
+                    }
+                    .into(),
+                    ..Default::default()
+                }));
+                self.data
+                    .pages
+                    .error
+                    .clone()
+                    .unwrap()
+                    .emit(ErrorMsg::Show(phase, message));
             }
         }
     }
@@ -717,26 +841,47 @@ impl Component for AppModel {
     fn update_cmd(
         &mut self,
         msg: Self::CommandOutput,
-        _sender: ComponentSender<Self>,
+        sender: ComponentSender<Self>,
         _root: &Self::Root,
     ) {
         match msg {
-            AppAsyncMsg::SetPage(page) => self.page = page,
+            AppAsyncMsg::SetPage(page) => sender.input(AppMsg::UpdateData(DataPatch {
+                carousel: Carousel {
+                    page,
+                    ..Default::default()
+                }
+                .into(),
+                ..Default::default()
+            })),
         }
     }
 }
 
 impl AppModel {
     pub fn can_advance(&self) -> bool {
-        match self.carouselpages.get(self.current_page as usize) {
-            Some(Step::Welcome) => self.languageconfig.is_some(),
-            Some(Step::Keyboard) => self.keyboardconfig.is_some(),
-            Some(Step::Location) => self.timezoneconfig.is_some(),
-            Some(Step::InstallMode) => self.install_flow.is_some(),
-            Some(Step::User { .. }) => self.userconfig.is_some(),
+        let Carousel {
+            carouselpages,
+            current_page,
+            install_flow,
+            ..
+        } = self.data.carousel.clone();
+        let InstallConfigData {
+            languageconfig,
+            keyboardconfig,
+            timezoneconfig,
+            partitionconfig,
+            userconfig,
+            ..
+        } = self.data.install_config_data.clone();
+        match carouselpages.get(current_page as usize) {
+            Some(Step::Welcome) => languageconfig.is_some(),
+            Some(Step::Keyboard) => keyboardconfig.is_some(),
+            Some(Step::Location) => timezoneconfig.is_some(),
+            Some(Step::InstallMode) => install_flow.is_some(),
+            Some(Step::User { .. }) => userconfig.is_some(),
             Some(Step::PackageManagers) => true,
             Some(Step::KernelSelection) => true,
-            Some(Step::Partitioning) => self.partitionconfig.is_some(),
+            Some(Step::Partitioning) => partitionconfig.is_some(),
             Some(Step::Summary) => true,
             None => false,
         }
@@ -757,7 +902,9 @@ impl AppModel {
                     } else {
                         canonical(device)
                     };
-                    self.diskoconfig = devices.clone();
+                    self.data
+                        .install_config_data
+                        .set_diskoconfig(devices.clone());
                 }
                 PartitionSchema::Custom(CustomOptions {
                     partitions,
@@ -872,7 +1019,7 @@ impl AppModel {
                         }
                     }
                     devices = Devices { disk: disk_disko };
-                    self.diskoconfig = devices;
+                    self.data.install_config_data.set_diskoconfig(devices);
                 }
             };
         }

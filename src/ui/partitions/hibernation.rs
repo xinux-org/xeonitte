@@ -2,12 +2,12 @@ use crate::ui::partitions::partition_model::PartitionMsg;
 use gettextrs::gettext;
 use relm4::{adw::prelude::*, *};
 
-#[derive(Debug)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct Hibernation {
     pub enabled: bool,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum HibernationMsg {
     SetHybernation(bool),
 }

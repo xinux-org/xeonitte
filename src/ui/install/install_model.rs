@@ -21,7 +21,7 @@ pub struct InstallModel {
     locale: Option<String>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum InstallMsg {
     Pulse,
     NextSlide,

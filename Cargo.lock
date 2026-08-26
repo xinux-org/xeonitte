@@ -3891,7 +3891,7 @@ dependencies = [
 [[package]]
 name = "relm4"
 version = "0.11.0"
-source = "git+https://github.com/rafanochi/Relm4?branch=main#f07bb0e1406287f265469f48e2284b50d2341fd4"
+source = "git+https://github.com/rafanochi/Relm4?branch=main#cf6ea522ce177fec289a2fa96c66bba96016275d"
 dependencies = [
  "flume",
  "fragile",
@@ -3925,7 +3925,7 @@ checksum = "f3b81d263f784b103c815afa29124486b59741eca069ce7a5999efb14f13c368"
 [[package]]
 name = "relm4-css"
 version = "0.11.0"
-source = "git+https://github.com/rafanochi/Relm4?branch=main#f07bb0e1406287f265469f48e2284b50d2341fd4"
+source = "git+https://github.com/rafanochi/Relm4?branch=main#cf6ea522ce177fec289a2fa96c66bba96016275d"
 
 [[package]]
 name = "relm4-macros"
@@ -3941,7 +3941,7 @@ dependencies = [
 [[package]]
 name = "relm4-macros"
 version = "0.11.0"
-source = "git+https://github.com/rafanochi/Relm4?branch=main#f07bb0e1406287f265469f48e2284b50d2341fd4"
+source = "git+https://github.com/rafanochi/Relm4?branch=main#cf6ea522ce177fec289a2fa96c66bba96016275d"
 dependencies = [
  "proc-macro2",
  "quote",

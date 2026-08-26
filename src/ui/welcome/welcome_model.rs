@@ -15,7 +15,7 @@ pub struct WelcomeModel {
     expanders: Vec<adw::ExpanderRow>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum WelcomeMsg {
     ToggleShowall,
     SetSelected(Option<String>),

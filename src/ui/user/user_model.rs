@@ -74,7 +74,7 @@ pub fn to_ascii_alphanumeric(text: &str) -> String {
         .collect::<String>()
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum UserMsg {
     SetConfig(bool, bool),
     Update(UserDataPatch),

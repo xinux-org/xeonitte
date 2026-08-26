@@ -7,7 +7,7 @@ use adw::prelude::*;
 use gettextrs::gettext;
 use log::error;
 use relm4::*;
-use std::{default, process::Command};
+use std::process::Command;
 
 #[derive(Debug, PartialEq, Clone, Default)]
 pub struct ErrorModel {
@@ -27,7 +27,7 @@ pub enum UploadButton {
     Url,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ErrorMsg {
     Show(ErrorPhase, String),
     UploadReport,

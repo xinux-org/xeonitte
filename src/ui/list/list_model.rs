@@ -19,7 +19,7 @@ pub struct ListModel {
     locale: Option<String>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ListMsg {
     Select(String),
     Deselect(String),

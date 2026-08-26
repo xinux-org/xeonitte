@@ -2,7 +2,7 @@ use crate::ui::partitions::partition_model::PartitionMsg;
 use gettextrs::gettext;
 use relm4::{adw::prelude::*, *};
 
-#[derive(Debug)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct LuksPasswordComponent {
     pub encryption_enabled: bool,
     pub advanced: bool,
@@ -10,7 +10,7 @@ pub struct LuksPasswordComponent {
     pub passphrase_confirm: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum LuksPasswordMsg {
     SetEncryption(bool),
     SetPassphrase(String),
