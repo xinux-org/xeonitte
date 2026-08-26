@@ -42,9 +42,6 @@ pub fn run() {
     write("swap-discard-pages", swap_discard_pages());
     write("swap-priority", swap_priority());
 
-    // LVM
-    write("lvm-pv", lvm_pv());
-
     // multi-disk
     write("multi-disk-plain", multi_disk_plain());
     write("multi-disk-luks-root", multi_disk_luks_root());
@@ -379,22 +376,6 @@ fn swap_priority() -> String {
         .render()
 }
 
-//LVM
-
-fn lvm_pv() -> String {
-    DiskLayout::new(SDA, G500)
-        .add_partition(efi())
-        .unwrap()
-        .add_partition(PartitionDef {
-            label: Some("lvm".into()),
-            size: PartitionSize::remaining(),
-            type_code: Some("8E00".into()),
-            content: Some(Content::LvmPv { vg: "vg0".into() }),
-        })
-        .unwrap()
-        .to_nix_module()
-        .render()
-}
 
 // multi-disk
 
