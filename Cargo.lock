@@ -673,9 +673,9 @@ checksum = "1d07550c9036bf2ae0c684c4297d503f838287c83c53686d05370d0e139ae570"
 
 [[package]]
 name = "combine"
-version = "4.6.7"
+version = "4.6.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba5a308b75df32fe02788e748662718f03fde005016435c444eea572398219fd"
+checksum = "cfc320937d09e6de266b31b9afb480f197d7a861be86be7cb2ea7e5d1bfffc5e"
 dependencies = [
  "bytes",
  "memchr",
@@ -1694,8 +1694,7 @@ dependencies = [
 [[package]]
 name = "garde"
 version = "0.23.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5d7f479d28d1daedf23970890723b8774d120aa627abcb33c1d7c93d0965e6c3"
+source = "git+https://github.com/rafanochi/garde#8f2d431e354d734939cadba80c0d3b18e76e1378"
 dependencies = [
  "compact_str",
  "garde_derive",
@@ -1705,8 +1704,7 @@ dependencies = [
 [[package]]
 name = "garde_derive"
 version = "0.23.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7b0252cacdca8e6f30a900e6d436fbf294e23f674b9288ca4a5bd35976bef87c"
+source = "git+https://github.com/rafanochi/garde#8f2d431e354d734939cadba80c0d3b18e76e1378"
 dependencies = [
  "proc-macro2",
  "quote",

@@ -37,7 +37,7 @@ use std::{any::Any, collections::HashMap, convert::identity, process::Command};
 #[derive(Debug, Default, PartialEq, Clone)]
 pub struct PartitionModel {
     disks: Option<FactoryVecDeque<WholeDisk>>,
-    method: PartitionMethod,
+    method: Option<PartitionMethod>,
     partition_groups: FactoryVecDeque<PartitionGroup>,
     diskgroupbtn: gtk::CheckButton,
     schema: Option<PartitionSchema>,
@@ -95,7 +95,7 @@ pub enum PartitionSchema {
     Custom(CustomOptions),
 }
 
-#[derive(Serialize, Debug, Clone, PartialEq, Eq, PartialOrd)]
+#[derive(Serialize, Default, Debug, Clone, PartialEq, Eq, PartialOrd)]
 pub struct CustomPartition {
     pub format: Option<String>,
     pub mountpoint: Option<String>,

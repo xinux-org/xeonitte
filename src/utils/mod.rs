@@ -7,11 +7,12 @@ pub mod report;
 
 use size::Size;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub enum SizeType {
     TB,
     GB,
     MB,
+    #[default]
     KB,
 }
 impl From<SizeType> for String {

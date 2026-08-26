@@ -33,7 +33,7 @@ pub struct UserData {
 }
 
 #[tracker::track]
-#[derive(Debug)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct UserModel {
     username_row: adw::EntryRow,
     confirm_password_row: adw::PasswordEntryRow,

@@ -5,12 +5,12 @@ use relm4::{factory::*, *};
 use std::collections::HashMap;
 
 #[tracker::track]
-#[derive(Debug)]
+#[derive(Debug, Default, PartialEq, Clone)]
 pub struct ListModel {
     id: String,
     title: String,
     #[tracker::no_eq]
-    list: FactoryVecDeque<ListItem>,
+    list: Option<FactoryVecDeque<ListItem>>,
     #[tracker::no_eq]
     choices: Vec<(String, Choice)>,
     selected: Vec<String>,
@@ -164,13 +164,19 @@ impl SimpleComponent for ListModel {
 use relm4::{adw, factory::FactoryComponent};
 
 #[tracker::track]
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct ListItem {
     title: String,
     description: String,
     group: Option<gtk::CheckButton>,
     locale: Option<String>,
     selected: bool,
+}
+
+impl CloneableFactoryComponent for ListItem {
+    fn get_init(&self) -> Self::Init {
+        Self::default()
+    }
 }
 
 #[derive(Debug)]

@@ -8,7 +8,7 @@ use log::debug;
 use relm4::{factory::*, *};
 
 #[tracker::track]
-#[derive(Debug)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct SummaryModel {
     languageconfig: Option<String>,
     keyboardconfig: Option<String>,
@@ -21,8 +21,7 @@ pub struct SummaryModel {
     prettykeyboard: Option<String>,
 
     #[tracker::no_eq]
-    partitions: FactoryVecDeque<Partition>,
-
+    partitions: Option<FactoryVecDeque<Partition>>,
     showhostname: bool,
 }
 
@@ -206,12 +205,12 @@ impl SimpleComponent for SummaryModel {
             userconfig: None,
             prettylanguage: None,
             prettykeyboard: None,
-            partitions: FactoryVecDeque::builder().launch_default().detach(),
+            partitions: FactoryVecDeque::builder().launch_default().detach().into(),
             showhostname: false,
             tracker: 0,
         };
 
-        let custompartitiongroup = model.partitions.widget().clone();
+        let custompartitiongroup = model.partitions.as_ref().unwrap().widget().clone();
 
         let widgets = view_output!();
         ComponentParts { model, widgets }
@@ -270,7 +269,7 @@ impl SimpleComponent for SummaryModel {
                 }
 
                 if let Some(PartitionSchema::Custom(options)) = &self.partitionconfig {
-                    let mut partitions_guard = self.partitions.guard();
+                    let mut partitions_guard = self.partitions.as_mut().unwrap().guard();
                     partitions_guard.clear();
                     for (name, partition) in &options.partitions {
                         partitions_guard.push_back((name.to_string(), partition.clone()));

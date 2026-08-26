@@ -11,10 +11,10 @@ use relm4::{adw::prelude::*, factory::*, *};
 use size::Size;
 use std::ops::{AddAssign, SubAssign};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Default, PartialEq)]
 pub struct PartitionGroup {
     pub name: String,
-    pub partitions: FactoryVecDeque<Partition>,
+    pub partitions: Option<FactoryVecDeque<Partition>>,
     pub creating_partition: bool,
     pub new_partition_size: Size,
     pub free_space: Size,
@@ -36,6 +36,12 @@ pub enum PartitionGroupMsg {
 pub enum PartitionGroupOut {
     ApplyOut(String, CustomPartition),
     Delete(String),
+}
+
+impl CloneableFactoryComponent for PartitionGroup {
+    fn get_init(&self) -> Self::Init {
+        Self::default()
+    }
 }
 
 #[relm4::factory(pub)]
@@ -132,14 +138,14 @@ impl FactoryComponent for PartitionGroup {
                     #[local_ref]
                     testbox -> gtk::ListBox {
                         #[watch]
-                        set_visible: !self.partitions.is_empty(),
+                        set_visible: !self.partitions.as_ref().unwrap().is_empty(),
                         set_hexpand: true,
                         set_selection_mode: gtk::SelectionMode::None,
                         add_css_class: "boxed-list",
                     },
                     gtk::ListBox {
                         #[watch]
-                        set_visible: self.partitions.is_empty(),
+                        set_visible: self.partitions.as_ref().unwrap().is_empty(),
                         add_css_class: "boxed-list",
                         adw::ActionRow {
                             set_title: &gettext("Free space"),
@@ -226,6 +232,7 @@ impl FactoryComponent for PartitionGroup {
 
         let _ = parent
             .partitions
+            .unwrap()
             .iter()
             .map(|x| {
                 let p = PartitionInit {
@@ -245,7 +252,7 @@ impl FactoryComponent for PartitionGroup {
             free_space: parent.free_space,
             total_size: parent.total_size,
             size_type: parent.size_type,
-            partitions,
+            partitions: partitions.into(),
         }
     }
 
@@ -256,7 +263,7 @@ impl FactoryComponent for PartitionGroup {
         _returned_widget: &<Self::ParentWidget as FactoryView>::ReturnedWidget,
         sender: FactorySender<Self>,
     ) -> Self::Widgets {
-        let testbox = self.partitions.widget();
+        let testbox = self.partitions.as_ref().unwrap().widget();
         let widgets = view_output!();
         widgets.dropdown.set_selected(2);
         widgets
@@ -337,7 +344,7 @@ impl FactoryComponent for PartitionGroup {
 
             PartitionGroupMsg::Apply => {
                 if self.new_partition_size.bytes().is_positive() {
-                    let index = self.partitions.len() + 1;
+                    let index = self.partitions.as_ref().unwrap().len() + 1;
                     let mut new_size = represent(
                         self.size_type,
                         widgets.size_entry.text().parse::<f64>().unwrap_or_default(),
@@ -354,6 +361,8 @@ impl FactoryComponent for PartitionGroup {
                     }
                     let device = self
                         .partitions
+                        .as_ref()
+                        .unwrap()
                         .front()
                         .unwrap_or(&Partition {
                             name: self.name.clone() + "1",
@@ -373,7 +382,7 @@ impl FactoryComponent for PartitionGroup {
                     // if new_size.ge(&Size::from_gb(1)) {
                     //     new_size.sub_assign(Size::from_mb(20));
                     // }
-                    self.partitions.guard().push_back({
+                    self.partitions.as_mut().unwrap().guard().push_back({
                         PartitionInit {
                             name: format!("{device}{index}"),
                             size: new_size.bytes() as u64,
@@ -389,6 +398,8 @@ impl FactoryComponent for PartitionGroup {
             PartitionGroupMsg::Delete(name) => {
                 let (index, x) = self
                     .partitions
+                    .as_ref()
+                    .unwrap()
                     .iter()
                     .cloned()
                     .enumerate()
@@ -396,7 +407,7 @@ impl FactoryComponent for PartitionGroup {
                     .unwrap_or_default();
 
                 self.free_space.add_assign(Size::from_bytes(x.size));
-                self.partitions.guard().remove(index);
+                self.partitions.as_mut().unwrap().guard().remove(index);
             }
 
             PartitionGroupMsg::SetSizeType(x) => {

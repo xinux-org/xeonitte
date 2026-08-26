@@ -45,7 +45,7 @@ use std::{
 use struct_patch::Patch;
 
 #[tracker::track]
-#[derive(Default, Debug, Clone, Patch)]
+#[derive(Default, Debug, Clone, Patch, PartialEq)]
 #[patch(attribute(derive(Debug, Default, Clone)))]
 pub struct ConfigData {
     languageconfig: Option<String>,
@@ -62,9 +62,10 @@ pub struct ConfigData {
 }
 
 #[tracker::track]
-#[derive(Default, Debug, Clone, Patch)]
+#[derive(Default, Debug, Clone, Patch, PartialEq)]
 #[patch(attribute(derive(Debug, Default, Clone)))]
 pub struct CarouselData {
+    page: StackPage,
     is_transitioning: bool,
     #[tracker::no_eq]
     carousel: adw::Carousel,
@@ -74,7 +75,7 @@ pub struct CarouselData {
 }
 
 #[tracker::track]
-#[derive(Default, Debug, Clone, Patch)]
+#[derive(Default, Debug, Clone, Patch, PartialEq)]
 #[patch(attribute(derive(Debug, Default, Clone)))]
 pub struct PagesData {
     #[tracker::no_eq]
@@ -107,10 +108,12 @@ pub struct PagesData {
 
 #[tracker::track]
 pub struct AppModel {
-    page: StackPage,
-
     #[tracker::no_eq]
     installworker: WorkerController<InstallAsyncModel>,
+
+    config_data: ConfigData,
+    carousel_data: CarouselData,
+    pages_data: PagesData,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -158,8 +161,9 @@ pub enum AppAsyncMsg {
     SetPage(StackPage),
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub enum StackPage {
+    #[default]
     Carousel,
     Install,
     Finished,

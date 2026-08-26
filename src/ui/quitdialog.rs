@@ -6,7 +6,7 @@ use log::error;
 use relm4::*;
 use std::process::Command;
 
-#[derive(Debug)]
+#[derive(Debug, Default, PartialEq, Clone)]
 pub struct QuitDialogModel;
 
 #[relm4::component(pub)]

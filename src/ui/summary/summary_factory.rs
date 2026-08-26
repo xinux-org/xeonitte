@@ -3,11 +3,17 @@ use adw::prelude::*;
 use gettextrs::gettext;
 use relm4::{factory::*, *};
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Partition {
     name: String,
     mountpoint: Option<String>,
     format: Option<String>,
+}
+
+impl CloneableFactoryComponent for Partition {
+    fn get_init(&self) -> Self::Init {
+        (String::new(), CustomPartition::default())
+    }
 }
 
 #[relm4::factory(pub)]

@@ -10,14 +10,14 @@ use relm4::{factory::*, *};
 use std::{fs::File, process::Command};
 use vte::{self, TerminalExt, TerminalExtManual};
 
-#[derive(Debug)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct InstallModel {
     terminal: vte::Terminal,
     progressbar_title: String,
     progressbar: gtk::ProgressBar,
     showterminal: bool,
     installing: bool,
-    slides: FactoryVecDeque<InstallSlide>,
+    slides: Option<FactoryVecDeque<InstallSlide>>,
     locale: Option<String>,
 }
 
@@ -121,12 +121,12 @@ impl SimpleComponent for InstallModel {
             progressbar_title: String::new(),
             progressbar: gtk::ProgressBar::new(),
             installing: false,
-            slides: FactoryVecDeque::builder().launch_default().detach(),
+            slides: FactoryVecDeque::builder().launch_default().detach().into(),
             locale: None,
         };
 
         if let Ok(brandingconfig) = parse_branding(&branding) {
-            let mut slides_guard = model.slides.guard();
+            let mut slides_guard = model.slides.as_mut().unwrap().guard();
             for slide in brandingconfig.slides {
                 slides_guard.push_back(InstallSlide {
                     title: slide.title,
@@ -144,7 +144,7 @@ impl SimpleComponent for InstallModel {
 
         let terminal = &model.terminal;
         let progressbar = &model.progressbar;
-        let carousel = model.slides.widget();
+        let carousel = model.slides.as_ref().unwrap().widget();
         let widgets = view_output!();
         let pulsesender = sender.clone();
         relm4::spawn(async move {
@@ -168,12 +168,13 @@ impl SimpleComponent for InstallModel {
                 self.progressbar.pulse();
             }
             InstallMsg::NextSlide => {
-                let npages = self.slides.widget().n_pages();
-                let currentpage = self.slides.widget().position();
+                let slides_widget = self.slides.as_ref().unwrap().widget();
+                let npages = slides_widget.n_pages();
+                let currentpage = slides_widget.position();
                 if currentpage.fract() == 0.0 {
-                    let next = (self.slides.widget().position() as u32 + 1) % npages;
-                    let next = self.slides.widget().nth_page(next);
-                    self.slides.widget().scroll_to(&next, true);
+                    let next = (slides_widget.position() as u32 + 1) % npages;
+                    let next = slides_widget.nth_page(next);
+                    slides_widget.scroll_to(&next, true);
                 }
             }
             InstallMsg::ToggleTerminal => {
@@ -296,7 +297,7 @@ impl SimpleComponent for InstallModel {
             }
             InstallMsg::SetLocale(locale) => {
                 self.locale = locale;
-                let mut slides_guard = self.slides.guard();
+                let mut slides_guard = self.slides.as_mut().unwrap().guard();
                 for item in slides_guard.iter_mut() {
                     item.set_locale(self.locale.clone());
                 }
@@ -310,13 +311,19 @@ impl SimpleComponent for InstallModel {
 use adw::prelude::*;
 use gettextrs::gettext;
 
-#[derive(Debug)]
 #[tracker::track]
+#[derive(Debug, Default)]
 pub struct InstallSlide {
     pub title: String,
     pub subtitle: String,
     pub image: String,
     pub locale: Option<String>,
+}
+
+impl CloneableFactoryComponent for InstallSlide {
+    fn get_init(&self) -> Self::Init {
+        Self::default()
+    }
 }
 
 #[relm4::factory(pub)]
