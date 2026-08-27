@@ -147,13 +147,13 @@ impl SimpleComponent for InstallModel {
         let carousel = model.slides.as_ref().unwrap().widget();
         let widgets = view_output!();
         let pulsesender = sender.clone();
-        relm4::spawn(async move {
+        relm4::spawn_local(async move {
             loop {
                 pulsesender.input(InstallMsg::Pulse);
                 tokio::time::sleep(std::time::Duration::from_millis(10)).await;
             }
         });
-        relm4::spawn(async move {
+        relm4::spawn_local(async move {
             loop {
                 tokio::time::sleep(std::time::Duration::from_secs(12)).await;
                 sender.input(InstallMsg::NextSlide);

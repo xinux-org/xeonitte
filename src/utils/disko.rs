@@ -221,7 +221,7 @@ impl<'de> Deserialize<'de> for FsFormat {
     }
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
 pub struct Filesystem {
     pub format: FsFormat,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -253,7 +253,7 @@ pub struct Luks {
     pub content: Option<Box<DeviceContent>>,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
 pub struct Swap {
     #[serde(rename = "randomEncryption", skip_serializing_if = "Option::is_none")]
     pub random_encryption: Option<bool>,
@@ -273,7 +273,7 @@ pub struct Swap {
     pub extra_args: Vec<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum DiscardPolicy {
     Once,

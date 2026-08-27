@@ -98,13 +98,13 @@ impl SimpleComponent for ListModel {
         let mut model = ListModel {
             id: init.id,
             title: init.title,
-            list: FactoryVecDeque::builder().launch_default().forward(
-                sender.input_sender(),
-                |msg| match msg {
+            list: FactoryVecDeque::builder()
+                .launch_default()
+                .forward(sender.input_sender(), |msg| match msg {
                     ListItemMsg::Select(key) => ListMsg::Select(key),
                     ListItemMsg::Deselect(key) => ListMsg::Deselect(key),
-                },
-            ),
+                })
+                .into(),
             choices,
             selected,
             required: init.required,
@@ -117,7 +117,7 @@ impl SimpleComponent for ListModel {
             tracker: 0,
         };
 
-        let mut list_guard = model.list.guard();
+        let mut list_guard = model.list.as_mut().unwrap().guard();
         for (key, choice) in &model.choices {
             let item = ListItem {
                 title: key.to_string(),
@@ -130,7 +130,7 @@ impl SimpleComponent for ListModel {
             list_guard.push_back(item);
         }
         list_guard.drop();
-        let group = model.list.widget();
+        let group = model.list.as_ref().unwrap().widget();
         let widgets = view_output!();
         ComponentParts { model, widgets }
     }
@@ -151,7 +151,7 @@ impl SimpleComponent for ListModel {
             }
             ListMsg::SetLocale(locale) => {
                 self.set_locale(locale);
-                let mut list_guard = self.list.guard();
+                let mut list_guard = self.list.as_mut().unwrap().guard();
                 for item in list_guard.iter_mut() {
                     item.set_locale(self.locale.clone());
                 }

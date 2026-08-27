@@ -63,15 +63,15 @@ pub struct InstallConfigData {
 #[tracker::track]
 #[derive(Default, Debug, Clone, PartialEq)]
 pub struct Carousel {
-    page: StackPage,
-    is_transitioning: bool,
+    pub page: StackPage,
+    pub is_transitioning: bool,
     #[tracker::no_eq]
-    carousel: adw::Carousel,
+    pub carousel: adw::Carousel,
     #[tracker::no_eq]
-    carouselpages: Vec<Step>,
-    current_page: u32,
+    pub carouselpages: Vec<Step>,
+    pub current_page: u32,
     #[tracker::no_eq]
-    install_flow: Option<InstallFlow>,
+    pub install_flow: Option<InstallFlow>,
 }
 
 #[tracker::track]
@@ -147,6 +147,9 @@ pub enum AppMsg {
     SetLanguageConfig(Option<String>),
     SetPartitionConfig(Option<PartitionSchema>),
     SetListConfig(String, HashMap<String, Choice>),
+    SetKeyboardConfig(Option<String>),
+    SetTimezoneConfig(Option<String>),
+    SetUserConfig(Option<UserConfig>),
 }
 
 impl AppMsg {
@@ -494,6 +497,15 @@ impl Component for AppModel {
     fn update(&mut self, msg: Self::Input, sender: ComponentSender<Self>, _root: &Self::Root) {
         self.reset();
         match msg {
+            AppMsg::SetKeyboardConfig(keyboard) => {
+                self.data.install_config_data.set_keyboardconfig(keyboard);
+            }
+            AppMsg::SetTimezoneConfig(timezone) => {
+                self.data.install_config_data.set_timezoneconfig(timezone);
+            }
+            AppMsg::SetUserConfig(user) => {
+                self.data.install_config_data.set_userconfig(user);
+            }
             AppMsg::QuitDialog => {
                 self.data
                     .pages

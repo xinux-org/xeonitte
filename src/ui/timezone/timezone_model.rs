@@ -182,7 +182,7 @@ impl SimpleComponent for TimeZoneModel {
         };
 
         let asyncsender = sender.clone();
-        relm4::spawn(async move {
+        relm4::spawn_local(async move {
             loop {
                 let time = glib::DateTime::now(&glib::TimeZone::utc())
                     .unwrap()

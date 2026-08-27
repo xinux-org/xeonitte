@@ -1,6 +1,8 @@
 use super::parse::ConfigType;
 use super::report::ErrorPhase;
 use crate::flow::Choice;
+use crate::ui::window::StackPage::Finished;
+use crate::ui::window::{Carousel, DataPatch};
 use crate::{
     config::{LIBEXECDIR, SYSCONFDIR, TMPDIR},
     ui::{
@@ -407,7 +409,14 @@ impl Worker for InstallAsyncModel {
                 ));
 
                 if self.postinstall_commands.is_empty() {
-                    let _ = sender.output(AppMsg::Finished);
+                    let _ = sender.output(AppMsg::UpdateData(DataPatch {
+                        carousel: Carousel {
+                            page: Finished,
+                            ..Default::default()
+                        }
+                        .into(),
+                        ..Default::default()
+                    }));
                     return;
                 }
                 let mut commands = self.postinstall_commands.clone();

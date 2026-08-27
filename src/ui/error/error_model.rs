@@ -169,7 +169,7 @@ impl SimpleComponent for ErrorModel {
                 self.spinner.set_spinning(false);
                 self.spinner.activate();
                 self.spinner.set_spinning(true);
-                relm4::spawn(async move {
+                relm4::spawn_local(async move {
                     let result = tokio::task::spawn_blocking(move || {
                         send_report(
                             phase,
