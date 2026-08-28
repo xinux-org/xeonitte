@@ -3,7 +3,7 @@ use log::{error, warn};
 use report::{JournalMode, ReportBuilder};
 use reqwest::blocking::multipart;
 use std::path::{Path, PathBuf};
-use utils::config::{Config, CONFIG};
+use utils::config::{CONFIG, Config};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ErrorPhase {
@@ -57,7 +57,9 @@ fn relago_config() -> Config {
 
 pub fn generate_report(phase: ErrorPhase, message: &str, log_files: &[&str]) -> Result<String> {
     let tmp_dir = CONFIG.get().tmp_dir.to_string_lossy().into_owned();
-    std::fs::create_dir_all(&tmp_dir).ok().context("Failed to create file for report")?;
+    std::fs::create_dir_all(&tmp_dir)
+        .ok()
+        .context("Failed to create file for report")?;
 
     let mut builder = ReportBuilder::new(&tmp_dir)
         .system_info()

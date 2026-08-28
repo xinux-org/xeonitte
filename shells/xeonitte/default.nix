@@ -48,6 +48,7 @@ let
     projectRootFile = "flake.nix";
     programs.nixfmt.enable = true;
     programs.rustfmt.enable = true;
+    settings.global.excludes = [ "config/**" ];
   };
   preCommitCheck = inputs.git-hooks.lib."${system}".run {
     src = ./.;
@@ -57,6 +58,7 @@ let
 in
 mkShell {
   nativeBuildInputs = [
+    treefmtEval.config.build.wrapper
     appstream-glib
     cargo
     clippy
