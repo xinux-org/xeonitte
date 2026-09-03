@@ -6,10 +6,6 @@
       url = "git+https://git.oss.uzinfocom.uz/xinux/lib?ref=main&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    disko = {
-      url = "git+https://git.oss.uzinfocom.uz/mirrors/disko?ref=master&shallow=1";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs =
