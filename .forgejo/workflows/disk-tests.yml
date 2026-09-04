@@ -14,6 +14,9 @@ jobs:
 
       - name: Run NixOS disko VM tests
         run: |
+          nixpkgs=$(nix eval --raw --impure \
+            "(builtins.getFlake \"path:$(pwd)/test-config\").inputs.nixpkgs.outPath")
+          NIX_PATH="nixpkgs=${nixpkgs}" \
           nix flake check ./test-config \
             --option extra-system-features "nixos-test kvm benchmark big-parallel" \
             --keep-going \
