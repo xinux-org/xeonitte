@@ -13,8 +13,6 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Generate disk layout configs
-        env:
-          CARGO_TARGET_DIR: /tmp/xeonitte-target
         run: nix develop -c cargo run -p test-config
 
       - name: Verify generated configs are committed
