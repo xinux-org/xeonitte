@@ -14,7 +14,7 @@ jobs:
 
       - name: Run NixOS disko VM tests
         run: |
-          nixpkgs=$(nix eval --raw --impure \
+          nixpkgs=$(nix eval --raw --impure --expr \
             "(builtins.getFlake \"path:$(pwd)/test-config\").inputs.nixpkgs.outPath")
           NIX_PATH="nixpkgs=${nixpkgs}" \
           nix flake check ./test-config \
