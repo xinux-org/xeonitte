@@ -12,8 +12,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Configure meson (generates config.rs)
-        run: nix develop -c meson setup builddir -Dnorust=true
+      - name: Configure generates config.rs
+        run: nix develop -c just setup
 
       - name: Generate disk layout configs
         env:
