@@ -1,20 +1,20 @@
 { pkgs, diskoLib }:
 let
+  lib = pkgs.lib;
   disk = 512 * 1024;
 
   make = name: extraTestScript:
     diskoLib.testLib.makeDiskoTest {
       inherit pkgs name extraTestScript;
       disko-config = ../generated/${name}.nix;
-      diskSize = disk;
+      extraInstallerConfig.virtualisation.emptyDiskImages = lib.mkForce [ disk ];
     };
 
   make2 = name: extraTestScript:
     diskoLib.testLib.makeDiskoTest {
       inherit pkgs name extraTestScript;
       disko-config = ../generated/${name}.nix;
-      diskSize = disk;
-      extraInstallerConfig.virtualisation.emptyDiskImages = [ disk ];
+      extraInstallerConfig.virtualisation.emptyDiskImages = lib.mkForce [ disk disk ];
     };
 in
 {
