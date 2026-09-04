@@ -19,5 +19,6 @@ jobs:
           NIX_PATH="nixpkgs=${nixpkgs}" \
           nix flake check ./test-config \
             --option extra-system-features "nixos-test kvm benchmark big-parallel" \
+            --max-jobs 1 \
             --keep-going \
             --impure
