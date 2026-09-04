@@ -1,10 +1,24 @@
 { pkgs, diskoLib }:
 let
+  disk = 512 * 1024;
+
   make = name: extraTestScript:
     diskoLib.testLib.makeDiskoTest {
       inherit pkgs name extraTestScript;
-      
       disko-config = ../generated/${name}.nix;
+      extraInstallerConfig.virtualisation.diskSize = disk;
+    };
+
+  make2 = name: extraTestScript:
+    diskoLib.testLib.makeDiskoTest {
+      inherit pkgs name extraTestScript;
+      disko-config = ../generated/${name}.nix;
+      extraInstallerConfig = {
+        virtualisation.diskSize = disk;
+        virtualisation.additionalDrives = [
+          { name = "sdb"; size = disk; }
+        ];
+      };
     };
 in
 {
@@ -95,14 +109,14 @@ in
     machine.succeed("swapon --show --noheadings --raw | awk '{print $5}' | grep -q 10")
   '';
 
-  multi-disk-plain = make "multi-disk-plain" ''
+  multi-disk-plain = make2 "multi-disk-plain" ''
     machine.succeed("mountpoint /")
     machine.succeed("mountpoint /home")
     # root and /home must be on different block devices
     machine.succeed("[ \"$(findmnt -n -o SOURCE /)\" != \"$(findmnt -n -o SOURCE /home)\" ]")
   '';
 
-  multi-disk-luks-root = make "multi-disk-luks-root" ''
+  multi-disk-luks-root = make2 "multi-disk-luks-root" ''
     machine.succeed("mountpoint /")
     machine.succeed("mountpoint /home")
     machine.succeed("lsblk -o TYPE | grep -q crypt")
