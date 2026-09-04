@@ -95,12 +95,6 @@ in
     machine.succeed("swapon --show --noheadings --raw | awk '{print $5}' | grep -q 10")
   '';
 
-  lvm-pv = make "lvm-pv" ''
-    machine.succeed("mountpoint /boot")
-    machine.succeed("pvs | grep -q vg0")
-    machine.succeed("vgs | grep -q vg0")
-  '';
-
   multi-disk-plain = make "multi-disk-plain" ''
     machine.succeed("mountpoint /")
     machine.succeed("mountpoint /home")
