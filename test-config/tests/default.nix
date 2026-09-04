@@ -15,9 +15,7 @@ let
       disko-config = ../generated/${name}.nix;
       extraInstallerConfig = {
         virtualisation.diskSize = disk;
-        virtualisation.additionalDrives = [
-          { name = "sdb"; size = disk; }
-        ];
+        virtualisation.emptyDiskImages = [ disk ];
       };
     };
 in
