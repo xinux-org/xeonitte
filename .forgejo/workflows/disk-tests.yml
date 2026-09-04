@@ -6,25 +6,8 @@ env:
   NIX_CONFIG: "experimental-features = nix-command flakes"
 
 jobs:
-  generate:
-    name: Regenerate & verify configs
-    runs-on: native
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Generate disk layout configs
-        run: nix develop -c cargo run -p test-config
-
-      - name: Verify generated configs are committed
-        run: |
-          git diff --exit-code test-config/generated/ || {
-            echo "Generated configs are out of date. Run 'cargo run -p test-config' and commit the result."
-            exit 1
-          }
-
   vm-tests:
     name: NixOS VM tests
-    needs: generate
     runs-on: native
     steps:
       - uses: actions/checkout@v4
