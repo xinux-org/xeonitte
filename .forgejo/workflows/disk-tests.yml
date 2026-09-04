@@ -17,3 +17,4 @@ jobs:
           nix flake check ./test-config \
             --option extra-system-features "nixos-test kvm benchmark big-parallel" \
             --keep-going
+            --impure
