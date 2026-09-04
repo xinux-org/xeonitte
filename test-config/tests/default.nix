@@ -6,17 +6,15 @@ let
     diskoLib.testLib.makeDiskoTest {
       inherit pkgs name extraTestScript;
       disko-config = ../generated/${name}.nix;
-      extraInstallerConfig.virtualisation.diskSize = disk;
+      diskSize = disk;
     };
 
   make2 = name: extraTestScript:
     diskoLib.testLib.makeDiskoTest {
       inherit pkgs name extraTestScript;
       disko-config = ../generated/${name}.nix;
-      extraInstallerConfig = {
-        virtualisation.diskSize = disk;
-        virtualisation.emptyDiskImages = [ disk ];
-      };
+      diskSize = disk;
+      extraInstallerConfig.virtualisation.emptyDiskImages = [ disk ];
     };
 in
 {
