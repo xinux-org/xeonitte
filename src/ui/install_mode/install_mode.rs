@@ -40,8 +40,6 @@ impl SimpleComponent for InstallModeModel {
                 set_column_spacing: 20,
                 set_row_spacing: 20,
                 set_selection_mode: gtk::SelectionMode::None,
-                #[watch]
-                set_max_children_per_line: selectbox.iter_children().count() as u32,
                 set_homogeneous: true,
             }
         }
@@ -57,50 +55,56 @@ impl SimpleComponent for InstallModeModel {
             config: init,
             selected: None,
         };
-        let selectbox = gtk::FlowBox::new();
-        let widgets = view_output!();
 
-        model
+        let choices = model
             .config
             .choices
             .iter()
-            .cloned()
-            .filter(|configuration| !configuration.config.config_id.eq("init"))
-            .for_each(|configuration| {
-                let config = configuration.config;
-                view! {
-                    button = gtk::Button {
-                        set_width_request: 200,
-                        set_height_request: 200,
+            .filter(|choise| choise.config.config_id == "init")
+            .collect::<Vec<_>>();
+
+        let selectbox = gtk::FlowBox::builder()
+            .max_children_per_line(choices.len() as u32)
+            .build();
+
+        let widgets = view_output!();
+
+        choices.iter().for_each(|choise| {
+            let config = choise.config.clone();
+            view! {
+                button = gtk::Button {
+                    set_width_request: 200,
+                    set_height_request: 200,
+                    set_halign: gtk::Align::Center,
+                    set_valign: gtk::Align::Center,
+                    connect_clicked[sender, config] => move |_| {
+                        sender.input(InstallModeMsg::SetSelected(Some(config.clone())))
+                    },
+                    gtk::Box {
+                        set_orientation: gtk::Orientation::Vertical,
                         set_halign: gtk::Align::Center,
                         set_valign: gtk::Align::Center,
-                        connect_clicked[sender, config] => move |_| {
-                            sender.input(InstallModeMsg::SetSelected(Some(config.clone())))
-                        },
-                        gtk::Box {
-                            set_orientation: gtk::Orientation::Vertical,
+                        set_spacing: 10,
+                        set_margin_all: 10,
+                        gtk::Image {
+                            set_icon_name: Some(&config.config_logo),
+                            set_pixel_size: 80,
                             set_halign: gtk::Align::Center,
                             set_valign: gtk::Align::Center,
-                            set_spacing: 10,
-                            set_margin_all: 10,
-                            gtk::Image {
-                                set_icon_name: Some(&config.config_logo),
-                                set_pixel_size: 80,
-                                set_halign: gtk::Align::Center,
-                                set_valign: gtk::Align::Center,
-                            },
-                            gtk::Label {
-                                set_label: &gettext(&config.config_name),
-                                set_halign: gtk::Align::Center,
-                                set_valign: gtk::Align::Center,
-                                set_wrap: true,
-                                set_justify: gtk::Justification::Center,
-                            }
+                        },
+                        gtk::Label {
+                            set_label: &gettext(&config.config_name),
+                            set_halign: gtk::Align::Center,
+                            set_valign: gtk::Align::Center,
+                            set_wrap: true,
+                            set_justify: gtk::Justification::Center,
                         }
                     }
                 }
-                selectbox.append(&button);
-            });
+            }
+            selectbox.append(&button);
+        });
+
         ComponentParts { model, widgets }
     }
 
