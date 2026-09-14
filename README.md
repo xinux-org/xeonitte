@@ -19,6 +19,11 @@ A graphical installer for Xinux.
 
 This application has Linux-only dependencies.
 
+```nix
+# install disko on global config
+environment.systemPackages = pkgs; [ disko ];
+```
+
 ```bash
 # download dependencies
 nix develop

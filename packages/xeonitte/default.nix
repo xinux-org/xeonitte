@@ -29,6 +29,8 @@
   systemd,
   dbus,
   zlib,
+  disko,
+  ...
 }:
 let
   convertyml = internal.convertyml;
@@ -41,7 +43,7 @@ stdenv.mkDerivation rec {
 
   cargoDeps = rustPlatform.fetchCargoVendor {
     src = ../..;
-    hash = "sha256-ifGbfFqFMxRdrvGRkzu8LdXK+V7TKdTv5P4LOlKzW/c=";
+    hash = "sha256-XncQMjUN6rhZL7t2nnyFtNXffnvT3esFxhryfC4q8yw=";
   };
 
   nativeBuildInputs = [
@@ -57,6 +59,7 @@ stdenv.mkDerivation rec {
     rustc
     rustPlatform.cargoSetupHook
     wrapGAppsHook4
+    disko
   ];
 
   buildInputs = [

@@ -39,6 +39,7 @@
   polkit,
   just,
   bacon,
+  disko,
   ...
 
 }:
@@ -95,6 +96,7 @@ mkShell {
     nixfmt
     just
     bacon
+    disko
   ];
 
   # Set Environment Variables

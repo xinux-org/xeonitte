@@ -1,5 +1,6 @@
 use super::parse::{Choice, ConfigType};
 use super::report::ErrorPhase;
+use crate::utils::make_config::{MakeConfig, makeconfig};
 use crate::{
     config::{LIBEXECDIR, SYSCONFDIR, TMPDIR},
     ui::{
@@ -10,11 +11,10 @@ use crate::{
     utils::disko::{Devices, LUKS_PASSWORD_FILE},
 };
 use anyhow::{Context, Result, anyhow};
-use log::{debug, error, info};
+use log::{error, info};
 use relm4::*;
 use std::{
     collections::HashMap,
-    fs::{self},
     io::Write,
     process::{Command, Stdio},
 };
@@ -105,20 +105,8 @@ impl Worker for InstallAsyncModel {
                 INSTALL_BROKER.send(InstallMsg::ProgressbarTitle(
                     "Step 0: clearing up /nix/var/nix/builds/xeonitte folder".to_string(),
                 ));
-                fn clear() -> Result<()> {
-                    Command::new("pkexec")
-                        .arg("umount")
-                        .arg("-R")
-                        .arg(TMPDIR)
-                        .output()?;
-                    Command::new("pkexec")
-                        .arg("rm")
-                        .arg("-rf")
-                        .arg(TMPDIR)
-                        .output()?;
-                    Ok(())
-                }
-                if let Err(e) = clear() {
+
+                if let Err(e) = clear_previous_mounts() {
                     sender.output(AppMsg::error(
                         ErrorPhase::Setup,
                         format!("Failed to clear {TMPDIR}: {e}"),
@@ -149,6 +137,7 @@ impl Worker for InstallAsyncModel {
                     .arg("nixos-generate-config")
                     .arg("--root")
                     .arg(TMPDIR)
+                    .arg("--no-filesystems")
                     .output()
                 {
                     sender.output(AppMsg::error(
@@ -261,8 +250,9 @@ impl Worker for InstallAsyncModel {
                     "Step 4: Install Xinux".to_string(),
                 ));
                 if let Some(hostname) = user.as_ref().as_ref().map(|u| u.hostname.clone()) {
-                    let flake_dir = format!("{}/etc/nixos", TMPDIR);
-                    let flake_uri = format!("{}#{}", flake_dir, hostname);
+                    let flake_url = format!("{}/etc/nixos", TMPDIR);
+                    // --flake <flake-url>#<flake-attr>
+                    let flake_attr = format!("{}#{}", flake_url, hostname);
 
                     let disko_path = format!(
                         "{}/etc/nixos/systems/{}-linux/{}/disko.nix",
@@ -309,12 +299,23 @@ impl Worker for InstallAsyncModel {
                     // TODO: make better way to write this shell command
                     let cmd = if luks_passphrase.is_some() {
                         format!(
-                            "swapoff -a || true; nix run https://git.oss.uzinfocom.uz/mirrors/disko/archive/latest.tar.gz -- --mode destroy,format,mount {disko_path} --yes-wipe-all-disks; disko_rc=$?; shred -u -z -n 0 {key}; [ \"$disko_rc\" -eq 0 ] && nix flake lock {flake_dir} && nixos-install --no-root-passwd --no-channel-copy --root /mnt --option build-dir /nix/var/nix/builds/xeonitte --flake {flake_uri} && mkdir -p /mnt/etc/nixos && cp -rT {flake_dir} /mnt/etc/nixos",
+                            "swapoff -a || true; \
+                            disko --mode destroy,format,mount {disko_path} --yes-wipe-all-disks; \
+                            disko_rc=$?; shred -u -z -n 0 {key}; \
+                            [ \"$disko_rc\" -eq 0 ] && nix flake lock {flake_url} && \
+                            mkdir -p /mnt/etc/nixos && \
+                            cp -rT {flake_url} /mnt/etc/nixos && \
+                            nixos-install --no-root-passwd --no-channel-copy --root /mnt --option build-dir /nix/var/nix/builds/xeonitte --flake {flake_attr}",
                             key = LUKS_PASSWORD_FILE,
                         )
                     } else {
                         format!(
-                            "swapoff -a || true; nix run https://git.oss.uzinfocom.uz/mirrors/disko/archive/latest.tar.gz -- --mode destroy,format,mount {disko_path} --yes-wipe-all-disks && nix flake lock {flake_dir} && nixos-install --no-root-passwd --no-channel-copy --root /mnt --option build-dir /nix/var/nix/builds/xeonitte --flake {flake_uri} && mkdir -p /mnt/etc/nixos && cp -rT {flake_dir} /mnt/etc/nixos",
+                            "swapoff -a || true; \
+                            disko --mode destroy,format,mount {disko_path} --yes-wipe-all-disks --debug && \
+                            nix flake lock {flake_url} && \
+                            mkdir -p /mnt/etc/nixos && \
+                            cp -rT {flake_url} /mnt/etc/nixos && \
+                            nixos-install --no-root-passwd --no-channel-copy --root /mnt --option build-dir /nix/var/nix/builds/xeonitte --flake {flake_attr}",
                         )
                     };
                     INSTALL_BROKER.send(InstallMsg::Install(vec![
@@ -426,327 +427,18 @@ impl Worker for InstallAsyncModel {
     }
 }
 
-pub struct MakeConfig {
-    pub id: String,
-    pub language: Option<String>,
-    pub timezone: Option<String>,
-    pub keyboard: Option<String>,
-    pub user: Option<UserConfig>,
-    pub list: HashMap<String, HashMap<String, Choice>>,
-    pub bootdisk: Option<String>,
-    pub imperative_timezone: bool,
-    pub disko: String,
-}
-
-pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
-    /* Configuration keys:
-        @NVIDIAOFFLOAD@ - Enable NVIDIA offloading
-        @BOOTLOADRER@ - Bootloader
-        @NETWORK@ - Network configuration
-        @TIMEZONE@ - Timezone
-        @LOCALE@ - Localization
-        @KEYBOARD@ - Keyboard layout
-        @DESKTOP@ - Desktop environment
-        @AUTOLOGIN@ - Autologin config
-        @PACKAGES@ - Packages to install
-        @STATEVERSION@ - NixOS State version
-        @DISKO@ - Disko configuration
-    */
-
-    /* Value keys:
-        @HOSTNAME@ - Hostname
-        @USERNAME@ - Username
-        @FULLNAME@ - Full name
-    */
-
-    let efi = distinst_disks::Bootloader::detect() == distinst_disks::Bootloader::Efi;
-    let archout = Command::new("uname")
-        .arg("-m")
-        .output()
-        .context("Failed to get architecture")?;
-    let arch = String::from_utf8_lossy(&archout.stdout).trim().to_string();
-
-    fn iterwrite(makeconfig: &MakeConfig, path: &str, efi: bool, arch: &str) -> Result<()> {
-        // Iterate through files in configs/
-        for file in (fs::read_dir(
-            format!("{}/xeonitte/{}/{}", SYSCONFDIR, makeconfig.id, path).replace("//", "/"),
-        )?)
-        .flatten()
-        {
-            // Check if it is a dir
-            if file.metadata()?.is_dir() {
-                // Iterate through files in the dir
-                debug!("Iterating through {}", file.path().to_string_lossy());
-                debug!("Path: {}", path);
-                debug!(
-                    "!= {}/xeonitte/{}/modules/{{efiboot,biosboot}}",
-                    SYSCONFDIR, makeconfig.id
-                );
-                let _ = iterwrite(
-                    makeconfig,
-                    &format!(
-                        "{}/{}",
-                        path.trim_end_matches('/'),
-                        file.file_name().to_string_lossy()
-                    ),
-                    efi,
-                    arch,
-                );
-            } else if file.file_name().to_string_lossy().ends_with(".nix") {
-                let mut config = fs::read_to_string(file.path())?;
-                config = config.replace("@NVIDIAOFFLOAD@", "");
-                config = config.replace("@ARCH@", &format!("{}-linux", arch));
-                config = config.replace("@DISKO@", &makeconfig.disko);
-
-                if efi {
-                    config = config.replace("@BOOTLOADER@", "");
-                    config =
-                        config.replace("@BOOTLOADER_MODULE@", "xinux-modules.nixosModules.efiboot")
-                } else {
-                    config = config.replace(
-                        "@BOOTLOADER@",
-                        &format!(
-                            r#"  boot.loader.grub.device = "{}";"#,
-                            makeconfig
-                                .bootdisk
-                                .as_ref()
-                                .context("Failed to get bootloader disk")?
-                        ),
-                    );
-                    config =
-                        config.replace("@BOOTLOADER_MODULE@", "xinux-modules.nixosModules.biosboot")
-                }
-
-                config = config.replace(
-                    "@NETWORK@",
-                    &format!(
-                        r#"  # Define your hostname.
-  networking.hostName = "{}";"#,
-                        makeconfig
-                            .user
-                            .as_ref()
-                            .map(|x| x.hostname.as_ref())
-                            .unwrap_or("nixos")
-                    ),
-                );
-
-                if makeconfig.imperative_timezone {
-                    config = config.replace("@TIMEZONE@", "");
-                } else if let Some(tz) = &makeconfig.timezone {
-                    config = config.replace(
-                        "@TIMEZONE@",
-                        format!(
-                            r#"  # Set your time zone.
-  time.timeZone = "{}";"#,
-                            tz
-                        )
-                        .as_str(),
-                    );
-                }
-
-                if let Some(locale) = &makeconfig.language {
-                    config = config.replace(
-                        "@LOCALE@",
-                        &format!(
-                            r#"  # Select internationalisation properties.
-  modules.xinux.language = "{}";"#,
-                            locale
-                        ),
-                    );
-                }
-
-                if let Some(keymap) = &makeconfig.keyboard {
-                    if keymap.contains('+') {
-                        let mut split = keymap.split('+');
-                        if let (Some(layout), Some(variant)) = (split.next(), split.next()) {
-                            config = config.replace(
-                                "@KEYBOARD@",
-                                &format!(
-                                    r#"  # Set the keyboard layout.
-  services.xserver.xkb = {{
-    layout = "{}";
-    variant = "{}";
-  }};
-  console.useXkbConfig = true;"#,
-                                    layout, variant
-                                ),
-                            );
-                        }
-                    } else {
-                        config = config.replace(
-                            "@KEYBOARD@",
-                            &format!(
-                                r#"  # Set the keyboard layout.
-  services.xserver.xkb.layout = "{}";
-  console.useXkbConfig = true;"#,
-                                keymap
-                            ),
-                        );
-                    }
-                }
-
-                if let Some(user) = &makeconfig.user {
-                    config = config.replace("@USERNAME@", &user.username);
-                    config = config.replace("@FULLNAME@", &user.name);
-                    config = config.replace("@HOSTNAME@", &user.hostname);
-
-                    let mut autocfg = String::new();
-                    if user.autologin {
-                        autocfg.push_str(&format!(
-                            r#"  # Enable automatic login for the user.
-  services.displayManager.autoLogin.enable = true;
-  services.displayManager.autoLogin.user = "{}";
-"#,
-                            user.username
-                        ));
-                        autocfg.push_str(
-                                    r#"  # Workaround for GNOME autologin: https://github.com/NixOS/nixpkgs/issues/103746#issuecomment-945091229
-  systemd.services."getty@tty1".enable = false;
-  systemd.services."autovt@tty1".enable = false;
-"#,
-                                );
-                    }
-                    config = config.replace("@AUTOLOGIN@", &autocfg);
-                }
-
-                // List configuration options
-                let mut extrapkgs = vec![];
-                for (id, choices) in makeconfig.list.iter() {
-                    let mut listcfg = String::new();
-                    for (_key, choice) in choices.iter() {
-                        if let Some(pkgs) = &choice.packages {
-                            for pkg in pkgs {
-                                extrapkgs.push(pkg.to_string());
-                            }
-                        }
-                        if let Some(cfg) = &choice.config {
-                            cfg.lines()
-                                .for_each(|x| listcfg.push_str(&format!("  {}\n", x)));
-                        }
-                    }
-                    config = config.replace(&format!("@{}@", id), &listcfg);
-                }
-
-                config = config.replace(
-                    "@PACKAGES@",
-                    &if extrapkgs.is_empty() {
-                        r#"  # List packages installed in system profile.
-  environment.systemPackages = with pkgs; [
-    libreoffice
-  ];"#
-                        .to_string()
-                    } else {
-                        format!(
-                            r#"  # List packages installed in system profile.
-  environment.systemPackages = with pkgs; [
-    libreoffice
-    {}
-  ];"#,
-                            extrapkgs.join("\n    ")
-                        )
-                    },
-                );
-
-                config = config.replace(
-                    "@STATEVERSION@",
-                    &format!(
-                        r#"  system.stateVersion = "{}"; # Did you read the comment?"#,
-                        String::from_utf8_lossy(
-                            &Command::new("nixos-version")
-                                .output()
-                                .context("Failed to get nixos version")?
-                                .stdout
-                        )
-                        .to_string()
-                        .get(0..5)
-                        .context("Failed to get nixos version")?
-                    ),
-                );
-
-                let mut cmd = Command::new("pkexec")
-                    .arg(format!("{}/xeonitte-helper", LIBEXECDIR))
-                    .arg("write-file")
-                    .arg("--path")
-                    .arg(if path.is_empty() {
-                        format!(
-                            "{}/etc/nixos/{}",
-                            TMPDIR,
-                            file.file_name().to_string_lossy()
-                        )
-                    } else {
-                        format!(
-                            "{}/etc/nixos/{}/{}",
-                            TMPDIR,
-                            path.replace("ARCH", &format!("{}-linux", arch)).replace(
-                                "HOSTNAME",
-                                makeconfig
-                                    .user
-                                    .as_ref()
-                                    .map(|x| x.hostname.as_ref())
-                                    .unwrap_or("nixos")
-                            ),
-                            file.file_name().to_string_lossy()
-                        )
-                    })
-                    .arg("--contents")
-                    .arg(config)
-                    .spawn()?;
-                cmd.wait()?;
-            } else if file.metadata()?.is_file() {
-                Command::new("pkexec")
-                    .arg("mkdir")
-                    .arg("-p")
-                    .arg(if path.is_empty() {
-                        format!("{}/etc/nixos/", TMPDIR).to_string()
-                    } else {
-                        format!(
-                            "{}/etc/nixos/{}/",
-                            TMPDIR,
-                            path.replace("ARCH", &format!("{}-linux", arch)).replace(
-                                "HOSTNAME",
-                                makeconfig
-                                    .user
-                                    .as_ref()
-                                    .map(|x| x.hostname.as_ref())
-                                    .unwrap_or("nixos")
-                            )
-                        )
-                    })
-                    .spawn()?
-                    .wait()?;
-
-                Command::new("pkexec")
-                    .arg("cp")
-                    .arg(file.path().to_string_lossy().to_string())
-                    .arg(if path.is_empty() {
-                        format!(
-                            "{}/etc/nixos/{}",
-                            TMPDIR,
-                            file.file_name().to_string_lossy()
-                        )
-                    } else {
-                        format!(
-                            "{}/etc/nixos/{}/{}",
-                            TMPDIR,
-                            path.replace("ARCH", &format!("{}-linux", arch)).replace(
-                                "HOSTNAME",
-                                makeconfig
-                                    .user
-                                    .as_ref()
-                                    .map(|x| x.hostname.as_ref())
-                                    .unwrap_or("nixos")
-                            ),
-                            file.file_name().to_string_lossy()
-                        )
-                    })
-                    .spawn()?
-                    .wait()?;
-            }
-        }
-        Ok(())
-    }
-
-    iterwrite(&makeconfig, "", efi, &arch)
+fn clear_previous_mounts() -> Result<()> {
+    Command::new("pkexec")
+        .arg("umount")
+        .arg("-R")
+        .arg(TMPDIR)
+        .output()?;
+    Command::new("pkexec")
+        .arg("rm")
+        .arg("-rf")
+        .arg(TMPDIR)
+        .output()?;
+    Ok(())
 }
 
 fn init_libreoffice_config(username: String) -> Result<()> {
