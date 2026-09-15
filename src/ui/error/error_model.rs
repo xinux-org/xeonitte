@@ -167,31 +167,39 @@ impl SimpleComponent for ErrorModel {
                 self.spinner.set_spinning(false);
                 self.spinner.activate();
                 self.spinner.set_spinning(true);
-                relm4::spawn(async move {
-                    let result = tokio::task::spawn_blocking(move || {
-                        send_report(
-                            phase,
-                            &message,
-                            &["/tmp/xeonitte.log", "/tmp/xeonitte-term.log"],
-                        )
-                    })
-                    .await;
-                    let rep_file = match result {
-                        Ok(r) => r,
-                        Err(e) => {
-                            error!("Failed to generate report: {e}");
-                            return;
-                        }
-                    };
-                    match rep_file {
-                        Ok(path) => {
-                            sender.input(ErrorMsg::SetUrl(format!("file://{path}")));
-                        }
-                        Err(e) => {
-                            error!("Failed to upload report: {e}");
-                            sender.input(ErrorMsg::SetUploadButton(UploadButton::Button));
-                        }
-                    }
+
+                let command_sender = sender.clone();
+                sender.command(move |_, receiver| {
+                    receiver
+                        .register(async move {
+                            let result = tokio::task::spawn_blocking(move || {
+                                send_report(
+                                    phase,
+                                    &message,
+                                    &["/tmp/xeonitte.log", "/tmp/xeonitte-term.log"],
+                                )
+                            })
+                            .await;
+                            let rep_file = match result {
+                                Ok(r) => r,
+                                Err(e) => {
+                                    error!("Failed to generate report: {e}");
+                                    return;
+                                }
+                            };
+                            match rep_file {
+                                Ok(path) => {
+                                    command_sender
+                                        .input(ErrorMsg::SetUrl(format!("file://{path}")));
+                                }
+                                Err(e) => {
+                                    error!("Failed to upload report: {e}");
+                                    command_sender
+                                        .input(ErrorMsg::SetUploadButton(UploadButton::Button));
+                                }
+                            }
+                        })
+                        .drop_on_shutdown()
                 });
             }
             ErrorMsg::SetUrl(url) => {
