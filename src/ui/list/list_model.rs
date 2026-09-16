@@ -1,4 +1,4 @@
-use crate::{ui::window::AppMsg, utils::parse::Choice};
+use crate::{ui::window::AppMsg, utils::flow::Choice};
 use adw::prelude::*;
 use gettextrs::gettext;
 use relm4::{factory::*, *};

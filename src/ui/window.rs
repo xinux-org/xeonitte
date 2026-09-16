@@ -21,10 +21,10 @@ use crate::{
             Attrs, DeviceContent, Devices, Disk, Filesystem, Gpt, LUKS_PASSWORD_FILE, Luks,
             NixValue, Partition, PartitionContent, Swap, canonical, luks_encrypted,
         },
+        flow::{Choice, DISTRO_NAME, Step},
         i18n::i18n_f,
         install::{InstallAsyncModel, InstallAsyncMsg},
         language::{get_country, get_lang},
-        parse::{Choice, InstallationConfig, StepType, XeonitteConfig, parse_config},
         report::ErrorPhase,
     },
 };
@@ -43,10 +43,6 @@ use std::{
 #[tracker::track]
 pub struct AppModel {
     page: StackPage,
-    #[tracker::no_eq]
-    config: XeonitteConfig,
-    #[tracker::no_eq]
-    installconfig: Option<InstallationConfig>,
     #[tracker::no_eq]
     welcome: Controller<WelcomeModel>,
     #[tracker::no_eq]
@@ -76,7 +72,7 @@ pub struct AppModel {
     can_go_forward: bool,
     carousel: adw::Carousel,
     #[tracker::no_eq]
-    carouselpages: Vec<StepType>,
+    carouselpages: Vec<Step>,
     current_page: u32,
 
     languageconfig: Option<String>,
@@ -109,7 +105,6 @@ pub enum AppMsg {
     SetCanGoBack(bool),
     SetCanGoForward(bool),
     SetStackPage(StackPage),
-    SetStackPageConfig(StackPage, Option<InstallationConfig>, usize),
     SetLanguageConfig(Option<String>),
     SetKeyboardConfig(Option<String>),
     SetTimezoneConfig(Option<String>),
@@ -188,7 +183,7 @@ impl Component for AppModel {
                                 #[watch]
                                 // Translators: Do NOT translate the '{}'
                                 // The string reads "{distribution name} Installer"
-                                set_label: &i18n_f("{} Installer", &[&model.config.distribution_name])
+                                set_label: &i18n_f("{} Installer", &[DISTRO_NAME])
                             }
                         },
                         StackPage::Carousel => {
@@ -351,7 +346,6 @@ impl Component for AppModel {
     ) -> ComponentParts<Self> {
         let ten_millis = time::Duration::from_secs(1);
         thread::sleep(ten_millis);
-        let config = parse_config().expect("Failed to parse config");
         let welcomepage = WelcomeModel::builder()
             .launch(())
             .forward(sender.input_sender(), identity);

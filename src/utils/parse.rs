@@ -1,99 +1,13 @@
 use crate::config::SYSCONFDIR;
 use anyhow::Result;
-use log::debug;
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, fs};
+use std::fs;
 
-#[derive(Deserialize, Serialize, Debug, Default, Clone)]
-pub struct XeonitteConfig {
-    pub distribution_name: String,
-    pub branding: String,
-    pub internet_check_url: String,
-    pub default_hostname: String,
-    pub choices: Vec<Configuration>,
-}
-impl XeonitteConfig {
-    pub fn get_installation_config(&self, id: &str) -> Option<InstallationConfig> {
-        self.choices
-            .iter()
-            .find(|c| c.config.config_id.eq(id))
-            .and_then(|x| x.config.clone().into())
-    }
-}
-
-#[derive(Deserialize, Serialize, Debug, Clone)]
-#[serde(rename_all = "lowercase")]
-pub struct Configuration {
-    pub file: String,
-    #[serde(skip)]
-    pub config: InstallationConfig,
-}
-
-#[derive(Deserialize, Serialize, Default, Clone, Debug, PartialEq, Eq)]
-#[serde(rename_all = "lowercase")]
+#[derive(PartialEq)]
 pub enum ConfigType {
     Xinux,
-    #[default]
     Flakes,
     Legacy,
-}
-
-#[derive(Deserialize, Serialize, Default, Clone, Debug)]
-pub struct InstallationConfig {
-    pub config_id: String,
-    pub config_name: String,
-    pub config_logo: String,
-    pub config_type: ConfigType,
-    #[serde(default)]
-    pub imperative_timezone: bool,
-    pub steps: Vec<StepType>,
-    #[serde(default)]
-    pub commands: Vec<String>,
-}
-
-#[derive(Deserialize, Serialize, Clone, Debug, PartialEq)]
-#[serde(rename_all = "lowercase")]
-pub enum StepType {
-    Welcome,
-    Location,
-    Keyboard,
-    #[serde(rename = "install_mode")]
-    InstallMode,
-    User {
-        root: Option<bool>,
-        hostname: Option<bool>,
-    },
-    List {
-        id: String,
-        multiple: bool,
-        required: bool,
-        title: String,
-        choices: Vec<HashMap<String, Choice>>,
-    },
-    Partitioning,
-    Manual,
-    Summary,
-}
-
-#[derive(Deserialize, Serialize, Clone, Debug, PartialEq)]
-pub struct Choice {
-    pub description: Option<String>,
-    pub packages: Option<Vec<String>>,
-    #[serde(default)]
-    pub default: bool,
-    pub config: Option<String>,
-}
-
-pub fn parse_config() -> Result<XeonitteConfig> {
-    debug!("Parsing config {}/xeonitte/config.yml", SYSCONFDIR);
-    let f = fs::read_to_string(format!("{}/xeonitte/config.yml", SYSCONFDIR))?;
-    let mut config: XeonitteConfig = serde_yaml::from_str(&f)?;
-    for choice in &mut config.choices {
-        let Configuration { file, config } = choice;
-        let f = fs::read_to_string(&format!("{}/xeonitte/{}", SYSCONFDIR, file))?;
-        *config = serde_yaml::from_str(&f)?;
-    }
-    Ok(config)
 }
 
 #[derive(Deserialize, Serialize, Clone, Debug)]

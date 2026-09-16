@@ -1,20 +1,29 @@
-use crate::utils::parse::StepType::Welcome;
+pub const DISTRO_NAME: &str = "Xinux";
+pub const BRANDING: &str = "xinux";
+pub const INTERNET_CHECK_URL: &str = "http://nmcheck.gnome.org/check_network_status.txt";
+pub const DEFAULT_HOSTNAME: &str = "xinux";
 
-// pub struct Config {
-//     name: String,
-//     logo: String,
-//     id: ConfigId,
-//     imperative_timezone: bool,
-//     config_type: ConfigType,
-//     steps: Vec<Step>,
-// }
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Flow {
     Init,
     Basic,
     Advanced,
 }
 impl Flow {
-    fn steps(&self) -> Vec<Step> {
+    pub fn iter(&self) -> impl Iterator<Item = Flow> {
+        use Flow::*;
+        [Init, Basic, Advanced].iter().copied()
+    }
+    pub fn logo(&self) -> &str {
+        use Flow::*;
+
+        match self {
+            Init => "",
+            Basic => "emoji-symbols-symbolic",
+            Advanced => "preferences-system-symbolic",
+        }
+    }
+    pub fn steps(&self) -> Vec<Step> {
         use Step::*;
 
         // initial steps
