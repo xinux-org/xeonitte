@@ -121,7 +121,7 @@ impl SimpleComponent for ListModel {
         for (key, choice) in &model.choices {
             let item = ListItem {
                 title: key.to_string(),
-                description: choice.description.clone().unwrap_or_default(),
+                description: choice.description.clone(),
                 group: model.group.clone(),
                 locale: model.locale.clone(),
                 tracker: 0,

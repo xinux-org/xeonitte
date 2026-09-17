@@ -55,16 +55,19 @@ impl Flow {
                             name: "Flatpak".into(),
                             description: "Enable Flatpak support".into(),
                             config: "services.flatpak.enable = true;".into(),
+                            default: false,
                         },
                         Choice {
                             name: "AppImage".into(),
                             description: "Enable AppImage support by installing the \"appimage-run\" package. For AppImages to work, you must run them with the \"appimage-run\" command.".into(),
                             config: "modules.packagemanagers.appimage.enable = true;".into(),
+                            default: false,
                         },
                         Choice {
                             name: "Minimal".into(),
                             description: "Install minimal Xinux without GNOME core apps".into(),
                             config: "modules.gnome.remove-utils.enable = lib.mkForce true;".into(),
+                            default: false,
                         },
                     ],
                 },
@@ -72,24 +75,27 @@ impl Flow {
                     Choice {
                         name: "LTS".into(),
                         description: "Install the latest LTS kernel".into(),
-                        config: String::new()
+                        config: String::new(),
+                        default: true,
                     },
                     Choice {
                         name: "Latest".into(),
                         description: "Install the latest kernel".into(),
-                        config: "boot.kernelPackages = pkgs.linuxPackages_latest;".into()
+                        config: "boot.kernelPackages = pkgs.linuxPackages_latest;".into(),
+                        default: false,
                     },
                     Choice {
                         name: "Libre".into(),
                         description: "Install the libre kernel".into(),
-                        config: "boot.kernelPackages = pkgs.linuxPackages_libre;".into()
+                        config: "boot.kernelPackages = pkgs.linuxPackages_libre;".into(),
+                        default: false,
                     },
                     Choice {
                         name: "Zen".into(),
                         description: "Install the Zen kernel".into(),
-                        config: "boot.kernelPackages = pkgs.linuxPackages_zen;".into()
+                        config: "boot.kernelPackages = pkgs.linuxPackages_zen;".into(),
+                        default: false,
                     },
-
                 ] }
             ],
         };
@@ -100,6 +106,7 @@ impl Flow {
     }
 }
 
+#[derive(Debug)]
 pub enum Step {
     Welcome,
     Keyboard,
@@ -120,13 +127,21 @@ pub enum Step {
     Summary,
 }
 
+#[derive(Debug)]
 pub enum ListId {
     PackageManager,
     Kernel,
 }
+impl From<ListId> for String {
+    fn from(value: ListId) -> Self {
+        format!("{value:?}")
+    }
+}
 
+#[derive(Debug, Clone)]
 pub struct Choice {
-    name: String,
-    description: String,
-    config: String,
+    pub name: String,
+    pub description: String,
+    pub config: String,
+    pub default: bool,
 }
