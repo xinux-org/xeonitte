@@ -1,7 +1,10 @@
+use crate::utils::parse::ConfigType;
+
 pub const DISTRO_NAME: &str = "Xinux";
 pub const BRANDING: &str = "xinux";
 pub const INTERNET_CHECK_URL: &str = "http://nmcheck.gnome.org/check_network_status.txt";
 pub const DEFAULT_HOSTNAME: &str = "xinux";
+pub const CONFIG_TYPE: &str = "xinux";
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Flow {
@@ -22,6 +25,13 @@ impl Flow {
             Basic => "emoji-symbols-symbolic",
             Advanced => "preferences-system-symbolic",
         }
+    }
+    pub fn config_type(&self) -> ConfigType {
+        ConfigType::Xinux
+    }
+
+    pub fn imperative_timezone(&self) -> bool {
+        true
     }
     pub fn steps(&self) -> Vec<Step> {
         use Step::*;
@@ -56,18 +66,21 @@ impl Flow {
                             description: "Enable Flatpak support".into(),
                             config: "services.flatpak.enable = true;".into(),
                             default: false,
+                            packages: vec![]
                         },
                         Choice {
                             name: "AppImage".into(),
                             description: "Enable AppImage support by installing the \"appimage-run\" package. For AppImages to work, you must run them with the \"appimage-run\" command.".into(),
                             config: "modules.packagemanagers.appimage.enable = true;".into(),
                             default: false,
+                            packages: vec![]
                         },
                         Choice {
                             name: "Minimal".into(),
                             description: "Install minimal Xinux without GNOME core apps".into(),
                             config: "modules.gnome.remove-utils.enable = lib.mkForce true;".into(),
                             default: false,
+                            packages: vec![]
                         },
                     ],
                 },
@@ -77,24 +90,28 @@ impl Flow {
                         description: "Install the latest LTS kernel".into(),
                         config: String::new(),
                         default: true,
+                        packages: vec![]
                     },
                     Choice {
                         name: "Latest".into(),
                         description: "Install the latest kernel".into(),
                         config: "boot.kernelPackages = pkgs.linuxPackages_latest;".into(),
                         default: false,
+                        packages: vec![]
                     },
                     Choice {
                         name: "Libre".into(),
                         description: "Install the libre kernel".into(),
                         config: "boot.kernelPackages = pkgs.linuxPackages_libre;".into(),
                         default: false,
+                        packages: vec![]
                     },
                     Choice {
                         name: "Zen".into(),
                         description: "Install the Zen kernel".into(),
                         config: "boot.kernelPackages = pkgs.linuxPackages_zen;".into(),
                         default: false,
+                        packages: vec![]
                     },
                 ] }
             ],
@@ -105,8 +122,13 @@ impl Flow {
         steps
     }
 }
+impl From<Flow> for String {
+    fn from(value: Flow) -> Self {
+        format!("{value:?}")
+    }
+}
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Step {
     Welcome,
     Keyboard,
@@ -127,7 +149,7 @@ pub enum Step {
     Summary,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum ListId {
     PackageManager,
     Kernel,
@@ -144,4 +166,5 @@ pub struct Choice {
     pub description: String,
     pub config: String,
     pub default: bool,
+    pub packages: Vec<String>,
 }

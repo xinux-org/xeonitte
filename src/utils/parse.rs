@@ -3,7 +3,7 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::fs;
 
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum ConfigType {
     Xinux,
     Flakes,

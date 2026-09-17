@@ -5,7 +5,7 @@ use std::{collections::HashMap, fs, process::Command};
 use crate::{
     config::{LIBEXECDIR, SYSCONFDIR, TMPDIR},
     ui::window::UserConfig,
-    utils::parse::Choice,
+    utils::flow::Choice,
 };
 
 pub struct MakeConfig {
@@ -213,15 +213,13 @@ systemd.services."autovt@tty1".enable = false;
             for (id, choices) in makeconfig.list.iter() {
                 let mut listcfg = String::new();
                 for (_key, choice) in choices.iter() {
-                    if let Some(pkgs) = &choice.packages {
-                        for pkg in pkgs {
-                            extrapkgs.push(pkg.to_string());
-                        }
-                    }
-                    if let Some(cfg) = &choice.config {
-                        cfg.lines()
-                            .for_each(|x| listcfg.push_str(&format!("  {}\n", x)));
-                    }
+                    choice.packages.iter().for_each(|pkg| {
+                        extrapkgs.push(pkg.to_string());
+                    });
+                    choice
+                        .config
+                        .lines()
+                        .for_each(|x| listcfg.push_str(&format!("  {}\n", x)));
                 }
                 config = config.replace(&format!("@{}@", id), &listcfg);
             }

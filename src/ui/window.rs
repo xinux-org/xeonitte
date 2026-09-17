@@ -21,7 +21,7 @@ use crate::{
             Attrs, DeviceContent, Devices, Disk, Filesystem, Gpt, LUKS_PASSWORD_FILE, Luks,
             NixValue, Partition, PartitionContent, Swap, canonical, luks_encrypted,
         },
-        flow::{BRANDING, Choice, DISTRO_NAME, Flow, INTERNET_CHECK_URL, Step},
+        flow::{BRANDING, CONFIG_TYPE, Choice, DISTRO_NAME, Flow, INTERNET_CHECK_URL, Step},
         i18n::i18n_f,
         install::{InstallAsyncModel, InstallAsyncMsg},
         language::{get_country, get_lang},
@@ -626,8 +626,8 @@ impl Component for AppModel {
                                 let choices_map = choices
                                     .iter()
                                     .map(|choice| {
-                                        let map = HashMap::new();
-                                        map.insert(choice.name, choice.clone());
+                                        let mut map = HashMap::new();
+                                        map.insert(choice.name.clone(), choice.clone());
                                         map
                                     })
                                     .collect();
@@ -706,15 +706,15 @@ impl Component for AppModel {
                 debug!("Installing!");
                 if let Some(config) = &self.installconfig {
                     self.installworker.emit(InstallAsyncMsg::Install(
-                        config.config_id.to_string(),
+                        (*config).into(),
                         self.languageconfig.clone(),
                         self.timezoneconfig.clone(),
                         self.keyboardconfig.clone(),
                         Box::new(self.partitionconfig.clone()),
                         Box::new(self.userconfig.clone()),
                         self.listconfig.clone(),
-                        config.config_type.clone(),
-                        config.imperative_timezone,
+                        config.config_type(),
+                        config.imperative_timezone(),
                         self.diskoconfig.clone(),
                     ));
                 }
@@ -724,8 +724,8 @@ impl Component for AppModel {
                 if let Some(config) = &self.installconfig {
                     self.installworker.emit(InstallAsyncMsg::FinishInstall(
                         self.timezoneconfig.clone(),
-                        config.imperative_timezone,
-                        config.commands.clone(),
+                        config.imperative_timezone(),
+                        vec![],
                     ));
                 }
             }
