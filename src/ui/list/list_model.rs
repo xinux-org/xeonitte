@@ -85,8 +85,7 @@ impl SimpleComponent for ListModel {
         let choices: Vec<(String, Choice)> = init
             .choices
             .into_iter()
-            .map(|m| m.into_iter())
-            .flatten()
+            .flat_map(|m| m.into_iter())
             .collect();
 
         let selected = choices

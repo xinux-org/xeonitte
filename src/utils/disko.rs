@@ -598,7 +598,6 @@ mod tests {
 
     #[test]
     fn test_add() {
-        let res = canonical("/dev/sda".to_string());
         let luksed = luks_encrypted("/dev/sda".to_string(), LUKS_PASSWORD_FILE);
 
         println!("LUKSED: {:#?}", luksed);

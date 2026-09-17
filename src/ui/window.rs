@@ -3,7 +3,7 @@ use crate::{
     ui::{
         error::error_model::{ErrorModel, ErrorMsg},
         install::install_model::{INSTALL_BROKER, InstallModel, InstallMsg},
-        install_mode::install_mode::{InstallModeModel, InstallModeMsg},
+        install_mode::install_mode_model::{InstallModeModel, InstallModeMsg},
         keyboard::keyboard_model::{KeyboardModel, KeyboardMsg},
         list::list_model::{ListInit, ListModel, ListMsg},
         partitions::partition_model::{
@@ -21,7 +21,7 @@ use crate::{
             Attrs, DeviceContent, Devices, Disk, Filesystem, Gpt, LUKS_PASSWORD_FILE, Luks,
             NixValue, Partition, PartitionContent, Swap, canonical, luks_encrypted,
         },
-        flow::{BRANDING, CONFIG_TYPE, Choice, DISTRO_NAME, Flow, INTERNET_CHECK_URL, Step},
+        flow::{BRANDING, Choice, DISTRO_NAME, Flow, INTERNET_CHECK_URL, Step},
         i18n::i18n_f,
         install::{InstallAsyncModel, InstallAsyncMsg},
         language::{get_country, get_lang},
@@ -250,7 +250,7 @@ impl Component for AppModel {
                                             let w = main_carousel.nth_page(i-1);
                                             main_carousel.scroll_to(&w, true);
                                         }
-                                        sender.input(AppMsg::ChangePage(i.checked_sub(1).unwrap_or_default()));
+                                        sender.input(AppMsg::ChangePage(i.saturating_sub(1)));
                                     }
                                 }
                             },
@@ -267,13 +267,13 @@ impl Component for AppModel {
                                     set_height_request: 40,
                                     set_width_request: 40,
                                     #[watch]
-                                    set_css_classes: if model.current_page.eq(&main_carousel.n_pages().checked_sub(1).unwrap_or_default()) { &["circular", "suggested-action"] } else { &["circular"] },
+                                    set_css_classes: if model.current_page.eq(&main_carousel.n_pages().saturating_sub(1)) { &["circular", "suggested-action"] } else { &["circular"] },
                                     set_halign: gtk::Align::Start,
                                     set_valign: gtk::Align::Center,
                                     set_icon_name: "go-next-symbolic",
                                     connect_clicked[main_carousel, sender] => move |_| {
                                         let i = adw::Carousel::position(&main_carousel) as u32;
-                                        if i < main_carousel.n_pages().checked_sub(1).unwrap_or_default() {
+                                        if i < main_carousel.n_pages().saturating_sub(1) {
                                             let w = main_carousel.nth_page(i+1);
                                             main_carousel.scroll_to(&w, true);
                                             sender.input(AppMsg::ChangePage(i + 1));
@@ -405,7 +405,6 @@ impl Component for AppModel {
 
         if startpage == StackPage::NoInternet {
             debug!("Waiting for internet connection…");
-            let configclone = Flow::Init;
             sender.oneshot_command(async move {
                 loop {
                     let client = reqwest::Client::new();
@@ -530,7 +529,6 @@ impl Component for AppModel {
                                 self.can_go_forward = true;
                             }
                         }
-                        _ => {}
                     }
                 }
 
@@ -555,108 +553,91 @@ impl Component for AppModel {
                 self.page = page;
                 self.installconfig = flow.into();
 
-                if let Some(cfg) = &self.installconfig {
-                    // if index > 0 {
-                    //     let init_pages_count = index.saturating_sub(1) as u32;
-                    //     while self.carousel.n_pages() > init_pages_count {
-                    //         let last = self.carousel.n_pages() - 1;
-                    //         let page = self.carousel.nth_page(last);
-                    //         self.carousel.remove(&page);
-                    //     }
-                    //     self.carouselpages.truncate(init_pages_count as usize);
-                    // }
-
-                    // let steps: Vec<&Step> = cfg
-                    //     .steps
-                    //     .iter()
-                    //     .filter(|step| !self.carouselpages.contains(step))
-                    //     .collect();
-
-                    for step in flow.steps() {
-                        use Step::*;
-                        match step {
-                            Welcome => {
-                                trace!("Welcome append");
-                                self.carousel.append(self.welcome.widget());
-                                self.carouselpages.push(Welcome);
-                            }
-                            Keyboard => {
-                                trace!("Keyboard append");
-                                self.carousel.append(self.keyboard.widget());
-                                self.carouselpages.push(Keyboard);
-                            }
-                            Location => {
-                                trace!("Timezone append");
-                                self.carousel.append(self.timezone.widget());
-                                self.carouselpages.push(Location);
-                            }
-                            InstallMode => {
-                                trace!("Install Mode append");
-                                self.carousel.append(self.install_mode.widget());
-                                self.carouselpages.push(InstallMode);
-                            }
-                            Partitioning => {
-                                trace!("Partitioning append");
-                                self.carousel.append(self.partition.widget());
-                                self.carouselpages.push(Partitioning);
-                            }
-                            User { root, hostname } => {
-                                trace!("User append");
-                                self.carousel.append(self.user.widget());
-                                self.carouselpages.push(User {
-                                    root: root,
-                                    hostname: hostname,
-                                });
-                                self.user.emit(UserMsg::SetConfig(root, hostname));
-                                self.summary.emit(SummaryMsg::ShowHostname(hostname));
-                            }
-                            Summary => {
-                                trace!("Summary append");
-                                self.carousel.append(self.summary.widget());
-                                self.carouselpages.push(Summary);
-                            }
-                            List {
+                let new_carousel = adw::Carousel::new();
+                let mut new_pages: Vec<Step> = vec![];
+                for step in flow.steps() {
+                    use Step::*;
+                    match step {
+                        Welcome => {
+                            trace!("Welcome append");
+                            new_carousel.append(self.welcome.widget());
+                            new_pages.push(Welcome);
+                        }
+                        Keyboard => {
+                            trace!("Keyboard append");
+                            new_carousel.append(self.keyboard.widget());
+                            new_pages.push(Keyboard);
+                        }
+                        Location => {
+                            trace!("Timezone append");
+                            new_carousel.append(self.timezone.widget());
+                            new_pages.push(Location);
+                        }
+                        InstallMode => {
+                            trace!("Install Mode append");
+                            new_carousel.append(self.install_mode.widget());
+                            new_pages.push(InstallMode);
+                        }
+                        Partitioning => {
+                            trace!("Partitioning append");
+                            new_carousel.append(self.partition.widget());
+                            new_pages.push(Partitioning);
+                        }
+                        User { root, hostname } => {
+                            trace!("User append");
+                            new_carousel.append(self.user.widget());
+                            new_pages.push(User { root, hostname });
+                            self.user.emit(UserMsg::SetConfig(root, hostname));
+                            self.summary.emit(SummaryMsg::ShowHostname(hostname));
+                        }
+                        Summary => {
+                            trace!("Summary append");
+                            new_carousel.append(self.summary.widget());
+                            new_pages.push(Summary);
+                        }
+                        List {
+                            id,
+                            multiple,
+                            required,
+                            title,
+                            choices,
+                        } => {
+                            trace!("List append: {}", title);
+                            let choices_map = choices
+                                .iter()
+                                .map(|choice| {
+                                    let mut map = HashMap::new();
+                                    map.insert(choice.name.clone(), choice.clone());
+                                    map
+                                })
+                                .collect();
+                            let listpage = ListModel::builder()
+                                .launch(ListInit {
+                                    multiple,
+                                    required,
+                                    id: id.into(),
+                                    title: title.to_string(),
+                                    choices: choices_map,
+                                })
+                                .forward(sender.input_sender(), identity);
+                            new_carousel.append(listpage.widget());
+                            self.list.insert(title.to_string(), listpage);
+                            new_pages.push(List {
                                 id,
                                 multiple,
                                 required,
-                                title,
-                                choices,
-                            } => {
-                                trace!("List append: {}", title);
-                                let choices_map = choices
-                                    .iter()
-                                    .map(|choice| {
-                                        let mut map = HashMap::new();
-                                        map.insert(choice.name.clone(), choice.clone());
-                                        map
-                                    })
-                                    .collect();
-                                let listpage = ListModel::builder()
-                                    .launch(ListInit {
-                                        id: id.into(),
-                                        multiple: multiple,
-                                        required: required,
-                                        title: title.to_string(),
-                                        choices: choices_map,
-                                    })
-                                    .forward(sender.input_sender(), identity);
-                                self.carousel.append(listpage.widget());
-                                self.list.insert(title.to_string(), listpage);
-                                self.carouselpages.push(List {
-                                    id: id.into(),
-                                    multiple: multiple,
-                                    required: required,
-                                    title: title.to_string(),
-                                    choices: choices.clone(),
-                                });
-                                self.listconfig.insert(id.into(), HashMap::new());
-                            }
-                            _ => {
-                                warn!("Unimplemented step: {:?}", step);
-                            }
+                                title: title.to_string(),
+                                choices: choices.clone(),
+                            });
+                            self.listconfig.insert(id.into(), HashMap::new());
                         }
                     }
                 }
+
+                // replace the carousel and pages with new ones
+                self.carousel = new_carousel;
+                self.carouselpages = new_pages;
+
                 if index > 0 {
                     let i = index.saturating_sub(2) as u32;
                     sender.input(AppMsg::SetCanGoForward(true));
@@ -690,8 +671,7 @@ impl Component for AppModel {
                 self.timezoneconfig = timezone;
             }
             AppMsg::SetPartitionConfig(partition) => {
-                let devices = Devices { disk: Attrs::new() };
-                self.set_partition_config(&partition, devices);
+                self.set_partition_config(&partition);
                 self.partitionconfig = partition;
             }
             AppMsg::SetUserConfig(user) => {
@@ -758,17 +738,13 @@ impl Component for AppModel {
 }
 
 impl AppModel {
-    fn set_partition_config(&mut self, partition: &Option<PartitionSchema>, mut devices: Devices) {
+    fn set_partition_config(&mut self, partition: &Option<PartitionSchema>) {
         if let Some(partition_schema) = partition.clone() {
             match partition_schema {
                 PartitionSchema::FullDisk(FullDiskOptions {
-                    device,
-                    encryption,
-                    passphrase,
-                    disk_size,
-                    hibernation,
+                    device, encryption, ..
                 }) => {
-                    devices = if encryption {
+                    let devices = if encryption {
                         luks_encrypted(device, LUKS_PASSWORD_FILE)
                     } else {
                         canonical(device)
@@ -889,7 +865,7 @@ impl AppModel {
                             gpt.partitions.insert(part_key, disko_partition);
                         }
                     }
-                    devices = Devices { disk: disk_disko };
+                    let devices = Devices { disk: disk_disko };
                     self.diskoconfig = devices;
                 }
             };

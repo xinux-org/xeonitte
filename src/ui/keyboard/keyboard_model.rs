@@ -7,11 +7,13 @@ use log::trace;
 use relm4::*;
 use std::process::Command;
 
+type Layout = (String, (String, String, String, String));
+
 #[tracker::track]
 #[derive(Debug)]
 pub struct KeyboardModel {
     #[allow(clippy::type_complexity)]
-    layouts: Vec<(String, (String, String, String, String))>,
+    layouts: Vec<Layout>,
     language: Option<String>,
     country: Option<String>,
     showall: bool,

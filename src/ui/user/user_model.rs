@@ -58,9 +58,9 @@ impl UserModel {
 
         let field = Path::new(field);
         if report.iter().any(|(path, _)| path.eq(&field)) {
-            return &["error"];
+            &["error"]
         } else {
-            return &[];
+            &[]
         }
     }
 }
@@ -283,7 +283,7 @@ impl SimpleComponent for UserModel {
                 sender.input(UserMsg::Update(UserDataPatch {
                     ..Default::default()
                 }));
-                let _ = sender.output(AppMsg::SetCanGoForward(*&self.validation.is_none()));
+                let _ = sender.output(AppMsg::SetCanGoForward(self.validation.is_none()));
             }
             UserMsg::SetConfig(root, showhostname) => {
                 self.showrootpassword = root;

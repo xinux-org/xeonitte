@@ -4,7 +4,6 @@ pub const DISTRO_NAME: &str = "Xinux";
 pub const BRANDING: &str = "xinux";
 pub const INTERNET_CHECK_URL: &str = "http://nmcheck.gnome.org/check_network_status.txt";
 pub const DEFAULT_HOSTNAME: &str = "xinux";
-pub const CONFIG_TYPE: &str = "xinux";
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Flow {

@@ -67,7 +67,7 @@ impl SimpleComponent for InstallModeModel {
                         set_halign: gtk::Align::Center,
                         set_valign: gtk::Align::Center,
                         connect_clicked[sender, config] => move |_| {
-                            sender.input(InstallModeMsg::SetSelected(Some(config.clone())))
+                            sender.input(InstallModeMsg::SetSelected(Some(config)))
                         },
                         gtk::Box {
                             set_orientation: gtk::Orientation::Vertical,
@@ -76,7 +76,7 @@ impl SimpleComponent for InstallModeModel {
                             set_spacing: 10,
                             set_margin_all: 10,
                             gtk::Image {
-                                set_icon_name: Some(&config.logo()),
+                                set_icon_name: Some(config.logo()),
                                 set_pixel_size: 80,
                                 set_halign: gtk::Align::Center,
                                 set_valign: gtk::Align::Center,

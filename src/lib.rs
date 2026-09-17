@@ -43,11 +43,12 @@ pub fn format_size(s: Size) -> String {
         _ => 1, // byte
     };
 
-    let s = format!("{}", bytes as f64 / the as f64).to_string();
-    let main = match s.find(|x| x == '.') {
-        Some(x) => s[..(x + 3)].to_string(),
-        None => s,
-    };
+    let size = format!("{}", bytes as f64 / the as f64).to_string();
+    let main = size.split('.').next().unwrap_or_default();
+    // let main = match s.find(|x| x == '.') {
+    //     Some(x) => s[..(x + 3)].to_string(),
+    //     None => s,
+    // };
     format!("{main} {tip}")
 }
 
@@ -74,21 +75,19 @@ pub fn get_storage_size(device: &str, logical_block_size: u64) -> Option<u64> {
 pub fn get_storage_size_for_disko(size: Size) -> String {
     let size = format_size(size);
 
-    let mut ssize = size.split_ascii_whitespace().map(|x| {
-        if let Some(y) = x.find(".") {
-            &x[0..y]
-        } else {
-            x
-        }
-    });
-    format!(
-        "{}{}",
-        ssize.next().unwrap_or_default(), // number
-        ssize
-            .next()
-            .unwrap_or_default()
-            .chars()
-            .nth(0)
-            .unwrap_or_default()  // size type, e.g M, G, T
-    )
+    // extract number part from size: 100 MiB -> 100
+    let number_part = size
+        .split_ascii_whitespace()
+        .next()
+        .and_then(|float_number| float_number.split('.').next())
+        .unwrap_or_default();
+
+    // extract size part from size: 100 MiB -> M
+    let size_part = size
+        .split_ascii_whitespace()
+        .next_back()
+        .and_then(|x| x.chars().next())
+        .unwrap_or_default();
+
+    format!("{}{}", number_part, size_part) // e.g: 100M, 500G
 }
