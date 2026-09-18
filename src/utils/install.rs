@@ -16,6 +16,8 @@ use std::{
     collections::HashMap,
     fs::{self},
     io::Write,
+    os::unix::fs::PermissionsExt,
+    path::Path,
     process::{Command, Stdio},
 };
 
@@ -750,23 +752,32 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
 }
 
 fn init_libreoffice_config(username: String) -> Result<()> {
-    Command::new("pkexec")
-        .arg("mkdir")
-        .arg("-p")
-        .arg(format!(
-            "{}/home/{}/.config/libreoffice/4/user/uno_packages/cache",
-            "/mnt", username
-        ))
-        .output()?;
-
-    Command::new("pkexec")
-        .arg("mkdir")
-        .arg("-p")
-        .arg(format!(
-            "{}/home/{}/.config/libreoffice/4/user/",
-            "/mnt", username
-        ))
-        .output()?;
+    fs::create_dir_all(format!(
+        "{}/home/{}/.config/libreoffice/4/user/uno_packages/cache",
+        "/mnt", username
+    ))
+    .context("Failed to create libreoffice cache file")?;
+    // Command::new("pkexec")
+    //     .arg("mkdir")
+    //     .arg("-p")
+    //     .arg(format!(
+    //         "{}/home/{}/.config/libreoffice/4/user/uno_packages/cache",
+    //         "/mnt", username
+    //     ))
+    //     .output()?;
+    fs::create_dir_all(format!(
+        "{}/home/{}/.config/libreoffice/4/user/",
+        "/mnt", username
+    ))
+    .context("Failed to create libreoffice user file")?;
+    // Command::new("pkexec")
+    //     .arg("mkdir")
+    //     .arg("-p")
+    //     .arg(format!(
+    //         "{}/home/{}/.config/libreoffice/4/user/",
+    //         "/mnt", username
+    //     ))
+    //     .output()?;
 
     // for icons
     Command::new("pkexec")
@@ -802,36 +813,87 @@ fn init_libreoffice_config(username: String) -> Result<()> {
     Ok(())
 }
 
+fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> Result<()> {
+    fs::create_dir_all(&dst)?;
+    for entry in fs::read_dir(src)? {
+        let entry = entry?;
+        let dst_ref = dst.as_ref().join(entry.file_name());
+        let ty = entry.file_type()?;
+        if ty.is_dir() {
+            copy_dir_all(entry.path(), dst_ref)?;
+        } else {
+            fs::copy(entry.path(), dst_ref)?;
+        }
+    }
+    Ok(())
+}
+
 fn backup_config() -> Result<()> {
-    Command::new("pkexec")
-        .arg("rm")
-        .arg("-rf")
-        .arg("/xeonitte")
-        .output()?;
+    fs::remove_dir_all("/xeonitte").context("Failed to remove directory")?;
 
-    Command::new("pkexec")
-        .arg("mkdir")
-        .arg("/xeonitte")
-        .output()?;
+    // Command::new("pkexec")
+    //     .arg("rm")
+    //     .arg("-rf")
+    //     .arg("/xeonitte")
+    //     .output()?;
 
-    Command::new("pkexec")
-        .arg("cp")
-        .arg("-r")
-        .arg(TMPDIR)
-        .arg("/xeonitte")
-        .output()?;
+    // let file = tempfile().context("Failed to create temp file for /xeonitte")?;
+    // Command::new("pkexec")
+    //     .arg("mkdir")
+    //     .arg("/xeonitte")
+    //     .output()?;
+    copy_dir_all(TMPDIR, "/xeonitte").context("Failed to recursive copy temp file")?;
+    // Command::new("pkexec")
+    //     .arg("cp")
+    //     .arg("-r")
+    //     .arg(TMPDIR)
+    //     .arg("/xeonitte")
+    //     .output()?;
 
-    Command::new("pkexec")
-        .arg("chmod")
-        .arg("777")
-        .arg("/tmp/xeonitte.log")
-        .output()?;
+    let my_mode = 0o777;
+    let xeonitte_log = fs::File::open("/tmp/xeonitte.log")?;
+    let mut per = xeonitte_log.metadata()?.permissions();
+    println!(
+        "Current file {:?} permissons: {:o}",
+        xeonitte_log,
+        per.mode()
+    );
+    per.set_mode(my_mode);
+    println!(
+        "Updated file {:?} permissons: {:o}",
+        xeonitte_log,
+        per.mode()
+    );
+    let permissions = fs::Permissions::from_mode(my_mode);
+    xeonitte_log.set_permissions(permissions)?;
 
-    Command::new("pkexec")
-        .arg("chmod")
-        .arg("777")
-        .arg("/tmp/xeonitte-term.log")
-        .output()?;
+    let xeonitte_term_log = fs::File::open("/tmp/xeonitte-term.log")?;
+    let mut per = xeonitte_term_log.metadata()?.permissions();
+    println!(
+        "Current file {:?} permissons: {:o}",
+        xeonitte_term_log,
+        per.mode()
+    );
+    per.set_mode(my_mode);
+    println!(
+        "Updated file {:?} permissons: {:o}",
+        xeonitte_term_log,
+        per.mode()
+    );
+    let permissions = fs::Permissions::from_mode(my_mode);
+    xeonitte_term_log.set_permissions(permissions)?;
+
+    // Command::new("pkexec")
+    //     .arg("chmod")
+    //     .arg("777")
+    //     .arg("/tmp/xeonitte.log")
+    //     .output()?;
+
+    // Command::new("pkexec")
+    //     .arg("chmod")
+    //     .arg("777")
+    //     .arg("/tmp/xeonitte-term.log")
+    //     .output()?;
     Ok(())
 }
 

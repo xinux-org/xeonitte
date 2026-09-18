@@ -29,6 +29,7 @@ reqwest = { version = "0.13.4", features = ["blocking", "multipart","stream"] }
 gettext-rs = { version = "0.7.7", features = ["gettext-system"] }
 regex = "1.12.3"
 log = "0.4.30"
+tempfile = "3.27.0"
 
 report = { git = "https://git.oss.uzinfocom.uz/xinux/relago.git", branch = "main" }
 utils = { git = "https://git.oss.uzinfocom.uz/xinux/relago.git", branch = "main" }
