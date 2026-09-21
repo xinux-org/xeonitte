@@ -1,4 +1,5 @@
 use crate::utils::parse::ConfigType;
+use gettextrs::gettext;
 
 pub const DISTRO_NAME: &str = "Xinux";
 pub const BRANDING: &str = "xinux";
@@ -57,64 +58,72 @@ impl Flow {
                 List {
                     multiple: true,
                     required: false,
-                    title: "Extra Options".into(),
+                    title: gettext("Extra Options"),
                     id: ListId::PackageManager,
                     choices: vec![
                         Choice {
-                            name: "Flatpak".into(),
-                            description: "Enable Flatpak support".into(),
+                            name: gettext("Flatpak"),
+                            description: gettext("Enable Flatpak support"),
                             config: "services.flatpak.enable = true;".into(),
                             default: false,
-                            packages: vec![]
+                            packages: vec![],
                         },
                         Choice {
-                            name: "AppImage".into(),
-                            description: "Enable AppImage support by installing the \"appimage-run\" package. For AppImages to work, you must run them with the \"appimage-run\" command.".into(),
+                            name: gettext("AppImage"),
+                            description: gettext(
+                                "Enable AppImage support by installing the \"appimage-run\" package. For AppImages to work, you must run them with the \"appimage-run\" command.",
+                            ),
                             config: "modules.packagemanagers.appimage.enable = true;".into(),
                             default: false,
-                            packages: vec![]
+                            packages: vec![],
                         },
                         Choice {
-                            name: "Minimal".into(),
-                            description: "Install minimal Xinux without GNOME core apps".into(),
+                            name: gettext("Minimal"),
+                            description: gettext("Install minimal Xinux without GNOME core apps"),
                             config: "modules.gnome.remove-utils.enable = lib.mkForce true;".into(),
                             default: false,
-                            packages: vec![]
+                            packages: vec![],
                         },
                     ],
                 },
-                List { multiple: false, required: true, title: "Kernel".into(), id: ListId::Kernel, choices: vec![
-                    Choice {
-                        name: "LTS".into(),
-                        description: "Install the latest LTS kernel".into(),
-                        config: String::new(),
-                        default: true,
-                        packages: vec![]
-                    },
-                    Choice {
-                        name: "Latest".into(),
-                        description: "Install the latest kernel".into(),
-                        config: "boot.kernelPackages = pkgs.linuxPackages_latest;".into(),
-                        default: false,
-                        packages: vec![]
-                    },
-                    Choice {
-                        name: "Libre".into(),
-                        description: "Install the libre kernel".into(),
-                        config: "boot.kernelPackages = pkgs.linuxPackages_libre;".into(),
-                        default: false,
-                        packages: vec![]
-                    },
-                    Choice {
-                        name: "Zen".into(),
-                        description: "Install the Zen kernel".into(),
-                        config: "boot.kernelPackages = pkgs.linuxPackages_zen;".into(),
-                        default: false,
-                        packages: vec![]
-                    },
-                ] },
+                List {
+                    multiple: false,
+                    required: true,
+                    title: "Kernel".into(),
+                    id: ListId::Kernel,
+                    choices: vec![
+                        Choice {
+                            name: gettext("LTS"),
+                            description: gettext("Install the latest LTS kernel"),
+                            config: String::new(),
+                            default: true,
+                            packages: vec![],
+                        },
+                        Choice {
+                            name: gettext("Latest"),
+                            description: gettext("Install the latest kernel").into(),
+                            config: "boot.kernelPackages = pkgs.linuxPackages_latest;".into(),
+                            default: false,
+                            packages: vec![],
+                        },
+                        Choice {
+                            name: gettext("Libre"),
+                            description: gettext("Install the libre kernel"),
+                            config: "boot.kernelPackages = pkgs.linuxPackages_libre;".into(),
+                            default: false,
+                            packages: vec![],
+                        },
+                        Choice {
+                            name: gettext("Zen"),
+                            description: gettext("Install the Zen kernel"),
+                            config: "boot.kernelPackages = pkgs.linuxPackages_zen;".into(),
+                            default: false,
+                            packages: vec![],
+                        },
+                    ],
+                },
                 Partitioning,
-                Summary
+                Summary,
             ],
         };
 

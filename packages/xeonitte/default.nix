@@ -35,7 +35,7 @@
 let
   convertyml = internal.convertyml;
 in
-stdenv.mkDerivation rec {
+stdenv.mkDerivation {
   pname = "xeonitte";
   version = "0.1.0";
 
