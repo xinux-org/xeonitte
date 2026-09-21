@@ -129,7 +129,7 @@ impl From<Flow> for String {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Step {
     Welcome,
     Keyboard,
@@ -150,7 +150,7 @@ pub enum Step {
     Summary,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ListId {
     PackageManager,
     Kernel,
@@ -161,7 +161,7 @@ impl From<ListId> for String {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Choice {
     pub name: String,
     pub description: String,

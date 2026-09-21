@@ -100,11 +100,6 @@ impl SimpleComponent for InstallModeModel {
         match msg {
             InstallModeMsg::SetSelected(mode) => {
                 self.selected = mode;
-                let index = if mode.is_some() {
-                    Flow::Init.steps().len()
-                } else {
-                    0
-                };
                 // let init_steps_len = Flow::Init.steps().len();
                 // let page_start_index = self
                 //     .selected
@@ -119,7 +114,6 @@ impl SimpleComponent for InstallModeModel {
                     .output(AppMsg::SetStackPageConfig(
                         StackPage::Carousel,
                         mode.unwrap_or(Flow::Init),
-                        index,
                     ))
                     .unwrap();
             }

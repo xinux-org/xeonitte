@@ -112,7 +112,7 @@ pub enum AppMsg {
     SetTimezoneConfig(Option<String>),
     SetPartitionConfig(Option<PartitionSchema>),
     SetUserConfig(Option<UserConfig>),
-    SetStackPageConfig(StackPage, Flow, usize),
+    SetStackPageConfig(StackPage, Flow),
     SetListConfig(String, HashMap<String, Choice>),
 
     Install,
@@ -452,11 +452,7 @@ impl Component for AppModel {
             tracker: 0,
         };
 
-        sender.input(AppMsg::SetStackPageConfig(
-            StackPage::Carousel,
-            Flow::Init,
-            1,
-        ));
+        sender.input(AppMsg::SetStackPageConfig(StackPage::Carousel, Flow::Init));
         let main_carousel = &model.carousel;
 
         let installpage = model.install.widget().clone();
@@ -474,12 +470,12 @@ impl Component for AppModel {
                     .widget()
                     .present(relm4::main_application().active_window().as_ref());
             }
-            AppMsg::ChangePage(page) => {
+            AppMsg::ChangePage(page_index) => {
                 use Step::*;
-                trace!("AppMsg::ChangePage: {}", page);
-                self.can_go_forward = self.current_page > page;
+                trace!("AppMsg::ChangePage: {}", page_index);
+                self.can_go_forward = self.current_page > page_index;
 
-                if let Some(data) = self.carouselpages.get(page as usize) {
+                if let Some(data) = self.carouselpages.get(page_index as usize) {
                     match data {
                         Welcome => {
                             self.welcome.emit(WelcomeMsg::CheckSelected);
@@ -532,7 +528,7 @@ impl Component for AppModel {
                     }
                 }
 
-                self.current_page = page;
+                self.current_page = page_index;
             }
             AppMsg::SetCanGoBack(can_go_back) => {
                 trace!("Carousel can go back: {}", can_go_back);
@@ -547,23 +543,35 @@ impl Component for AppModel {
                     self.page = page;
                 }
             }
-            AppMsg::SetStackPageConfig(page, flow, index) => {
-                dbg!("StackPage: {:?}", page);
-                dbg!("Flow: {:?}", flow);
+            AppMsg::SetStackPageConfig(page, flow) => {
+                trace!("StackPage: {:?}", page);
+                trace!("Flow: {:?}", flow);
                 self.page = page;
                 self.installconfig = flow.into();
+                let mut next_steps = flow.steps();
+                let index = if flow == Flow::Init {
+                    1
+                } else {
+                    Flow::Init.steps().len()
+                };
 
-                if index > 0 {
-                    let init_pages_count = index.saturating_sub(1) as u32;
+                if index > 1 {
+                    let init_pages_count = index as u32;
                     while self.carousel.n_pages() > init_pages_count {
                         let last = self.carousel.n_pages() - 1;
                         let page = self.carousel.nth_page(last);
                         self.carousel.remove(&page);
                     }
-                    self.carouselpages.truncate(init_pages_count as usize);
+                    self.carouselpages.truncate(index as usize);
+                    next_steps = next_steps
+                        .iter()
+                        .filter(|step| !self.carouselpages.contains(step))
+                        .cloned()
+                        .collect();
                 }
 
-                for step in flow.steps() {
+                dbg!(&next_steps);
+                for step in next_steps {
                     use Step::*;
                     match step {
                         Welcome => {
@@ -641,14 +649,9 @@ impl Component for AppModel {
                         }
                     }
                 }
-                self.carousel
-                    .scroll_to(&self.carousel.nth_page((index - 1) as u32), true);
-                dbg!(&self.carouselpages);
-
                 if index > 0 {
-                    let i = index.saturating_sub(2) as u32;
                     sender.input(AppMsg::SetCanGoForward(true));
-                    sender.input(AppMsg::ChangePage(i));
+                    sender.input(AppMsg::ChangePage((index - 1) as u32));
                 } else {
                     sender.input(AppMsg::ChangePage(0));
                 }
