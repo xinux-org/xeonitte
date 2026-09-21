@@ -60,7 +60,7 @@ impl SimpleComponent for InstallModeModel {
             .config
             .choices
             .iter()
-            .filter(|choise| choise.config.config_id == "init")
+            .filter(|choise| choise.config.config_id != "init")
             .collect::<Vec<_>>();
 
         let selectbox = gtk::FlowBox::builder()
