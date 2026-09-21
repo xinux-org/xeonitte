@@ -546,6 +546,7 @@ impl Component for AppModel {
             AppMsg::SetStackPageConfig(page, flow) => {
                 trace!("StackPage: {:?}", page);
                 trace!("Flow: {:?}", flow);
+
                 self.page = page;
                 self.installconfig = flow.into();
                 let mut next_steps = flow.steps();
@@ -570,7 +571,7 @@ impl Component for AppModel {
                         .collect();
                 }
 
-                dbg!(&next_steps);
+                // add new pages starting from current page
                 for step in next_steps {
                     use Step::*;
                     match step {
