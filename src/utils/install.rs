@@ -113,11 +113,9 @@ impl Worker for InstallAsyncModel {
                         .arg("-R")
                         .arg(TMPDIR)
                         .output()?;
-                    Command::new("pkexec")
-                        .arg("rm")
-                        .arg("-rf")
-                        .arg(TMPDIR)
-                        .output()?;
+
+                    fs::remove_dir_all(TMPDIR).context("Failed to remove temporary directory")?;
+
                     Ok(())
                 }
                 if let Err(e) = clear() {
@@ -129,12 +127,8 @@ impl Worker for InstallAsyncModel {
                 }
 
                 // Step 2: Generate base config
-                let Ok(_) = Command::new("pkexec")
-                    .arg("mkdir")
-                    .arg("-p")
-                    .arg(format!("{}/etc/nixos", TMPDIR))
-                    .output()
-                    .context("cannot create etc/nixos")
+                let Ok(_) = fs::create_dir_all(format!("{}/etc/nixos", TMPDIR))
+                    .context(format!("Failed to create {TMPDIR}/etc/nixos directory"))
                 else {
                     sender.output(AppMsg::error(
                         ErrorPhase::Configuration,
@@ -162,29 +156,26 @@ impl Worker for InstallAsyncModel {
 
                 if configtype == ConfigType::Xinux {
                     // Move /nix/var/nix/builds/xeonitte/etc/nixos/hardware-configuration.nix to /nix/var/nix/builds/xeonitte/etc/nixos/systems/{ARCH}-linux/{HOSTNAME}/hardware.nix
-                    let Ok(_) = Command::new("pkexec")
-                        .arg("mkdir")
-                        .arg("-p")
-                        .arg(format!(
-                            "{}/etc/nixos/systems/{}-linux/{}",
-                            TMPDIR, arch, hostname
-                        ))
-                        .output()
-                    else {
+
+                    let Ok(_) = fs::create_dir_all(format!(
+                        "{}/etc/nixos/systems/{}-linux/{}",
+                        TMPDIR, arch, hostname
+                    ))
+                    .context("Failed to create nixos systems directory") else {
                         sender.output(AppMsg::error(
                             ErrorPhase::Configuration,
                             "Failed to create nixos config directory",
                         ));
                         return;
                     };
-                    let Ok(_) = Command::new("pkexec")
-                        .arg("mv")
-                        .arg(format!("{}/etc/nixos/hardware-configuration.nix", TMPDIR))
-                        .arg(format!(
+
+                    let Ok(_) = fs::rename(
+                        format!("{}/etc/nixos/hardware-configuration.nix", TMPDIR),
+                        format!(
                             "{}/etc/nixos/systems/{}-linux/{}/hardware.nix",
                             TMPDIR, arch, hostname
-                        ))
-                        .output()
+                        ),
+                    ).context("Failed to move /etc/nixos/hardware to /etc/nixos/systems/hardware config file")
                     else {
                         sender.output(AppMsg::error(
                             ErrorPhase::Configuration,
@@ -194,10 +185,8 @@ impl Worker for InstallAsyncModel {
                     };
 
                     // Remove /tmp/xeonitte/etc/nixos/configuration.nix
-                    let Ok(_) = Command::new("pkexec")
-                        .arg("rm")
-                        .arg(format!("{}/etc/nixos/configuration.nix", TMPDIR))
-                        .output()
+                    let Ok(_) = fs::remove_file(format!("{}/etc/nixos/configuration.nix", TMPDIR))
+                        .context("Failed to remove default nixos configuration.nix file")
                     else {
                         sender.output(AppMsg::error(
                             ErrorPhase::Configuration,
@@ -695,32 +684,28 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
                     .spawn()?;
                 cmd.wait()?;
             } else if file.metadata()?.is_file() {
-                Command::new("pkexec")
-                    .arg("mkdir")
-                    .arg("-p")
-                    .arg(if path.is_empty() {
-                        format!("{}/etc/nixos/", TMPDIR).to_string()
-                    } else {
-                        format!(
-                            "{}/etc/nixos/{}/",
-                            TMPDIR,
-                            path.replace("ARCH", &format!("{}-linux", arch)).replace(
-                                "HOSTNAME",
-                                makeconfig
-                                    .user
-                                    .as_ref()
-                                    .map(|x| x.hostname.as_ref())
-                                    .unwrap_or("nixos")
-                            )
+                fs::create_dir_all(if path.is_empty() {
+                    format!("{}/etc/nixos/", TMPDIR).to_string()
+                } else {
+                    format!(
+                        "{}/etc/nixos/{}/",
+                        TMPDIR,
+                        path.replace("ARCH", &format!("{}-linux", arch)).replace(
+                            "HOSTNAME",
+                            makeconfig
+                                .user
+                                .as_ref()
+                                .map(|x| x.hostname.as_ref())
+                                .unwrap_or("nixos")
                         )
-                    })
-                    .spawn()?
-                    .wait()?;
+                    )
+                })
+                .context("Failed to create /etc/nixos files")?;
 
-                Command::new("pkexec")
-                    .arg("cp")
-                    .arg(file.path().to_string_lossy().to_string())
-                    .arg(if path.is_empty() {
+                let file_str = file.path().to_string_lossy().to_string();
+                fs::copy(
+                    &file_str,
+                    if path.is_empty() {
                         format!(
                             "{}/etc/nixos/{}",
                             TMPDIR,
@@ -740,9 +725,12 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
                             ),
                             file.file_name().to_string_lossy()
                         )
-                    })
-                    .spawn()?
-                    .wait()?;
+                    },
+                )
+                .context(format!(
+                    "Can not copy from {:?} to {TMPDIR}/etc/nixos",
+                    &file_str
+                ))?;
             }
         }
         Ok(())
@@ -757,27 +745,12 @@ fn init_libreoffice_config(username: String) -> Result<()> {
         "/mnt", username
     ))
     .context("Failed to create libreoffice cache file")?;
-    // Command::new("pkexec")
-    //     .arg("mkdir")
-    //     .arg("-p")
-    //     .arg(format!(
-    //         "{}/home/{}/.config/libreoffice/4/user/uno_packages/cache",
-    //         "/mnt", username
-    //     ))
-    //     .output()?;
+
     fs::create_dir_all(format!(
         "{}/home/{}/.config/libreoffice/4/user/",
         "/mnt", username
     ))
     .context("Failed to create libreoffice user file")?;
-    // Command::new("pkexec")
-    //     .arg("mkdir")
-    //     .arg("-p")
-    //     .arg(format!(
-    //         "{}/home/{}/.config/libreoffice/4/user/",
-    //         "/mnt", username
-    //     ))
-    //     .output()?;
 
     // for icons
     Command::new("pkexec")
@@ -790,13 +763,11 @@ fn init_libreoffice_config(username: String) -> Result<()> {
         ))
         .output()?;
 
-    Command::new("pkexec")
-        .arg("rm")
-        .arg(format!(
-            "{}/home/{}/.config/libreoffice/4/user/registrymodifications.xcu",
-            "/mnt", username
-        ))
-        .output()?;
+    fs::remove_file(format!(
+        "{}/home/{}/.config/libreoffice/4/user/registrymodifications.xcu",
+        "/mnt", username
+    ))
+    .context("Failed to remove libreofficeʻs registrymodifications.xcu file")?;
 
     Command::new("pkexec")
         .arg("cp")
@@ -830,70 +801,41 @@ fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> Result<()> {
 
 fn backup_config() -> Result<()> {
     fs::remove_dir_all("/xeonitte").context("Failed to remove directory")?;
-
-    // Command::new("pkexec")
-    //     .arg("rm")
-    //     .arg("-rf")
-    //     .arg("/xeonitte")
-    //     .output()?;
-
-    // let file = tempfile().context("Failed to create temp file for /xeonitte")?;
-    // Command::new("pkexec")
-    //     .arg("mkdir")
-    //     .arg("/xeonitte")
-    //     .output()?;
     copy_dir_all(TMPDIR, "/xeonitte").context("Failed to recursive copy temp file")?;
-    // Command::new("pkexec")
-    //     .arg("cp")
-    //     .arg("-r")
-    //     .arg(TMPDIR)
-    //     .arg("/xeonitte")
-    //     .output()?;
 
     let my_mode = 0o777;
     let xeonitte_log = fs::File::open("/tmp/xeonitte.log")?;
     let mut per = xeonitte_log.metadata()?.permissions();
-    println!(
-        "Current file {:?} permissons: {:o}",
-        xeonitte_log,
-        per.mode()
-    );
+    // println!(
+    //     "Current file {:?} permissons: {:o}",
+    //     xeonitte_log,
+    //     per.mode()
+    // );
     per.set_mode(my_mode);
-    println!(
-        "Updated file {:?} permissons: {:o}",
-        xeonitte_log,
-        per.mode()
-    );
+    // println!(
+    //     "Updated file {:?} permissons: {:o}",
+    //     xeonitte_log,
+    //     per.mode()
+    // );
     let permissions = fs::Permissions::from_mode(my_mode);
     xeonitte_log.set_permissions(permissions)?;
 
     let xeonitte_term_log = fs::File::open("/tmp/xeonitte-term.log")?;
     let mut per = xeonitte_term_log.metadata()?.permissions();
-    println!(
-        "Current file {:?} permissons: {:o}",
-        xeonitte_term_log,
-        per.mode()
-    );
+    // println!(
+    //     "Current file {:?} permissons: {:o}",
+    //     xeonitte_term_log,
+    //     per.mode()
+    // );
     per.set_mode(my_mode);
-    println!(
-        "Updated file {:?} permissons: {:o}",
-        xeonitte_term_log,
-        per.mode()
-    );
+    // println!(
+    //     "Updated file {:?} permissons: {:o}",
+    //     xeonitte_term_log,
+    //     per.mode()
+    // );
     let permissions = fs::Permissions::from_mode(my_mode);
     xeonitte_term_log.set_permissions(permissions)?;
 
-    // Command::new("pkexec")
-    //     .arg("chmod")
-    //     .arg("777")
-    //     .arg("/tmp/xeonitte.log")
-    //     .output()?;
-
-    // Command::new("pkexec")
-    //     .arg("chmod")
-    //     .arg("777")
-    //     .arg("/tmp/xeonitte-term.log")
-    //     .output()?;
     Ok(())
 }
 
