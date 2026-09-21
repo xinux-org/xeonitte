@@ -455,7 +455,7 @@ impl Component for AppModel {
         sender.input(AppMsg::SetStackPageConfig(
             StackPage::Carousel,
             Flow::Init,
-            0,
+            1,
         ));
         let main_carousel = &model.carousel;
 
@@ -548,52 +548,60 @@ impl Component for AppModel {
                 }
             }
             AppMsg::SetStackPageConfig(page, flow, index) => {
-                trace!("StackPage: {:?}", page);
-                trace!("Flow: {:?}", flow);
+                dbg!("StackPage: {:?}", page);
+                dbg!("Flow: {:?}", flow);
                 self.page = page;
                 self.installconfig = flow.into();
 
-                let new_carousel = adw::Carousel::new();
-                let mut new_pages: Vec<Step> = vec![];
+                if index > 0 {
+                    let init_pages_count = index.saturating_sub(1) as u32;
+                    while self.carousel.n_pages() > init_pages_count {
+                        let last = self.carousel.n_pages() - 1;
+                        let page = self.carousel.nth_page(last);
+                        self.carousel.remove(&page);
+                    }
+                    self.carouselpages.truncate(init_pages_count as usize);
+                }
+
                 for step in flow.steps() {
                     use Step::*;
                     match step {
                         Welcome => {
                             trace!("Welcome append");
-                            new_carousel.append(self.welcome.widget());
-                            new_pages.push(Welcome);
+                            self.carousel.append(self.welcome.widget());
+                            self.carouselpages.push(Welcome);
                         }
                         Keyboard => {
                             trace!("Keyboard append");
-                            new_carousel.append(self.keyboard.widget());
-                            new_pages.push(Keyboard);
+                            self.carousel.append(self.keyboard.widget());
+                            self.carouselpages.push(Keyboard);
                         }
                         Location => {
                             trace!("Timezone append");
-                            new_carousel.append(self.timezone.widget());
-                            new_pages.push(Location);
+                            self.carousel.append(self.timezone.widget());
+                            self.carouselpages.push(Location);
                         }
                         InstallMode => {
                             trace!("Install Mode append");
-                            new_carousel.append(self.install_mode.widget());
-                            new_pages.push(InstallMode);
+                            self.carousel.append(self.install_mode.widget());
+                            self.carouselpages.push(InstallMode);
                         }
                         Partitioning => {
                             trace!("Partitioning append");
-                            new_carousel.append(self.partition.widget());
-                            new_pages.push(Partitioning);
+                            self.carousel.append(self.partition.widget());
+                            self.carouselpages.push(Partitioning);
                         }
                         User { root, hostname } => {
                             trace!("User append");
-                            new_carousel.append(self.user.widget());
-                            new_pages.push(User { root, hostname });
+                            self.carousel.append(self.user.widget());
+                            self.carouselpages.push(User { root, hostname });
                             self.user.emit(UserMsg::SetConfig(root, hostname));
                             self.summary.emit(SummaryMsg::ShowHostname(hostname));
                         }
                         Summary => {
                             trace!("Summary append");
-                            new_carousel.append(self.summary.widget());
-                            new_pages.push(Summary);
+                            self.carousel.append(self.summary.widget());
+                            self.carouselpages.push(Summary);
                         }
                         List {
                             id,
@@ -620,9 +628,9 @@ impl Component for AppModel {
                                     choices: choices_map,
                                 })
                                 .forward(sender.input_sender(), identity);
-                            new_carousel.append(listpage.widget());
+                            self.carousel.append(listpage.widget());
                             self.list.insert(title.to_string(), listpage);
-                            new_pages.push(List {
+                            self.carouselpages.push(List {
                                 id,
                                 multiple,
                                 required,
@@ -633,10 +641,9 @@ impl Component for AppModel {
                         }
                     }
                 }
-
-                // replace the carousel and pages with new ones
-                self.carousel = new_carousel;
-                self.carouselpages = new_pages;
+                self.carousel
+                    .scroll_to(&self.carousel.nth_page((index - 1) as u32), true);
+                dbg!(&self.carouselpages);
 
                 if index > 0 {
                     let i = index.saturating_sub(2) as u32;

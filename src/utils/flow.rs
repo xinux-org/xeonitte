@@ -112,7 +112,9 @@ impl Flow {
                         default: false,
                         packages: vec![]
                     },
-                ] }
+                ] },
+                Partitioning,
+                Summary
             ],
         };
 

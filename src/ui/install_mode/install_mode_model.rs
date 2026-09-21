@@ -1,4 +1,4 @@
-use crate::ui::window::AppMsg;
+use crate::ui::window::{AppMsg, StackPage};
 use crate::utils::flow::Flow;
 use gettextrs::gettext;
 use gtk::prelude::{BoxExt, ButtonExt, OrientableExt, WidgetExt};
@@ -100,6 +100,11 @@ impl SimpleComponent for InstallModeModel {
         match msg {
             InstallModeMsg::SetSelected(mode) => {
                 self.selected = mode;
+                let index = if mode.is_some() {
+                    Flow::Init.steps().len()
+                } else {
+                    0
+                };
                 // let init_steps_len = Flow::Init.steps().len();
                 // let page_start_index = self
                 //     .selected
@@ -110,13 +115,13 @@ impl SimpleComponent for InstallModeModel {
                 //     })
                 //     .flatten()
                 //     .unwrap_or_default();
-                // sender
-                //     .output(AppMsg::SetStackPageConfig(
-                //         StackPage::Carousel,
-                //         mode,
-                //         page_start_index,
-                //     ))
-                //     .unwrap();
+                sender
+                    .output(AppMsg::SetStackPageConfig(
+                        StackPage::Carousel,
+                        mode.unwrap_or(Flow::Init),
+                        index,
+                    ))
+                    .unwrap();
             }
             InstallModeMsg::CheckSelected => {
                 trace!("InstallMode::CheckSelected {}", self.selected.is_some());
