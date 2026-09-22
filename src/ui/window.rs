@@ -697,8 +697,7 @@ impl Component for AppModel {
                 self.timezoneconfig = timezone;
             }
             AppMsg::SetPartitionConfig(partition) => {
-                let devices = Devices { disk: Attrs::new() };
-                self.set_partition_config(&partition, devices);
+                self.set_partition_config(&partition);
                 self.partitionconfig = partition;
             }
             AppMsg::SetUserConfig(user) => {
@@ -765,17 +764,13 @@ impl Component for AppModel {
 }
 
 impl AppModel {
-    fn set_partition_config(&mut self, partition: &Option<PartitionSchema>, mut devices: Devices) {
+    fn set_partition_config(&mut self, partition: &Option<PartitionSchema>) {
         if let Some(partition_schema) = partition.clone() {
             match partition_schema {
                 PartitionSchema::FullDisk(FullDiskOptions {
-                    device,
-                    encryption,
-                    passphrase,
-                    disk_size,
-                    hibernation,
+                    device, encryption, ..
                 }) => {
-                    devices = if encryption {
+                    let devices = if encryption {
                         luks_encrypted(device, LUKS_PASSWORD_FILE)
                     } else {
                         canonical(device)
@@ -896,7 +891,7 @@ impl AppModel {
                             gpt.partitions.insert(part_key, disko_partition);
                         }
                     }
-                    devices = Devices { disk: disk_disko };
+                    let devices = Devices { disk: disk_disko };
                     self.diskoconfig = devices;
                 }
             };

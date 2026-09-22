@@ -1,9 +1,6 @@
-use crate::ui::partitions::partition_model::{CustomPartition, PartitionSchema};
-use crate::ui::window::{AppMsg, UserConfig};
+use crate::ui::partitions::partition_model::CustomPartition;
 use adw::prelude::*;
 use gettextrs::gettext;
-use gnome_desktop::{self, XkbInfo, XkbInfoExt};
-use log::debug;
 use relm4::{factory::*, *};
 
 pub struct Partition {

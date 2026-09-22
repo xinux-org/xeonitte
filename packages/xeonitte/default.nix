@@ -30,12 +30,13 @@
   dbus,
   zlib,
   disko,
+  cryptsetup,
   ...
 }:
 let
   convertyml = internal.convertyml;
 in
-stdenv.mkDerivation rec {
+stdenv.mkDerivation {
   pname = "xeonitte";
   version = "0.1.0";
 
@@ -43,7 +44,7 @@ stdenv.mkDerivation rec {
 
   cargoDeps = rustPlatform.fetchCargoVendor {
     src = ../..;
-    hash = "sha256-XncQMjUN6rhZL7t2nnyFtNXffnvT3esFxhryfC4q8yw=";
+    hash = "sha256-f/MJTug6677yvJ9sPOHYIbH1FtnCZdHFa6s8TU/OSkw=";
   };
 
   nativeBuildInputs = [
@@ -59,6 +60,7 @@ stdenv.mkDerivation rec {
     rustc
     rustPlatform.cargoSetupHook
     wrapGAppsHook4
+    cryptsetup
     disko
   ];
 
@@ -75,6 +77,7 @@ stdenv.mkDerivation rec {
     parted
     rustPlatform.bindgenHook
     vte-gtk4
+    cryptsetup
     systemd.dev
     dbus.dev
     zlib
@@ -84,6 +87,7 @@ stdenv.mkDerivation rec {
     wrapProgram $out/libexec/xeonitte-helper \
       --prefix PATH : ${
         lib.makeBinPath [
+          cryptsetup
           dosfstools
           e2fsprogs
           parted

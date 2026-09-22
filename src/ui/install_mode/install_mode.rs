@@ -17,11 +17,6 @@ pub enum InstallModeMsg {
     CheckSelected,
 }
 
-#[derive(Debug)]
-enum InstallModeOutput {
-    SetStackPageConfig(StackPage, Option<InstallationConfig>),
-}
-
 #[relm4::component(pub)]
 impl SimpleComponent for InstallModeModel {
     type Init = XeonitteConfig;
