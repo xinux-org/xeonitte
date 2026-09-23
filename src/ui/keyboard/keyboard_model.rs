@@ -302,13 +302,13 @@ impl SimpleComponent for KeyboardModel {
         self.reset();
         match msg {
             KeyboardMsg::SetSelected(layout) => {
-                if layout.is_none() {
-                    self.selectiongroup.set_active(true);
-                    sender.output(AppMsg::SetCanGoForward(false));
-                } else {
-                    sender.output(AppMsg::SetCanGoForward(true));
+                self.selectiongroup.set_active(layout.is_none());
+                sender.output(AppMsg::SetCanGoForward(layout.is_some()));
+
+                if layout.is_some() {
                     sender.output(AppMsg::SetKeyboardConfig(layout.clone()));
                 }
+
                 self.selected = layout;
                 if let Some(selected) = &self.selected {
                     let selected_xkb: [(&str, &String); 1] = [("xkb", selected)];
@@ -333,10 +333,8 @@ impl SimpleComponent for KeyboardModel {
                 trace!("KeyboardMsg::CheckSelected {}", self.selected.is_some());
                 if self.selected.is_none() {
                     self.selectiongroup.set_active(true);
-                    let _ = sender.output(AppMsg::SetCanGoForward(false));
-                } else {
-                    let _ = sender.output(AppMsg::SetCanGoForward(true));
                 }
+                sender.output(AppMsg::SetCanGoForward(self.selected.is_some()));
             }
             KeyboardMsg::ToggleShowall => {
                 if !self.showall {
