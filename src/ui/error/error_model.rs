@@ -23,6 +23,8 @@ pub enum UploadButton {
     Button,
     Loading,
     Url,
+    Success,
+    Fail,
 }
 
 #[derive(Debug)]
@@ -63,7 +65,6 @@ impl SimpleComponent for ErrorModel {
                         gtk::ScrolledWindow {
                             set_height_request: 800,
                             set_width_request: 1000,
-                            // set_default_height: 800,
                             gtk::TextView {
                                 set_editable: false,
                                 set_hexpand: true,
@@ -80,8 +81,10 @@ impl SimpleComponent for ErrorModel {
                     match &model.uploadbutton {
                         UploadButton::Button => {
                             gtk::Button {
-                                add_css_class: "pill",
+                                #[iterate]
+                                add_css_class: ["pill", "suggested-action"],
                                 set_halign: gtk::Align::Center,
+                                set_valign: gtk::Align::Center,
                                 #[watch]
                                 set_label: &gettext("Upload Report"),
                                 connect_clicked[sender] => move |_| {
@@ -89,12 +92,65 @@ impl SimpleComponent for ErrorModel {
                                 }
                             }
                         },
-                        UploadButton::Loading => {
-                            #[local]
-                            spinner -> gtk::Spinner {
-                                set_spinning: true,
+                        UploadButton::Fail => {
+                            gtk::Box{
+                                set_orientation: gtk::Orientation::Vertical,
                                 set_halign: gtk::Align::Center,
-                                set_size_request: (48, 48),
+                                set_spacing: 4,
+                                gtk::Box {
+                                    gtk::Label {
+                                        set_text:  &gettext("Failed to report"),
+                                        #[iterate]
+                                        add_css_class: ["title-4", "error"],
+                                    },
+                                    gtk::Button{
+                                        set_icon_name: "error-outline-symbolic",
+                                        set_can_target: false,
+                                        #[iterate]
+                                        add_css_class: ["flat", "error"],
+                                    },
+                                },
+                                gtk::Button {
+                                    add_css_class: "pill",
+                                    set_halign: gtk::Align::Center,
+                                    #[watch]
+                                    set_label: &gettext("Retry"),
+                                    connect_clicked[sender] => move |_| {
+                                        sender.input(ErrorMsg::UploadReport);
+                                    }
+                                }
+                            }
+                        },
+                        UploadButton::Success => {
+                            gtk::Box{
+                                set_halign: gtk::Align::Center,
+                                gtk::Label {
+                                    set_text:  &gettext("Reported"),
+                                    #[iterate]
+                                    add_css_class: ["title-4", "success"],
+                                },
+                                gtk::Button{
+                                    set_icon_name: "check-round-outline2-symbolic",
+                                    set_can_target: false,
+                                    #[iterate]
+                                    add_css_class: ["flat", "success"],
+                                }
+                            }
+                        },
+                        UploadButton::Loading => {
+                            gtk::Box{
+                                set_orientation: gtk::Orientation::Vertical,
+                                set_spacing: 6,
+                                gtk::Label{
+                                    set_text: &gettext("Processing..."),
+                                    add_css_class: "heading",
+                                },
+                                #[local]
+                                spinner -> gtk::Spinner {
+                                    set_spinning: true,
+                                    set_halign: gtk::Align::Center,
+                                    set_size_request: (48, 48),
+                                },
                             }
                         },
                         UploadButton::Url => {
@@ -184,6 +240,8 @@ impl SimpleComponent for ErrorModel {
                                 Ok(r) => r,
                                 Err(e) => {
                                     error!("Failed to generate report: {e}");
+                                    command_sender
+                                        .input(ErrorMsg::SetUploadButton(UploadButton::Fail));
                                     return;
                                 }
                             };
@@ -191,11 +249,13 @@ impl SimpleComponent for ErrorModel {
                                 Ok(path) => {
                                     command_sender
                                         .input(ErrorMsg::SetUrl(format!("file://{path}")));
+                                    command_sender
+                                        .input(ErrorMsg::SetUploadButton(UploadButton::Success));
                                 }
                                 Err(e) => {
                                     error!("Failed to upload report: {e}");
                                     command_sender
-                                        .input(ErrorMsg::SetUploadButton(UploadButton::Button));
+                                        .input(ErrorMsg::SetUploadButton(UploadButton::Fail));
                                 }
                             }
                         })
