@@ -53,7 +53,6 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
 
 fn iterwrite(makeconfig: &MakeConfig, path: &str, efi: bool, arch: &str) -> Result<()> {
     // Iterate through files in configs/
-    println!("BEFORE NO SUCH FILE");
     for file in (fs::read_dir(
         format!(
             "{}/xeonitte/{}/{}",
@@ -65,7 +64,6 @@ fn iterwrite(makeconfig: &MakeConfig, path: &str, efi: bool, arch: &str) -> Resu
     )?)
     .flatten()
     {
-        println!("AFTER SUCH FILE");
         // Check if it is a dir
         if file.metadata()?.is_dir() {
             // Iterate through files in the dir
