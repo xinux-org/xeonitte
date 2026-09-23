@@ -180,7 +180,7 @@ impl SimpleComponent for KeyboardModel {
                     model
                         .layouts
                         .iter()
-                        .find(|layout| &layout.country == a)
+                        .find(|layout| &layout.language == a)
                         .and_then(|layout| {
                             layout.title.split('(').nth(0).map(|s| s.trim().to_string())
                         })
@@ -191,7 +191,7 @@ impl SimpleComponent for KeyboardModel {
                     model
                         .layouts
                         .iter()
-                        .find(|layout| &layout.country == b)
+                        .find(|layout| &layout.language == b)
                         .and_then(|layout| {
                             layout.title.split('(').nth(0).map(|s| s.trim().to_string())
                         })
@@ -204,7 +204,7 @@ impl SimpleComponent for KeyboardModel {
             let possible_country = model
                 .layouts
                 .iter()
-                .find(|layout| layout.country == country)
+                .find(|layout| layout.language == country)
                 .and_then(|layout| layout.title.split('(').nth(0).map(|s| s.trim().to_string()))
                 .clone();
             view! {
@@ -222,7 +222,7 @@ impl SimpleComponent for KeyboardModel {
                 .layouts
                 .clone()
                 .into_iter()
-                .filter(|l| l.country == country)
+                .filter(|l| l.language == country)
             {
                 view! {
                     row = adw::PreferencesRow {

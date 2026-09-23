@@ -650,7 +650,6 @@ impl Component for AppModel {
                         }
                     }
                 }
-                // dbg!(&self.carouselpages);
                 if index > 0 {
                     sender.input(AppMsg::SetCanGoForward(true));
                     sender.input(AppMsg::ChangePage((index - 1) as u32));

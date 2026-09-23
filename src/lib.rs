@@ -7,7 +7,7 @@ pub mod utils;
 pub fn get_memory_size() -> Option<u64> {
     let contents = std::fs::read_to_string("/proc/meminfo").unwrap_or_else(|e| {
         eprintln!("Couldnʻt read the /proc/meminfo file: {e}");
-        "".to_string()
+        "".into()
     });
 
     contents
@@ -45,10 +45,6 @@ pub fn format_size(s: Size) -> String {
 
     let size = format!("{}", bytes as f64 / the as f64).to_string();
     let main = size.split('.').next().unwrap_or_default();
-    // let main = match s.find(|x| x == '.') {
-    //     Some(x) => s[..(x + 3)].to_string(),
-    //     None => s,
-    // };
     format!("{main} {tip}")
 }
 
