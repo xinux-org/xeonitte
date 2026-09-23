@@ -137,7 +137,7 @@ impl SimpleComponent for WelcomeModel {
         languages.sort_by(|a, b| a.0.cmp(&b.0));
         for (title, languages) in languages {
             for locale in &shortlangs {
-                if let Some(title) = languages.get(&locale.to_string()) {
+                if let Some(title) = languages.get(*locale) {
                     view! {
                         row = adw::PreferencesRow {
                             set_title: locale,

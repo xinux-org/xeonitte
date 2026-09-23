@@ -5,19 +5,34 @@ data/org.xinux.Xeonitte.policy.in.in
 
 # Rust files
 src/main.rs
-src/ui/pages/base.rs
-src/ui/pages/error.rs
-src/ui/pages/install.rs
-src/ui/pages/keyboard.rs
-src/ui/pages/list.rs
-src/ui/pages/partitions.rs
-src/ui/pages/summary.rs
-src/ui/pages/timezone.rs
-src/ui/pages/user.rs
-src/ui/pages/welcome.rs
+src/ui/error/mod.rs
+src/ui/error/error_model.rs
+src/ui/install/mod.rs
+src/ui/install/install_model.rs
+src/ui/keyboard/mod.rs
+src/ui/keyboard/keyboard_model.rs
+src/ui/list/mod.rs
+src/ui/list/list_model.rs
+src/ui/partitions/mod.rs
+src/ui/partitions/hibernation.rs
+src/ui/partitions/luks_password.rs
+src/ui/partitions/partition.rs
+src/ui/partitions/partition_group.rs
+src/ui/partitions/partition_model.rs
+src/ui/partitions/whole_disk.rs
+src/ui/summary/mod.rs
+src/ui/summary/summary_factory.rs
+src/ui/summary/summary_model.rs
+src/ui/templates/mod.rs
+src/ui/templates/base.rs
+src/ui/timezone/mod.rs
+src/ui/timezone/timezone_model.rs
+src/ui/user/mod.rs
+src/ui/user/user_model.rs
+src/ui/welcome/mod.rs
+src/ui/welcome/welcome_model.rs
+src/ui/mod.rs
+src/ui/new_partition_dialog.rs
+src/ui/quitdialog.rs
 src/ui/window.rs
-
-# YAML files
-#config/xeonitte/advanced.yml.in
-#config/xeonitte/basic.yml.in
-# config/xeonitte/branding/xinux/slides.yml.in
+src/utils/flow.rs

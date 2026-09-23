@@ -1,4 +1,5 @@
 pub mod disko;
+pub mod flow;
 pub mod i18n;
 pub mod install;
 pub mod language;

@@ -7,11 +7,22 @@ use log::trace;
 use relm4::*;
 use std::process::Command;
 
+const GIO_INPUT_SOURCES: &str = "org.gnome.desktop.input-sources";
+
+#[derive(Debug, PartialEq, Clone)]
+struct Layout {
+    title: String,
+    name: String,
+    language: String,
+    country: String,
+    variant: String,
+}
+
 #[tracker::track]
 #[derive(Debug)]
 pub struct KeyboardModel {
     #[allow(clippy::type_complexity)]
-    layouts: Vec<(String, (String, String, String, String))>,
+    layouts: Vec<Layout>,
     language: Option<String>,
     country: Option<String>,
     showall: bool,
@@ -20,6 +31,7 @@ pub struct KeyboardModel {
     expanders: Vec<adw::ExpanderRow>,
     shortkbdbox: gtk::ListBox,
     xkb: XkbInfo,
+    keyboard_settings: gtk::gio::Settings,
 }
 
 #[derive(Debug)]
@@ -117,34 +129,35 @@ impl SimpleComponent for KeyboardModel {
         let xkb = XkbInfo::new();
         let layouts = xkb.all_layouts();
 
-        let mut layoutvec = vec![];
+        let mut layoutvec: Vec<Layout> = vec![];
 
         for layout in layouts {
             let layoutinfo = xkb.layout_info(&layout);
+
             if let Some((Some(name), Some(lang), Some(country), Some(variant))) = layoutinfo {
-                layoutvec.push((
-                    layout.to_string(),
-                    (
-                        name.to_string(),
-                        lang.to_string(),
-                        country.to_string(),
-                        variant.to_string(),
-                    ),
-                ));
+                layoutvec.push(Layout {
+                    title: layout.into(),
+                    name: name.into(),
+                    language: lang.into(),
+                    country: country.into(),
+                    variant: variant.into(),
+                });
             }
         }
-        layoutvec.sort_by(|a, b| a.0.cmp(&b.0));
+        layoutvec.sort_by(|a, b| a.title.cmp(&b.title));
 
+        let keyboard_settings = gtk::gio::Settings::new(GIO_INPUT_SOURCES);
         let mut model = KeyboardModel {
             xkb,
-            language: Some("en".to_string()),
-            country: Some("us".to_string()),
+            language: Some("en".into()),
+            country: Some("us".into()),
             layouts: layoutvec,
             showall: false,
             selected: None,
             selectiongroup: gtk::CheckButton::new(),
             expanders: vec![],
             shortkbdbox: gtk::ListBox::new(),
+            keyboard_settings,
             tracker: 0,
         };
 
@@ -153,9 +166,10 @@ impl SimpleComponent for KeyboardModel {
 
         let mut countries = model
             .layouts
+            .clone()
             .iter()
-            .map(|(_, v)| v.2.as_str())
-            .filter(|x| x != &"custom")
+            .map(|layout| layout.language.clone())
+            .filter(|x| x != "custom")
             .collect::<Vec<_>>();
         countries.dedup();
         println!("Pre sort");
@@ -166,8 +180,10 @@ impl SimpleComponent for KeyboardModel {
                     model
                         .layouts
                         .iter()
-                        .find(|(_, v)| &v.2 == a)
-                        .and_then(|(_, v)| v.0.split('(').nth(0).map(|s| s.trim().to_string()))
+                        .find(|layout| &layout.language == a)
+                        .and_then(|layout| {
+                            layout.title.split('(').nth(0).map(|s| s.trim().to_string())
+                        })
                 });
             let bname = gnome_desktop::country_from_code(&b.to_uppercase(), None)
                 .map(|x| x.to_string())
@@ -175,19 +191,22 @@ impl SimpleComponent for KeyboardModel {
                     model
                         .layouts
                         .iter()
-                        .find(|(_, v)| &v.2 == b)
-                        .and_then(|(_, v)| v.0.split('(').nth(0).map(|s| s.trim().to_string()))
+                        .find(|layout| &layout.language == b)
+                        .and_then(|layout| {
+                            layout.title.split('(').nth(0).map(|s| s.trim().to_string())
+                        })
                 });
             aname.cmp(&bname)
         });
         println!("Post sort");
 
-        for country in &countries {
+        for country in countries {
             let possible_country = model
                 .layouts
                 .iter()
-                .find(|(_, v)| &v.2 == country)
-                .and_then(|(_, v)| v.0.split('(').nth(0).map(|s| s.trim().to_string()));
+                .find(|layout| layout.language == country)
+                .and_then(|layout| layout.title.split('(').nth(0).map(|s| s.trim().to_string()))
+                .clone();
             view! {
                 expander = adw::ExpanderRow {
                     set_title: &gnome_desktop::country_from_code(&country.to_uppercase(), None)
@@ -199,12 +218,15 @@ impl SimpleComponent for KeyboardModel {
                 }
             }
 
-            for (layout, (name, _lang, _country, _variant)) in
-                model.layouts.iter().filter(|(_, v)| &v.2 == country)
+            for layout in model
+                .layouts
+                .clone()
+                .into_iter()
+                .filter(|l| l.language == country)
             {
                 view! {
                     row = adw::PreferencesRow {
-                        set_title: name,
+                        set_title: &layout.name,
                         // set_subtitle: &layout,
                         set_activatable: true,
                         // set_subtitle: &locale
@@ -217,16 +239,16 @@ impl SimpleComponent for KeyboardModel {
                             set_margin_top: 15,
                             set_margin_bottom: 15,
                             gtk::Label {
-                                set_label: name,
+                                set_label: &layout.name,
                             },
                             #[template]
                             BaseSeparator,
                             gtk::CheckButton {
                                 set_halign: gtk::Align::End,
                                 set_group: Some(&model.selectiongroup),
-                                connect_toggled[sender, layout] => move |x| {
+                                connect_toggled[sender, layout = layout.clone()] => move |x| {
                                     if x.is_active() {
-                                        sender.input(KeyboardMsg::SetSelected(Some(layout.to_string())))
+                                        sender.input(KeyboardMsg::SetSelected(Some(layout.title.clone())))
                                     }
                                 }
                             }
@@ -279,21 +301,19 @@ impl SimpleComponent for KeyboardModel {
         self.reset();
         match msg {
             KeyboardMsg::SetSelected(layout) => {
-                if layout.is_none() {
-                    self.selectiongroup.set_active(true);
-                    sender.output(AppMsg::SetCanGoForward(false));
-                } else {
-                    sender.output(AppMsg::SetCanGoForward(true));
+                self.selectiongroup.set_active(layout.is_none());
+                sender.output(AppMsg::SetCanGoForward(layout.is_some()));
+
+                if layout.is_some() {
                     sender.output(AppMsg::SetKeyboardConfig(layout.clone()));
                 }
+
                 self.selected = layout;
                 if let Some(selected) = &self.selected {
-                    let _ = Command::new("gsettings")
-                        .arg("set")
-                        .arg("org.gnome.desktop.input-sources")
-                        .arg("sources")
-                        .arg(format!("[('xkb','{}')]", selected))
-                        .spawn();
+                    let selected_xkb: [(&str, &String); 1] = [("xkb", selected)];
+                    self.keyboard_settings
+                        .set_value("sources", &selected_xkb.to_variant());
+
                     if let (Some(layout), Some(variant)) =
                         (selected.split('+').next(), selected.split('+').nth(1))
                     {
@@ -312,10 +332,8 @@ impl SimpleComponent for KeyboardModel {
                 trace!("KeyboardMsg::CheckSelected {}", self.selected.is_some());
                 if self.selected.is_none() {
                     self.selectiongroup.set_active(true);
-                    let _ = sender.output(AppMsg::SetCanGoForward(false));
-                } else {
-                    let _ = sender.output(AppMsg::SetCanGoForward(true));
                 }
+                sender.output(AppMsg::SetCanGoForward(self.selected.is_some()));
             }
             KeyboardMsg::ToggleShowall => {
                 if !self.showall {
@@ -329,9 +347,11 @@ impl SimpleComponent for KeyboardModel {
                 let layouts = self
                     .layouts
                     .iter()
-                    .filter_map(|(layout, (_name, lang, _country, _variant))| {
-                        lang.eq(&language.to_lowercase())
-                            .then_some(layout.to_string())
+                    .filter_map(|layout| {
+                        layout
+                            .language
+                            .eq(&language.to_lowercase())
+                            .then_some(layout.title.clone())
                     })
                     .collect::<Vec<_>>();
                 let mut shortvec = layouts

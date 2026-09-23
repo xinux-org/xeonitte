@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-25 15:24+0500\n"
+"POT-Creation-Date: 2026-09-22 12:56+0500\n"
 "PO-Revision-Date: 2025-09-26 13:55+0500\n"
 "Last-Translator: BeMeritus <bemerituss@gmail.com>\n"
 "Language-Team: \n"
@@ -18,303 +18,389 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 3.5\n"
 
-#: data/org.xinux.Xeonitte.desktop.in.in:3
-msgid "Install Xinux"
-msgstr "Установить Xinux"
-
-#: data/org.xinux.Xeonitte.desktop.in.in:4
-msgid "Install"
-msgstr "Установить"
-
-#: data/org.xinux.Xeonitte.desktop.in.in:10
-msgid "Installer;Xeonitte;"
-msgstr "Установщик;Xeonitte;"
-
-#: data/org.xinux.Xeonitte.metainfo.xml.in.in:6 src/main.rs:30
+#: src/main.rs:32
 msgid "Xeonitte Installer"
 msgstr "Установщик Xeonitte"
 
-#: data/org.xinux.Xeonitte.metainfo.xml.in.in:7
-#: data/org.xinux.Xeonitte.metainfo.xml.in.in:9
-msgid "A graphical installer for NixOS based distributions."
-msgstr "Графический установщик для дистрибутивов на базе NixOS."
-
-#: data/org.xinux.Xeonitte.policy.in.in:8
-msgid "Give Xeonitte Installer root access"
-msgstr "Предоставьте установщику Xeonitte root-доступ"
-
-#: data/org.xinux.Xeonitte.policy.in.in:9
-msgid "Authentication is required to install operating system"
-msgstr "Для установки операционной системы требуется аутентификация."
-
-#: src/ui/pages/error.rs:51
+#: src/ui/error/error_model.rs:55
 msgid "Installation Failed!"
 msgstr "Установка не удалась!"
 
-#: src/ui/pages/error.rs:80
+#: src/ui/error/error_model.rs:86
 msgid "Upload Report"
 msgstr "Загрузить отчет"
 
-#: src/ui/pages/error.rs:98
+#: src/ui/error/error_model.rs:104
 msgid "Open Report"
 msgstr "Открытый отчет"
 
-#: src/ui/pages/keyboard.rs:52
+#: src/ui/keyboard/keyboard_model.rs:55
 msgid "Keyboard Layout"
 msgstr "Раскладка клавиатуры"
 
-#: src/ui/pages/keyboard.rs:60
+#: src/ui/keyboard/keyboard_model.rs:63
 msgid "Test the Keyboard Layout"
 msgstr "Проверьте раскладку клавиатуры"
 
-#: src/ui/pages/keyboard.rs:85 src/ui/pages/timezone.rs:77
-#: src/ui/pages/welcome.rs:76
+#: src/ui/keyboard/keyboard_model.rs:101 src/ui/timezone/timezone_model.rs:92
+#: src/ui/welcome/welcome_model.rs:102
 msgid "Show less"
 msgstr "Показать меньше"
 
-#: src/ui/pages/keyboard.rs:85 src/ui/pages/timezone.rs:77
-#: src/ui/pages/welcome.rs:76
+#: src/ui/keyboard/keyboard_model.rs:101 src/ui/timezone/timezone_model.rs:92
+#: src/ui/welcome/welcome_model.rs:102
 msgid "Show all"
 msgstr "Показать все"
 
-#: src/ui/pages/list.rs:66
+#: src/ui/list/list_model.rs:66
 msgid "Clear"
 msgstr "Прозрачный"
 
-#: src/ui/pages/partitions.rs:80
-msgid "Select a disk"
-msgstr "Выберите диск"
+#: src/ui/partitions/hibernation.rs:24
+msgid "Hibernation"
+msgstr ""
 
-#: src/ui/pages/partitions.rs:85
-msgid "Disk will be formatted and all data will be lost"
-msgstr "Диск будет отформатирован, и все данные будут потеряны."
+#: src/ui/partitions/hibernation.rs:27
+#, fuzzy
+#| msgid "Enable Disk Encryption"
+msgid "Enable Hibernation"
+msgstr "Включить шифрование диска"
 
-#: src/ui/pages/partitions.rs:102
-msgid "Advanced"
-msgstr "Передовой"
-
-#: src/ui/pages/partitions.rs:117 src/ui/pages/partitions.rs:232
-msgid "Refresh"
-msgstr "Обновить"
-
-#: src/ui/pages/partitions.rs:127
-msgid "Select partitions"
-msgstr "Выберите разделы"
-
-#: src/ui/pages/partitions.rs:172
-msgid "Ready to install!"
-msgstr "Готово к установке!"
-
-#: src/ui/pages/partitions.rs:174
-msgid "Missing <tt>/boot</tt> partition"
-msgstr "Отсутствует раздел <tt>/boot</tt>"
-
-#: src/ui/pages/partitions.rs:176 src/ui/pages/partitions.rs:184
-msgid "Missing <tt>/</tt> partition"
-msgstr "Отсутствует раздел <tt>/</tt>"
-
-#: src/ui/pages/partitions.rs:178 src/ui/pages/partitions.rs:182
-msgid "Missing <tt>/</tt> and <tt>/boot</tt> partitions"
-msgstr "Отсутствуют разделы <tt>/</tt> и <tt>/boot</tt>"
-
-#: src/ui/pages/partitions.rs:200
-msgid "Launch GParted"
-msgstr "Запустить GParted"
-
-#: src/ui/pages/partitions.rs:217
-msgid "Basic"
-msgstr "Базовый"
-
-#: src/ui/pages/partitions.rs:615
-msgid "Format"
-msgstr "Формат"
-
-#: src/ui/pages/partitions.rs:636 src/ui/pages/partitions.rs:655
-msgid "Mount"
-msgstr "Устанавливать"
-
-#: src/ui/pages/partitions.rs:670 src/ui/pages/summary.rs:311
-msgid "Do not mount"
-msgstr "Не монтировать"
-
-#: src/ui/pages/partitions.rs:671
-msgid "Leave as is"
-msgstr "Оставить как есть"
-
-#: src/ui/pages/summary.rs:58
-msgid "Summary"
-msgstr "Краткое содержание"
-
-#: src/ui/pages/summary.rs:63
-msgid "Language"
-msgstr "Язык"
-
-#: src/ui/pages/summary.rs:74
-msgid "Keyboard"
-msgstr "Клавиатура"
-
-#: src/ui/pages/summary.rs:85 src/ui/pages/timezone.rs:52
-msgid "Timezone"
-msgstr "Часовой пояс"
-
-#: src/ui/pages/summary.rs:97 src/ui/pages/summary.rs:115
-#: src/ui/pages/summary.rs:121
-msgid "Partitions"
-msgstr "Разделы"
-
-#: src/ui/pages/summary.rs:103
-msgid "Full Disk"
-msgstr "Полный диск"
-
-#: src/ui/pages/summary.rs:106
-msgid "Entire disk will be formatted"
-msgstr "Весь диск будет отформатирован."
-
-#: src/ui/pages/summary.rs:131
-msgid "User"
-msgstr "Пользователь"
-
-#: src/ui/pages/summary.rs:135 src/ui/pages/user.rs:70
-msgid "Name"
-msgstr "Имя"
-
-#: src/ui/pages/summary.rs:153 src/ui/pages/user.rs:78
-msgid "Username"
-msgstr "Имя пользователя"
-
-#: src/ui/pages/summary.rs:171 src/ui/pages/user.rs:148
-msgid "Hostname"
-msgstr "Имя хоста"
-
-#: src/ui/pages/summary.rs:304
-msgid "Mountpoint:"
-msgstr "Точка монтирования:"
-
-#: src/ui/pages/summary.rs:324
-msgid "Format:"
-msgstr "Формат:"
-
-#: src/ui/pages/summary.rs:331
-msgid "Do not format"
-msgstr "Не форматировать"
-
-#: src/ui/pages/user.rs:62
-msgid "Create a new user"
-msgstr "Создать нового пользователя"
-
-#: src/ui/pages/user.rs:110
-msgid "Password"
-msgstr "Пароль"
-
-#: src/ui/pages/user.rs:118
-msgid "Confirm Password"
-msgstr "Подтвердите пароль"
-
-#: src/ui/pages/user.rs:125
-msgid "Log in automatically"
-msgstr "Войти автоматически"
-
-#: src/ui/pages/user.rs:173
-msgid "Root password"
-msgstr "Пароль root"
-
-#: src/ui/pages/user.rs:181
-msgid "Confirm root password"
-msgstr "Подтвердите пароль root"
-
-#: src/ui/pages/welcome.rs:42
-msgid "Welcome!"
-msgstr "Добро пожаловать!"
-
-#: src/ui/pages/welcome.rs:47
-msgid "Choose a language"
-msgstr "Выберите язык"
-
-#: src/ui/window.rs:186
-msgid "Installing…"
-msgstr "Установка…"
-
-#: src/ui/window.rs:192
-msgid "Installation Finished"
-msgstr "Установка завершена"
-
-#: src/ui/window.rs:198
-msgid "Installation Failed"
-msgstr "Установка не удалась"
-
-#: src/ui/window.rs:309
-msgid "Finished!"
-msgstr "Законченный!"
-
-#: src/ui/window.rs:322
-msgid "Reboot"
-msgstr "Перезагрузить"
-
-#: src/ui/window.rs:338
-msgid "No Internet"
-msgstr "Нет интернета"
-
-#: src/ui/window.rs:339
-msgid "Please connect to the Internet to continue"
-msgstr "Пожалуйста, подключитесь к Интернету, чтобы продолжить."
-
-#: src/ui/pages/partitions.rs:1021
-msgid "Total"
-msgstr "Всего"
-
-#: src/ui/pages/partitions.rs:1034
-msgid "Free"
-msgstr "Свободно"
-
-#: src/ui/pages/partitions.rs:1391
+#: src/ui/partitions/luks_password.rs:29
 msgid "Encryption"
 msgstr "Шифрование"
 
-#: src/ui/pages/partitions.rs:1394
+#: src/ui/partitions/luks_password.rs:34
 msgid "Enable Disk Encryption"
 msgstr "Включить шифрование диска"
 
-#: src/ui/pages/partitions.rs:1396
+#: src/ui/partitions/luks_password.rs:36
 msgid "Encrypt your disk with LUKS"
 msgstr "Зашифруйте диск с помощью LUKS"
 
-#: src/ui/pages/partitions.rs:1405
+#: src/ui/partitions/luks_password.rs:45
 msgid "Encryption Password"
 msgstr "Пароль шифрования"
 
-#: src/ui/pages/partitions.rs:1425
+#: src/ui/partitions/luks_password.rs:54 src/ui/user/user_model.rs:166
+msgid "Confirm Password"
+msgstr "Подтвердите пароль"
+
+#: src/ui/partitions/luks_password.rs:65
 msgid "Passwords do not match"
 msgstr "Пароли не совпадают"
 
-#: src/ui/pages/partitions.rs:1432
+#: src/ui/partitions/luks_password.rs:72
 msgid "Password is required"
 msgstr "Требуется пароль"
 
+#: src/ui/partitions/partition.rs:53
+msgid "Format"
+msgstr "Формат"
 
-#: src/ui/pages/partitions.rs:876
+#: src/ui/partitions/partition.rs:72 src/ui/partitions/partition.rs:91
+msgid "Mount"
+msgstr "Устанавливать"
+
+#: src/ui/partitions/partition.rs:100
 msgid "Encrypt"
 msgstr "Зашифровать"
 
-#: src/ui/pages/partitions.rs:878
+#: src/ui/partitions/partition.rs:102
 msgid "Encrypt this partition with LUKS"
 msgstr "Зашифровать раздел с помощью LUKS"
 
-#: src/ui/pages/partitions.rs:892
+#: src/ui/partitions/partition.rs:117
 msgid "Delete"
 msgstr "Удалить"
 
-#: src/ui/pages/partitions.rs:1110
-msgid "Enter the new partition size"
-msgstr "Введите новый размер раздела"
+#: src/ui/partitions/partition.rs:139 src/ui/summary/summary_factory.rs:41
+msgid "Do not mount"
+msgstr "Не монтировать"
 
-#: src/ui/pages/partitions.rs:1145
+#: src/ui/partitions/partition.rs:140
+msgid "Leave as is"
+msgstr "Оставить как есть"
+
+#: src/ui/partitions/partition_group.rs:79
+msgid "Total"
+msgstr "Всего"
+
+#: src/ui/partitions/partition_group.rs:93
+msgid "Free"
+msgstr "Свободно"
+
+#: src/ui/partitions/partition_group.rs:145
 msgid "Free space"
 msgstr "Свободное место"
 
-#: src/ui/pages/partitions.rs:939 src/ui/pages/partitions.rs:1080
-msgid "Custom mount point"
-msgstr "Пользовательская точка монтирования"
+#: src/ui/partitions/partition_group.rs:164
+msgid "Enter the new partition size"
+msgstr "Введите новый размер раздела"
 
-#: src/ui/pages/partitions.rs:1075
-msgid "Mount point exists"
-msgstr "Точка монтирования существует"
+#: src/ui/partitions/partition_model.rs:117
+msgid "Select a disk"
+msgstr "Выберите диск"
+
+#: src/ui/partitions/partition_model.rs:122
+msgid "Disk will be formatted and all data will be lost"
+msgstr "Диск будет отформатирован, и все данные будут потеряны."
+
+#: src/ui/partitions/partition_model.rs:140
+msgid "Advanced"
+msgstr "Передовой"
+
+#: src/ui/partitions/partition_model.rs:155
+#: src/ui/partitions/partition_model.rs:260
+msgid "Refresh"
+msgstr "Обновить"
+
+#: src/ui/partitions/partition_model.rs:165
+msgid "Select partitions"
+msgstr "Выберите разделы"
+
+#: src/ui/partitions/partition_model.rs:212
+msgid "Ready to install!"
+msgstr "Готово к установке!"
+
+#: src/ui/partitions/partition_model.rs:214
+msgid "Missing <tt>/boot</tt> partition"
+msgstr "Отсутствует раздел <tt>/boot</tt>"
+
+#: src/ui/partitions/partition_model.rs:216
+#: src/ui/partitions/partition_model.rs:224
+msgid "Missing <tt>/</tt> partition"
+msgstr "Отсутствует раздел <tt>/</tt>"
+
+#: src/ui/partitions/partition_model.rs:218
+#: src/ui/partitions/partition_model.rs:222
+msgid "Missing <tt>/</tt> and <tt>/boot</tt> partitions"
+msgstr "Отсутствуют разделы <tt>/</tt> и <tt>/boot</tt>"
+
+#: src/ui/partitions/partition_model.rs:245
+msgid "Basic"
+msgstr "Базовый"
+
+#: src/ui/summary/summary_factory.rs:34
+msgid "Mountpoint:"
+msgstr "Точка монтирования:"
+
+#: src/ui/summary/summary_factory.rs:54
+msgid "Format:"
+msgstr "Формат:"
+
+#: src/ui/summary/summary_factory.rs:61
+msgid "Do not format"
+msgstr "Не форматировать"
+
+#: src/ui/summary/summary_model.rs:59
+msgid "Summary"
+msgstr "Краткое содержание"
+
+#: src/ui/summary/summary_model.rs:64
+msgid "Language"
+msgstr "Язык"
+
+#: src/ui/summary/summary_model.rs:75
+msgid "Keyboard"
+msgstr "Клавиатура"
+
+#: src/ui/summary/summary_model.rs:86 src/ui/timezone/timezone_model.rs:54
+msgid "Timezone"
+msgstr "Часовой пояс"
+
+#: src/ui/summary/summary_model.rs:98 src/ui/summary/summary_model.rs:116
+#: src/ui/summary/summary_model.rs:122
+msgid "Partitions"
+msgstr "Разделы"
+
+#: src/ui/summary/summary_model.rs:104
+msgid "Full Disk"
+msgstr "Полный диск"
+
+#: src/ui/summary/summary_model.rs:107
+msgid "Entire disk will be formatted"
+msgstr "Весь диск будет отформатирован."
+
+#: src/ui/summary/summary_model.rs:132
+msgid "User"
+msgstr "Пользователь"
+
+#: src/ui/summary/summary_model.rs:136 src/ui/user/user_model.rs:112
+msgid "Name"
+msgstr "Имя"
+
+#: src/ui/summary/summary_model.rs:154 src/ui/user/user_model.rs:122
+msgid "Username"
+msgstr "Имя пользователя"
+
+#: src/ui/summary/summary_model.rs:172 src/ui/user/user_model.rs:198
+msgid "Hostname"
+msgstr "Имя хоста"
+
+#: src/ui/user/user_model.rs:104
+msgid "Create a new user"
+msgstr "Создать нового пользователя"
+
+#: src/ui/user/user_model.rs:156
+msgid "Password"
+msgstr "Пароль"
+
+#: src/ui/user/user_model.rs:175
+msgid "Log in automatically"
+msgstr "Войти автоматически"
+
+#: src/ui/user/user_model.rs:226
+msgid "Root password"
+msgstr "Пароль root"
+
+#: src/ui/user/user_model.rs:236
+msgid "Confirm root password"
+msgstr "Подтвердите пароль root"
+
+#: src/ui/welcome/welcome_model.rs:44
+msgid "Welcome!"
+msgstr "Добро пожаловать!"
+
+#: src/ui/welcome/welcome_model.rs:49
+msgid "Choose a language"
+msgstr "Выберите язык"
+
+#: src/ui/quitdialog.rs:21
+#, fuzzy
+#| msgid "Installation Failed"
+msgid "Quit Installation"
+msgstr "Установка не удалась"
+
+#: src/ui/quitdialog.rs:23
+msgid ""
+"Quitting while the installation is in progress may leave your system in an "
+"unbootable state!"
+msgstr ""
+
+#: src/ui/quitdialog.rs:24 src/ui/quitdialog.rs:27
+msgid "Cancel"
+msgstr ""
+
+#: src/ui/quitdialog.rs:25 src/ui/quitdialog.rs:29
+msgid "Quit"
+msgstr ""
+
+#: src/ui/window.rs:201
+msgid "Installing…"
+msgstr "Установка…"
+
+#: src/ui/window.rs:207
+msgid "Installation Finished"
+msgstr "Установка завершена"
+
+#: src/ui/window.rs:213
+msgid "Installation Failed"
+msgstr "Установка не удалась"
+
+#: src/ui/window.rs:306
+msgid "Finished!"
+msgstr "Законченный!"
+
+#: src/ui/window.rs:319
+msgid "Reboot"
+msgstr "Перезагрузить"
+
+#: src/ui/window.rs:335
+msgid "No Internet"
+msgstr "Нет интернета"
+
+#: src/ui/window.rs:336
+msgid "Please connect to the Internet to continue"
+msgstr "Пожалуйста, подключитесь к Интернету, чтобы продолжить."
+
+#: src/utils/flow.rs:61
+#, fuzzy
+#| msgid "Encryption"
+msgid "Extra Options"
+msgstr "Шифрование"
+
+#: src/utils/flow.rs:65
+msgid "Flatpak"
+msgstr ""
+
+#: src/utils/flow.rs:66
+msgid "Enable Flatpak support"
+msgstr ""
+
+#: src/utils/flow.rs:72
+msgid "AppImage"
+msgstr ""
+
+#: src/utils/flow.rs:74
+msgid ""
+"Enable AppImage support by installing the \"appimage-run\" package. For "
+"AppImages to work, you must run them with the \"appimage-run\" command."
+msgstr ""
+
+#: src/utils/flow.rs:81
+msgid "Minimal"
+msgstr ""
+
+#: src/utils/flow.rs:82
+msgid "Install minimal Xinux without GNOME core apps"
+msgstr ""
+
+#: src/utils/flow.rs:96
+msgid "LTS"
+msgstr ""
+
+#: src/utils/flow.rs:97
+msgid "Install the latest LTS kernel"
+msgstr ""
+
+#: src/utils/flow.rs:103
+msgid "Latest"
+msgstr ""
+
+#: src/utils/flow.rs:104
+msgid "Install the latest kernel"
+msgstr ""
+
+#: src/utils/flow.rs:110
+msgid "Libre"
+msgstr ""
+
+#: src/utils/flow.rs:111
+msgid "Install the libre kernel"
+msgstr ""
+
+#: src/utils/flow.rs:117
+msgid "Zen"
+msgstr ""
+
+#: src/utils/flow.rs:118
+msgid "Install the Zen kernel"
+msgstr ""
+
+#~ msgid "Install Xinux"
+#~ msgstr "Установить Xinux"
+
+#~ msgid "Install"
+#~ msgstr "Установить"
+
+#~ msgid "Installer;Xeonitte;"
+#~ msgstr "Установщик;Xeonitte;"
+
+#~ msgid "A graphical installer for NixOS based distributions."
+#~ msgstr "Графический установщик для дистрибутивов на базе NixOS."
+
+#~ msgid "Give Xeonitte Installer root access"
+#~ msgstr "Предоставьте установщику Xeonitte root-доступ"
+
+#~ msgid "Authentication is required to install operating system"
+#~ msgstr "Для установки операционной системы требуется аутентификация."
+
+#~ msgid "Launch GParted"
+#~ msgstr "Запустить GParted"
+
+#~ msgid "Custom mount point"
+#~ msgstr "Пользовательская точка монтирования"
+
+#~ msgid "Mount point exists"
+#~ msgstr "Точка монтирования существует"

@@ -1,1 +1,1 @@
-pub mod install_mode;
+pub mod install_mode_model;
