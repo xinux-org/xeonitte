@@ -7,6 +7,8 @@ use log::trace;
 use relm4::*;
 use std::process::Command;
 
+const GIO_INPUT_SOURCES: &str = "org.gnome.desktop.input-sources";
+
 // type Layout = (String, (String, String, String, String));
 #[derive(Debug, PartialEq, Clone)]
 struct Layout {
@@ -30,6 +32,7 @@ pub struct KeyboardModel {
     expanders: Vec<adw::ExpanderRow>,
     shortkbdbox: gtk::ListBox,
     xkb: XkbInfo,
+    keyboard_settings: gtk::gio::Settings,
 }
 
 #[derive(Debug)]
@@ -144,6 +147,7 @@ impl SimpleComponent for KeyboardModel {
         }
         layoutvec.sort_by(|a, b| a.title.cmp(&b.title));
 
+        let keyboard_settings = gtk::gio::Settings::new(GIO_INPUT_SOURCES);
         let mut model = KeyboardModel {
             xkb,
             language: Some("en".to_string()),
@@ -154,6 +158,7 @@ impl SimpleComponent for KeyboardModel {
             selectiongroup: gtk::CheckButton::new(),
             expanders: vec![],
             shortkbdbox: gtk::ListBox::new(),
+            keyboard_settings,
             tracker: 0,
         };
 
@@ -306,12 +311,10 @@ impl SimpleComponent for KeyboardModel {
                 }
                 self.selected = layout;
                 if let Some(selected) = &self.selected {
-                    let _ = Command::new("gsettings")
-                        .arg("set")
-                        .arg("org.gnome.desktop.input-sources")
-                        .arg("sources")
-                        .arg(format!("[('xkb','{}')]", selected))
-                        .spawn();
+                    let selected_xkb: [(&str, &String); 1] = [("xkb", selected)];
+                    self.keyboard_settings
+                        .set_value("sources", &selected_xkb.to_variant());
+
                     if let (Some(layout), Some(variant)) =
                         (selected.split('+').next(), selected.split('+').nth(1))
                     {
