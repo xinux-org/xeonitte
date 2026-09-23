@@ -9,7 +9,6 @@ use std::process::Command;
 
 const GIO_INPUT_SOURCES: &str = "org.gnome.desktop.input-sources";
 
-// type Layout = (String, (String, String, String, String));
 #[derive(Debug, PartialEq, Clone)]
 struct Layout {
     title: String,
@@ -170,7 +169,7 @@ impl SimpleComponent for KeyboardModel {
             .clone()
             .iter()
             .map(|layout| layout.country.clone())
-            .filter(|x| x != &"custom")
+            .filter(|x| x != "custom")
             .collect::<Vec<_>>();
         countries.dedup();
         println!("Pre sort");
