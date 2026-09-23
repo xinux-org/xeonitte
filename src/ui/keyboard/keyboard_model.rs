@@ -149,8 +149,8 @@ impl SimpleComponent for KeyboardModel {
         let keyboard_settings = gtk::gio::Settings::new(GIO_INPUT_SOURCES);
         let mut model = KeyboardModel {
             xkb,
-            language: Some("en".to_string()),
-            country: Some("us".to_string()),
+            language: Some("en".into()),
+            country: Some("us".into()),
             layouts: layoutvec,
             showall: false,
             selected: None,
@@ -168,7 +168,7 @@ impl SimpleComponent for KeyboardModel {
             .layouts
             .clone()
             .iter()
-            .map(|layout| layout.country.clone())
+            .map(|layout| layout.language.clone())
             .filter(|x| x != "custom")
             .collect::<Vec<_>>();
         countries.dedup();
