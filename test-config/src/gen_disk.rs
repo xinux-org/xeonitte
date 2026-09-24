@@ -160,7 +160,7 @@ fn xfs_root() -> String {
         .add_partition(efi())
         .and_then(|d| d.add_partition(swap(8)))
         .and_then(|d| d.add_partition(root(LinuxFs::Xfs)))
-        .unwrap_or_default()
+        .unwrap()
         .to_nix_module()
         .render()
 }
@@ -170,7 +170,7 @@ fn f2fs_root() -> String {
         .add_partition(efi())
         .and_then(|d| d.add_partition(swap(4)))
         .and_then(|d| d.add_partition(root(LinuxFs::F2fs)))
-        .unwrap_or_default()
+        .unwrap()
         .to_nix_module()
         .render()
 }
@@ -180,7 +180,7 @@ fn bcachefs_root() -> String {
         .add_partition(efi())
         .and_then(|d| d.add_partition(swap(4)))
         .and_then(|d| d.add_partition(root(LinuxFs::Bcachefs)))
-        .unwrap_or_default()
+        .unwrap()
         .to_nix_module()
         .render()
 }
@@ -244,7 +244,7 @@ fn btrfs_subvolumes() -> String {
                 content: Some(btrfs_subvols_content()),
             })
         })
-        .unwrap_or_default()
+        .unwrap()
         .to_nix_module()
         .render()
 }
@@ -265,7 +265,7 @@ fn btrfs_no_subvols() -> String {
                 })),
             })
         })
-        .unwrap_or_default()
+        .unwrap()
         .to_nix_module()
         .render()
 }
@@ -288,7 +288,7 @@ fn luks_btrfs() -> String {
                 )),
             })
         })
-        .unwrap_or_default()
+        .unwrap()
         .to_nix_module()
         .render()
 }
@@ -310,7 +310,7 @@ fn swap_random_enc() -> String {
             })
         })
         .and_then(|d| d.add_partition(root(LinuxFs::Ext4)))
-        .unwrap_or_default()
+        .unwrap()
         .to_nix_module()
         .render()
 }
@@ -331,7 +331,7 @@ fn swap_discard_once() -> String {
             })
         })
         .and_then(|d| d.add_partition(root(LinuxFs::Ext4)))
-        .unwrap_or_default()
+        .unwrap()
         .to_nix_module()
         .render()
 }
@@ -351,7 +351,7 @@ fn swap_discard_pages() -> String {
             })
         })
         .and_then(|d| d.add_partition(root(LinuxFs::Ext4)))
-        .unwrap_or_default()
+        .unwrap()
         .to_nix_module()
         .render()
 }
@@ -372,7 +372,7 @@ fn swap_priority() -> String {
             })
         })
         .and_then(|d| d.add_partition(root(LinuxFs::Ext4)))
-        .unwrap_or_default()
+        .unwrap()
         .to_nix_module()
         .render()
 }
@@ -391,7 +391,7 @@ fn multi_disk_plain() -> String {
                 content: Some(Content::Filesystem(Fs::linux(LinuxFs::Ext4, "/"))),
             })
         })
-        .unwrap_or_default();
+        .unwrap();
 
     let sdb = DiskLayout::new(SDB, G500)
         .add_partition(PartitionDef {
@@ -400,7 +400,7 @@ fn multi_disk_plain() -> String {
             type_code: None,
             content: Some(Content::Filesystem(Fs::linux(LinuxFs::Ext4, "/home"))),
         })
-        .unwrap_or_default();
+        .unwrap();
 
     layouts_to_nix_module(&[sda, sdb]).render()
 }
@@ -410,7 +410,7 @@ fn multi_disk_luks_root() -> String {
         .add_partition(efi())
         .and_then(|d| d.add_partition(luks_swap(8)))
         .and_then(|d| d.add_partition(luks_root(LinuxFs::Ext4)))
-        .unwrap_or_default();
+        .unwrap();
 
     let sdb = DiskLayout::new(SDB, G500)
         .add_partition(PartitionDef {
@@ -419,7 +419,7 @@ fn multi_disk_luks_root() -> String {
             type_code: None,
             content: Some(Content::Filesystem(Fs::linux(LinuxFs::Xfs, "/home"))),
         })
-        .unwrap_or_default();
+        .unwrap();
 
     layouts_to_nix_module(&[sda, sdb]).render()
 }
