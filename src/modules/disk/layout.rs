@@ -1,6 +1,6 @@
 use super::{
-    fs::{Content, Fs, LinuxFs, LuksContent, SwapContent},
-    size::{GiB, MiB, PartitionSize, Size, SizeUnit},
+    fs::Content,
+    size::{PartitionSize, Size, SizeUnit},
 };
 use crate::modules::nix::{NixExpr, NixModule, ToNix};
 use std::collections::BTreeMap;
@@ -83,106 +83,6 @@ impl DiskLayout {
             partitions: vec![],
             ops: vec![],
         }
-    }
-
-    // ── sample constructors for old style layout buildings
-
-    /// Standard unencrypted GPT layout:
-    /// BIOS-boot (1M) + ESP/vfat (2G, /boot) + optional swap + root/ext4 (remaining)
-    pub fn canonical(device: impl Into<String>, total_bytes: u64, swap: Option<Size<GiB>>) -> Self {
-        let mut l = Self::new(device, total_bytes);
-
-        // TODO: Refactor with add partition...
-        l = l.push(PartitionDef {
-            label: Some("BOOT".into()),
-            size: PartitionSize::Mib(Size::new(1)),
-            type_code: Some("EF02".into()),
-            content: None,
-        });
-        l = l.push(PartitionDef {
-            label: Some("ESP".into()),
-            size: PartitionSize::Gib(Size::new(2)),
-            type_code: Some("EF00".into()),
-            content: Some(Content::Filesystem(Fs::efi("/boot"))),
-        });
-        if let Some(swap_size) = swap {
-            l = l.push(PartitionDef {
-                label: Some("swap".into()),
-                size: PartitionSize::Gib(swap_size),
-                type_code: None,
-                content: Some(Content::Swap(SwapContent {
-                    resume_device: true,
-                    ..Default::default()
-                })),
-            });
-        }
-        l = l.push(PartitionDef {
-            label: Some("root".into()),
-            size: PartitionSize::remaining(),
-            type_code: None,
-            content: Some(Content::Filesystem(Fs::linux(LinuxFs::Ext4, "/"))),
-        });
-
-        l
-    }
-
-    /// LUKS-encrypted GPT layout:
-    /// BIOS-boot (1M) + ESP/vfat (2G, /boot) + optional LUKS swap + LUKS root/ext4 (remaining)
-    pub fn luks_encrypted(
-        device: impl Into<String>,
-        total_bytes: u64,
-        swap: Option<Size<GiB>>,
-        password_file: &str,
-    ) -> Self {
-        let mut l = Self::new(device, total_bytes);
-
-        // TODO: Refactor with add partition...
-
-        l = l.push(PartitionDef {
-            label: Some("BOOT".into()),
-            size: PartitionSize::Mib(Size::new(1)),
-            type_code: Some("EF02".into()),
-            content: None,
-        });
-        l = l.push(PartitionDef {
-            label: Some("ESP".into()),
-            size: PartitionSize::Gib(Size::new(2)),
-            type_code: Some("EF00".into()),
-            content: Some(Content::Filesystem(Fs::efi("/boot"))),
-        });
-        if let Some(swap_size) = swap {
-            l = l.push(PartitionDef {
-                label: Some("SWAP".into()),
-                size: PartitionSize::Gib(swap_size),
-                type_code: None,
-                content: Some(Content::Luks(
-                    LuksContent::new(
-                        "cryptswap",
-                        Some(password_file.into()),
-                        Content::Swap(SwapContent {
-                            resume_device: true,
-                            ..Default::default()
-                        }),
-                    )
-                    .allow_discards(),
-                )),
-            });
-        }
-        l = l.push(PartitionDef {
-            label: Some("luks".into()),
-            size: PartitionSize::remaining(),
-            type_code: None,
-            content: Some(Content::Luks(
-                LuksContent::new(
-                    "crypted",
-                    Some(password_file.into()),
-                    Content::Filesystem(Fs::linux(LinuxFs::Ext4, "/")),
-                )
-                .allow_discards(),
-            )),
-        });
-
-        l
     }
 
     // ── Space accounting ─────────────────────────────────────────────────────
@@ -311,19 +211,6 @@ impl DiskLayout {
         }
         false
     }
-
-    // Append a partition without validation.
-    fn push(self, def: PartitionDef) -> Self {
-        let op = if matches!(def.size, PartitionSize::Percent(100)) {
-            SizeOp::Fill
-        } else {
-            SizeOp::Add(def.size.to_bytes(self.total_bytes))
-        };
-        let mut next = self;
-        next.ops.push(op);
-        next.partitions.push(def);
-        next
-    }
 }
 
 // Multi-disk
@@ -393,7 +280,10 @@ impl ToNix for PartitionDef {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::modules::disk::size::MiB;
+    use crate::modules::disk::{
+        fs::{Fs, LinuxFs},
+        size::{GiB, MiB},
+    };
 
     const GB: u64 = 1024 * 1024 * 1024;
 

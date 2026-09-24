@@ -1,5 +1,5 @@
-use super::fs::{Content, Fs, LuksContent, SwapContent};
-use super::layout::{DiskLayout, PartitionDef, layouts_to_nix_module};
+use super::fs::{Content, Fs, LinuxFs, LuksContent, SwapContent};
+use super::layout::{DiskLayout, LayoutError, PartitionDef, layouts_to_nix_module};
 use super::ops::LUKS_PASSWORD_FILE;
 use super::size::{GiB, PartitionSize, Size as DiskSize};
 use crate::modules::nix::NixModule;
@@ -20,19 +20,91 @@ pub fn disko_from_schema(schema: &PartitionSchema) -> NixModule {
     }
 }
 
-fn disko_from_full_disk(opts: &FullDiskOptions) -> NixModule {
-    let swap = compute_swap(&opts.device);
-    let layout = if opts.encryption {
-        DiskLayout::luks_encrypted(
-            opts.device.clone(),
-            opts.disk_size,
-            swap,
-            LUKS_PASSWORD_FILE,
+/// Build Xeonitte's canonical full-disk layout: BIOS-boot (1M) + ESP/vfat (2G, /boot)
+/// + optional swap + root/ext4 (remaining). Set `encrypted` to wrap swap and root in LUKS.
+pub fn build_full_disk_layout(
+    device: impl Into<String>,
+    total_bytes: u64,
+    swap: Option<DiskSize<GiB>>,
+    encrypted: bool,
+) -> Result<DiskLayout, LayoutError> {
+    let mut layout = DiskLayout::new(device, total_bytes)
+        .add_partition(boot_slot())?
+        .add_partition(esp_slot())?;
+    if let Some(size) = swap {
+        layout = layout.add_partition(swap_slot(size, encrypted))?;
+    }
+    layout.add_partition(root_slot(encrypted))
+}
+
+fn boot_slot() -> PartitionDef {
+    PartitionDef {
+        label: Some("BOOT".into()),
+        size: PartitionSize::Mib(DiskSize::new(1)),
+        type_code: Some("EF02".into()),
+        content: None,
+    }
+}
+
+fn esp_slot() -> PartitionDef {
+    PartitionDef {
+        label: Some("ESP".into()),
+        size: PartitionSize::Gib(DiskSize::new(2)),
+        type_code: Some("EF00".into()),
+        content: Some(Content::Filesystem(Fs::efi("/boot"))),
+    }
+}
+
+fn swap_slot(size: DiskSize<GiB>, encrypted: bool) -> PartitionDef {
+    let swap = Content::Swap(SwapContent {
+        resume_device: true,
+        ..Default::default()
+    });
+    let (label, content) = if encrypted {
+        (
+            "SWAP",
+            Content::Luks(
+                LuksContent::new("cryptswap", Some(LUKS_PASSWORD_FILE.into()), swap)
+                    .allow_discards(),
+            ),
         )
     } else {
-        DiskLayout::canonical(opts.device.clone(), opts.disk_size, swap)
+        ("swap", swap)
     };
-    layout.to_nix_module()
+    PartitionDef {
+        label: Some(label.into()),
+        size: PartitionSize::Gib(size),
+        type_code: None,
+        content: Some(content),
+    }
+}
+
+fn root_slot(encrypted: bool) -> PartitionDef {
+    let root = Content::Filesystem(Fs::linux(LinuxFs::Ext4, "/"));
+    let (label, content) = if encrypted {
+        (
+            "luks",
+            Content::Luks(
+                LuksContent::new("crypted", Some(LUKS_PASSWORD_FILE.into()), root)
+                    .allow_discards(),
+            ),
+        )
+    } else {
+        ("root", root)
+    };
+    PartitionDef {
+        label: Some(label.into()),
+        size: PartitionSize::remaining(),
+        type_code: None,
+        content: Some(content),
+    }
+}
+
+fn disko_from_full_disk(opts: &FullDiskOptions) -> NixModule {
+    let swap = compute_swap(&opts.device);
+    build_full_disk_layout(&opts.device, opts.disk_size, swap, opts.encryption)
+        .unwrap_or_else(|_| DiskLayout::new(&opts.device, opts.disk_size))
+        .to_nix_module()
 }
 
 fn compute_swap(device: &str) -> Option<DiskSize<GiB>> {

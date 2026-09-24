@@ -4,7 +4,8 @@ use std::path::Path;
 
 use xeonitte::modules::disk::{
     BtrfsContent, BtrfsSubvolume, Content, DiscardPolicy, DiskLayout, Fs, LUKS_PASSWORD_FILE,
-    LinuxFs, LuksContent, PartitionDef, PartitionSize, Size, SwapContent, layouts_to_nix_module,
+    LinuxFs, LuksContent, PartitionDef, PartitionSize, Size, SwapContent, build_full_disk_layout,
+    layouts_to_nix_module,
 };
 
 const OUT_DIR: &str = "test-config/generated";
@@ -120,30 +121,34 @@ fn luks_swap(gib: u64) -> PartitionDef {
     }
 }
 
-// (unencrypted)
+// (unencrypted) — routed through production entry point so fixtures match generate.rs
 
 fn canonical_no_swap() -> String {
-    DiskLayout::canonical(SDA, G40, None)
+    build_full_disk_layout(SDA, G40, None, false)
+        .expect("canonical no-swap fixture must fit")
         .to_nix_module()
         .render()
 }
 
 fn canonical_with_swap() -> String {
-    DiskLayout::canonical(SDA, G500, Some(Size::new(8)))
+    build_full_disk_layout(SDA, G500, Some(Size::new(8)), false)
+        .expect("canonical with-swap fixture must fit")
         .to_nix_module()
         .render()
 }
 
-// LUKS encrypted
+// LUKS encrypted — routed through production entry point
 
 fn luks_no_swap() -> String {
-    DiskLayout::luks_encrypted(SDA, G40, None, LUKS_PASSWORD_FILE)
+    build_full_disk_layout(SDA, G40, None, true)
+        .expect("luks no-swap fixture must fit")
         .to_nix_module()
         .render()
 }
 
 fn luks_with_swap() -> String {
-    DiskLayout::luks_encrypted(SDA, G500, Some(Size::new(8)), LUKS_PASSWORD_FILE)
+    build_full_disk_layout(SDA, G500, Some(Size::new(8)), true)
+        .expect("luks with-swap fixture must fit")
         .to_nix_module()
         .render()
 }
