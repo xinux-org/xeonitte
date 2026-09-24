@@ -1,14 +1,22 @@
-{ options, config, lib, pkgs, ... }:
+{
+  options,
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 with lib;
 let
   cfg = config.xeonitte;
-  xeonitte-autostart = pkgs.makeAutostartItem { name = "org.xinux.Xeonitte"; package = pkgs.internal.xeonitte; };
+  xeonitte-autostart = pkgs.makeAutostartItem {
+    name = "org.xinux.Xeonitte";
+    package = pkgs.internal.xeonitte;
+  };
 in
 {
   options.xeonitte = with types; {
-    enable =
-      mkEnableOption "Enable Xeonitte Installer";
+    enable = mkEnableOption "Enable Xeonitte Installer";
     config = mkOption {
       type = path;
       default = "${pkgs.internal.xeonitte}/etc/xeonitte";

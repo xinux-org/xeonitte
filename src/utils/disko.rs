@@ -427,7 +427,7 @@ pub fn luks_encrypted(device: String, password_file: impl Into<String>) -> Devic
     let swap_size = get_swap(&device);
 
     partitions.insert(
-        "BOOT".into(),
+        "BOOT2".into(),
         Partition {
             type_code: Some("EF02".into()),
             size: Some("1M".into()),
@@ -435,7 +435,7 @@ pub fn luks_encrypted(device: String, password_file: impl Into<String>) -> Devic
         },
     );
     partitions.insert(
-        "ESP".into(),
+        "ESP2".into(),
         Partition {
             type_code: Some("EF00".into()),
             size: Some("2G".into()),
@@ -455,7 +455,7 @@ pub fn luks_encrypted(device: String, password_file: impl Into<String>) -> Devic
     // Encrypt swap with the same passphrase as LUKS
     if swap_size.is_some() {
         partitions.insert(
-            "SWAP".into(),
+            "SWAP2".into(),
             Partition {
                 size: swap_size,
                 content: Some(PartitionContent::Luks(Luks {
@@ -492,10 +492,19 @@ pub fn luks_encrypted(device: String, password_file: impl Into<String>) -> Devic
     );
 
     let mut disk = Attrs::new();
+    // TODO. Handle IO/symlink error. Very unlikely to happen
+    let disk_list = lsblk::BlockDevice::list().unwrap();
+    let by_id = disk_list
+        .iter()
+        .find(|d| d.fullname.eq(&device))
+        .and_then(|d| d.id.clone())
+        .map(|id| format!("/dev/disk/by-id/{}", id))
+        .unwrap_or(device);
+
     disk.insert(
-        "main".into(),
+        "main2".into(),
         Disk {
-            device,
+            device: by_id,
             content: Some(DeviceContent::Gpt(Gpt {
                 partitions,
                 ..Default::default()
@@ -512,7 +521,7 @@ pub fn canonical(device: String) -> Devices {
     let swap_size = get_swap(&device);
 
     partitions.insert(
-        "BOOT".into(),
+        "BOOT2".into(),
         Partition {
             type_code: Some("EF02".into()),
             size: Some("1M".into()),
@@ -520,7 +529,7 @@ pub fn canonical(device: String) -> Devices {
         },
     );
     partitions.insert(
-        "ESP".into(),
+        "ESP2".into(),
         Partition {
             type_code: Some("EF00".into()),
             size: Some("2G".into()),
@@ -535,7 +544,7 @@ pub fn canonical(device: String) -> Devices {
     );
     if swap_size.is_some() {
         partitions.insert(
-            "swap".into(),
+            "swap2".into(),
             Partition {
                 size: swap_size,
                 content: Some(PartitionContent::Swap(Swap {
@@ -547,7 +556,7 @@ pub fn canonical(device: String) -> Devices {
         );
     }
     partitions.insert(
-        "root".into(),
+        "root2".into(),
         Partition {
             size: Some("100%".into()),
             content: Some(PartitionContent::Filesystem(Filesystem {
@@ -560,10 +569,19 @@ pub fn canonical(device: String) -> Devices {
     );
 
     let mut disk = Attrs::new();
+    // TODO. Handle IO/symlink error. Very unlikely to happen
+    let disk_list = lsblk::BlockDevice::list().unwrap();
+    let by_id = disk_list
+        .iter()
+        .find(|d| d.fullname.eq(&device))
+        .and_then(|d| d.id.clone())
+        .map(|id| format!("/dev/disk/by-id/{}", id))
+        .unwrap_or(device);
+
     disk.insert(
-        "main".into(),
+        "main2".into(),
         Disk {
-            device,
+            device: by_id,
             content: Some(DeviceContent::Gpt(Gpt {
                 partitions,
                 ..Default::default()
@@ -580,8 +598,7 @@ mod tests {
 
     #[test]
     fn test_add() {
-        let res = canonical("sda1".to_string());
-        let luksed = luks_encrypted("sda1".to_string(), LUKS_PASSWORD_FILE);
+        let luksed = luks_encrypted("/dev/sda".to_string(), LUKS_PASSWORD_FILE);
 
         println!("LUKSED: {:#?}", luksed);
         println!("TEST");

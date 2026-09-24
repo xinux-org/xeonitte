@@ -1,9 +1,9 @@
 pub mod error;
 pub mod install;
+pub mod install_mode;
 pub mod keyboard;
 pub mod list;
 pub mod new_partition_dialog;
-pub mod install_mode;
 pub mod partitions;
 pub mod quitdialog;
 pub mod summary;

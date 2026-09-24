@@ -183,16 +183,20 @@ impl SimpleComponent for TimeZoneModel {
         };
 
         let asyncsender = sender.clone();
-        relm4::spawn(async move {
-            loop {
-                let time = glib::DateTime::now(&glib::TimeZone::utc())
-                    .unwrap()
-                    .format("%H:%M")
-                    .unwrap()
-                    .to_string();
-                asyncsender.input(TimeZoneMsg::SetTime(time));
-                tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-            }
+        sender.command(|_, shutdown_receiver| {
+            shutdown_receiver
+                .register(async move {
+                    loop {
+                        let time = glib::DateTime::now(&glib::TimeZone::utc())
+                            .unwrap()
+                            .format("%H:%M")
+                            .unwrap()
+                            .to_string();
+                        asyncsender.input(TimeZoneMsg::SetTime(time));
+                        tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+                    }
+                })
+                .drop_on_shutdown()
         });
 
         let tzbox = gtk::ListBox::new();

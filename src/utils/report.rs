@@ -1,9 +1,9 @@
 use anyhow::{Context, Result};
-use log::{error, warn};
+use log::warn;
 use report::{JournalMode, ReportBuilder};
 use reqwest::blocking::multipart;
 use std::path::{Path, PathBuf};
-use utils::config::{Config, CONFIG};
+use utils::config::{CONFIG, Config};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ErrorPhase {
@@ -32,8 +32,7 @@ impl std::fmt::Display for ErrorPhase {
     }
 }
 
-// Initialize relago's CONFIG from xeonitte's report.toml
-const REPORT_CONFIG: &str = "/etc/xeonitte/report.toml";
+const REPORT_CONFIG: &str = "/etc/xeonitte/relago/report.toml";
 
 pub fn init() {
     let config = Config::get_config(REPORT_CONFIG).unwrap_or_else(|e| {
@@ -50,14 +49,16 @@ fn relago_config() -> Config {
         tmp_dir: PathBuf::from("/tmp/xeonitte-report"),
         data_dir: PathBuf::from("/tmp/xeonitte-report/data"),
         nix_config: PathBuf::from("/etc/nixos"),
-        server: "https://cocomelon.uz".to_string(),
+        server: "https://relago.support.xinux.uz".to_string(),
         keys: PathBuf::default(),
     }
 }
 
 pub fn generate_report(phase: ErrorPhase, message: &str, log_files: &[&str]) -> Result<String> {
     let tmp_dir = CONFIG.get().tmp_dir.to_string_lossy().into_owned();
-    std::fs::create_dir_all(&tmp_dir).ok().context("Failed to create file for report")?;
+    std::fs::create_dir_all(&tmp_dir)
+        .ok()
+        .context("Failed to create file for report")?;
 
     let mut builder = ReportBuilder::new(&tmp_dir)
         .system_info()
@@ -119,8 +120,7 @@ pub fn upload_report(
 
 pub fn send_report(phase: ErrorPhase, message: &str, log_files: &[&str]) -> Result<String> {
     let path = generate_report(phase, message, log_files).context("Generate report failed")?;
-    if let Err(e) = upload_report(&path, phase, message, log_files) {
-        error!("Failed to upload report from {path}: {e}");
-    }
+    upload_report(&path, phase, message, log_files)
+        .with_context(|| format!("Failed to upload report from {path}"))?;
     Ok(path)
 }

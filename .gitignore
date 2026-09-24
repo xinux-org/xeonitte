@@ -6,5 +6,6 @@
 /src/config.rs
 /target
 result
-TODO
-asd.txt
+*po~
+*.mo
+.pre-commit-config.yaml

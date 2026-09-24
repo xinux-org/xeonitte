@@ -588,23 +588,17 @@ impl SimpleComponent for PartitionModel {
                 if let Some(PartitionSchema::Custom(opts)) = &mut self.schema {
                     // Check if the mountpoint is already in use
                     for part in opts.partitions.values() {
-                        if let Some(partmount) = &part.mountpoint {
-                            if partmount == &mount {
-                                let mut partition_group_guard = self.partition_groups.guard();
-                                for i in 0..partition_group_guard.len() {
-                                    let partition_guard =
-                                        partition_group_guard[i].partitions.guard();
-                                    for j in 0..partition_guard.len() {
-                                        if partition_guard[j].name != name {
-                                            trace!(
-                                                "Deselecting {} {}",
-                                                partition_guard[j].name, mount
-                                            );
-                                            partition_guard.send(
-                                                j,
-                                                PartitionRowMsg::Deselect(mount.to_string()),
-                                            );
-                                        }
+                        if let Some(partmount) = &part.mountpoint
+                            && partmount == &mount
+                        {
+                            let mut partition_group_guard = self.partition_groups.guard();
+                            for i in 0..partition_group_guard.len() {
+                                let partition_guard = partition_group_guard[i].partitions.guard();
+                                for j in 0..partition_guard.len() {
+                                    if partition_guard[j].name != name {
+                                        trace!("Deselecting {} {}", partition_guard[j].name, mount);
+                                        partition_guard
+                                            .send(j, PartitionRowMsg::Deselect(mount.to_string()));
                                     }
                                 }
                             }
@@ -657,13 +651,13 @@ impl SimpleComponent for PartitionModel {
             }
             PartitionMsg::RemoveFormatPartition(name) => {
                 trace!("RemoveFormatPartition");
-                if let Some(PartitionSchema::Custom(opts)) = &mut self.schema {
-                    if let Some(part) = opts.partitions.get_mut(&name) {
-                        if part.mountpoint.is_none() {
-                            opts.partitions.remove(&name);
-                        } else {
-                            part.format = None;
-                        }
+                if let Some(PartitionSchema::Custom(opts)) = &mut self.schema
+                    && let Some(part) = opts.partitions.get_mut(&name)
+                {
+                    if part.mountpoint.is_none() {
+                        opts.partitions.remove(&name);
+                    } else {
+                        part.format = None;
                     }
                 }
                 sender.input(PartitionMsg::CheckSelected);
@@ -671,13 +665,13 @@ impl SimpleComponent for PartitionModel {
             }
             PartitionMsg::RemoveMountPartition(name) => {
                 trace!("RemoveMountPartition");
-                if let Some(PartitionSchema::Custom(opts)) = &mut self.schema {
-                    if let Some(part) = opts.partitions.get_mut(&name) {
-                        if part.format.is_none() {
-                            opts.partitions.remove(&name);
-                        } else {
-                            part.mountpoint = None;
-                        }
+                if let Some(PartitionSchema::Custom(opts)) = &mut self.schema
+                    && let Some(part) = opts.partitions.get_mut(&name)
+                {
+                    if part.format.is_none() {
+                        opts.partitions.remove(&name);
+                    } else {
+                        part.mountpoint = None;
                     }
                 }
                 sender.input(PartitionMsg::CheckSelected);

@@ -3,7 +3,6 @@ use crate::{
     ui::window::AppMsg,
     utils::{parse::parse_branding, report::ErrorPhase},
 };
-use adw::prelude::*;
 use anyhow::Context;
 use gtk::gio;
 use log::{debug, error};
@@ -146,19 +145,31 @@ impl SimpleComponent for InstallModel {
         let progressbar = &model.progressbar;
         let carousel = model.slides.widget();
         let widgets = view_output!();
+
         let pulsesender = sender.clone();
-        relm4::spawn(async move {
-            loop {
-                pulsesender.input(InstallMsg::Pulse);
-                tokio::time::sleep(std::time::Duration::from_millis(10)).await;
-            }
+        sender.command(move |_, shutdown_receiver| {
+            shutdown_receiver
+                .register(async move {
+                    loop {
+                        pulsesender.input(InstallMsg::Pulse);
+                        tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+                    }
+                })
+                .drop_on_shutdown()
         });
-        relm4::spawn(async move {
-            loop {
-                tokio::time::sleep(std::time::Duration::from_secs(12)).await;
-                sender.input(InstallMsg::NextSlide);
-            }
+
+        let slide_sender = sender.clone();
+        sender.command(move |_, shutdown_receiver| {
+            shutdown_receiver
+                .register(async move {
+                    loop {
+                        tokio::time::sleep(std::time::Duration::from_millis(12)).await;
+                        slide_sender.input(InstallMsg::NextSlide);
+                    }
+                })
+                .drop_on_shutdown()
         });
+
         ComponentParts { model, widgets }
     }
 

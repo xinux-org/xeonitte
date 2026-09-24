@@ -1,7 +1,10 @@
 { inputs, config, pkgs, lib, system, ... }:
 {
 
-@BOOTLOADER@
+  @BOOTLOADER@
 
-@PACKAGEMANAGERS@
+  @PACKAGEMANAGERS@
+
+  @DEBUG_MODE_BOOTLOADER@
+
 }
