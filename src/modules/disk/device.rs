@@ -40,7 +40,7 @@ impl Disk {
             let mut parts: Vec<Partition> = all
                 .iter()
                 .filter(|d| d.is_part())
-                .filter(|d| d.disk_name().ok().is_some_and(|parent| parent == disk.name))
+                .filter(|d| d.disk_name().is_ok_and(|parent| parent == disk.name))
                 .map(|d| Partition {
                     name: d.name.clone(),
                     id: d.id.clone(),
