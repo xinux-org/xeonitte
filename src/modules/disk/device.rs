@@ -21,10 +21,7 @@ impl Disk {
     /// Enumerate all physical disks that have a stable by-id entry, grouped
     /// with their partitions. Requires no elevated privileges.
     pub fn list() -> Vec<Disk> {
-        let all = match BlockDevice::list() {
-            Ok(devs) => devs,
-            Err(_) => vec![],
-        };
+        let all = BlockDevice::list().unwrap_or_default();
 
         let mut disks: Vec<Disk> = all
             .iter()
