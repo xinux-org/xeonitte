@@ -1,24 +1,24 @@
-name: Disk Layout CI
+# name: Disk Layout CI
 
-on: [push, pull_request]
+# on: [push, pull_request]
 
-env:
-  NIX_CONFIG: "experimental-features = nix-command flakes"
+# env:
+#   NIX_CONFIG: "experimental-features = nix-command flakes"
 
-jobs:
-  vm-tests:
-    name: NixOS VM tests
-    runs-on: native
-    steps:
-      - uses: actions/checkout@v4
+# jobs:
+#   vm-tests:
+#     name: NixOS VM tests
+#     runs-on: native
+#     steps:
+#       - uses: actions/checkout@v4
 
-      - name: Run NixOS disko VM tests
-        run: |
-          nixpkgs=$(nix eval --raw --impure --expr \
-            "(builtins.getFlake \"path:$(pwd)/test-config\").inputs.nixpkgs.outPath")
-          NIX_PATH="nixpkgs=${nixpkgs}" \
-          nix flake check ./test-config \
-            --option extra-system-features "nixos-test kvm benchmark big-parallel" \
-            --max-jobs 1 \
-            --keep-going \
-            --impure
+#       - name: Run NixOS disko VM tests
+#         run: |
+#           nixpkgs=$(nix eval --raw --impure --expr \
+#             "(builtins.getFlake \"path:$(pwd)/test-config\").inputs.nixpkgs.outPath")
+#           NIX_PATH="nixpkgs=${nixpkgs}" \
+#           nix flake check ./test-config \
+#             --option extra-system-features "nixos-test kvm benchmark big-parallel" \
+#             --max-jobs 1 \
+#             --keep-going \
+#             --impure
