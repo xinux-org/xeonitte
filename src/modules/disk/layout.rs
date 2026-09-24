@@ -7,37 +7,18 @@ use std::collections::BTreeMap;
 
 // ── Error ─────────────────────────────────────────────────────────────────────
 
-#[derive(Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum LayoutError {
     /// New partition exceeds available space.
+    #[error("insufficient space: requested {requested} bytes, {available} bytes available")]
     InsufficientSpace { requested: u64, available: u64 },
     /// A fill-remaining (`Percent(100)`) partition already occupies the tail.
+    #[error("a fill-remaining (100%) partition already exists")]
     FillPartitionExists,
     /// No partition with the given label was found.
+    #[error("partition {0:?} not found")]
     PartitionNotFound(String),
 }
-
-impl std::fmt::Display for LayoutError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            LayoutError::InsufficientSpace {
-                requested,
-                available,
-            } => write!(
-                f,
-                "insufficient space: requested {requested} bytes, {available} bytes available"
-            ),
-            LayoutError::FillPartitionExists => {
-                write!(f, "a fill-remaining (100%) partition already exists")
-            }
-            LayoutError::PartitionNotFound(label) => {
-                write!(f, "partition {label:?} not found")
-            }
-        }
-    }
-}
-
-impl std::error::Error for LayoutError {}
 
 // ── SizeOp ───────────────────────────────────────────────────────────────────
 

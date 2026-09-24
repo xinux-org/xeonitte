@@ -6061,6 +6061,7 @@ dependencies = [
  "simplelog",
  "size",
  "struct-patch",
+ "thiserror 2.0.18",
  "tokio",
  "tracker",
  "utils",
