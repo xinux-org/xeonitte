@@ -3,6 +3,7 @@ use size::Size;
 pub mod config;
 pub mod ui;
 pub mod utils;
+pub mod modules;
 
 pub fn get_memory_size() -> Option<u64> {
     let contents = std::fs::read_to_string("/proc/meminfo").unwrap_or_else(|e| {
