@@ -3,7 +3,6 @@ use crate::{
     ui::window::AppMsg,
     utils::{parse::parse_branding, report::ErrorPhase},
 };
-use adw::prelude::*;
 use anyhow::Context;
 use gtk::gio;
 use log::{debug, error};

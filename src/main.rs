@@ -11,7 +11,13 @@ use xeonitte::{
     ui::window::AppModel,
 };
 
+mod icon_names {
+    pub use shipped::*; // Include all shipped icons by default
+    include!(concat!(env!("OUT_DIR"), "/icon_names.rs"));
+}
+
 fn main() -> Result<()> {
+    relm4_icons::initialize_icons(icon_names::GRESOURCE_BYTES, icon_names::RESOURCE_PREFIX);
     CombinedLogger::init(vec![
         TermLogger::new(
             LevelFilter::Warn,

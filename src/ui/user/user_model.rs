@@ -58,9 +58,9 @@ impl UserModel {
 
         let field = Path::new(field);
         if report.iter().any(|(path, _)| path.eq(&field)) {
-            return &["error"];
+            &["error"]
         } else {
-            return &[];
+            &[]
         }
     }
 }
@@ -283,18 +283,11 @@ impl SimpleComponent for UserModel {
                 sender.input(UserMsg::Update(UserDataPatch {
                     ..Default::default()
                 }));
-                let _ = sender.output(AppMsg::SetCanGoForward(*&self.validation.is_none()));
+                let _ = sender.output(AppMsg::SetCanGoForward(self.validation.is_none()));
             }
             UserMsg::SetConfig(root, showhostname) => {
                 self.showrootpassword = root;
-
-                if self.showrootpassword {
-                    self.data.root_password.replace("".to_string());
-                    self.data.confirm_root_password.replace("".to_string());
-                }
-
                 self.showhostname = showhostname;
-                self.dirty = true;
             }
             UserMsg::Update(patch) => {
                 self.data.apply(patch.clone());
@@ -304,8 +297,8 @@ impl SimpleComponent for UserModel {
                     self.username_row.set_text(&self.data.username);
                 }
 
+                // Validate the inputs, needed to define if the page can be moved to next one or not
                 self.validation = self.data.validate().map_or_else(Some, |_| None);
-
                 self.dirty = self.validation.is_some();
 
                 if self.validation.is_none() {

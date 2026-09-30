@@ -185,7 +185,7 @@ impl FactoryComponent for PartitionGroup {
                         gtk::DropDown {
                             set_valign: gtk::Align::Center,
                             set_model: Some(&gtk::StringList::new(&["TiB", "GiB", "MiB", "KiB"])),
-                            connect_selected_item_notify[sender, x = self.new_partition_size.clone().bytes()] => move |row| {
+                            connect_selected_item_notify[sender] => move |row| {
                                 let t = match row.selected() {
                                     0 => SizeType::TB,
                                     1 => SizeType::GB,

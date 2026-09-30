@@ -1,5 +1,6 @@
-use super::parse::{Choice, ConfigType};
+use super::parse::ConfigType;
 use super::report::ErrorPhase;
+use crate::utils::flow::Choice;
 use crate::utils::make_config::{MakeConfig, makeconfig};
 use crate::{
     config::{LIBEXECDIR, SYSCONFDIR, TMPDIR},

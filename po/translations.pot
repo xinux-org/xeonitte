@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-29 20:38+0500\n"
+"POT-Creation-Date: 2026-09-22 12:56+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,306 +17,356 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: data/org.xinux.Xeonitte.desktop.in.in:2
-msgid "Install Xinux"
-msgstr ""
-
-#: data/org.xinux.Xeonitte.desktop.in.in:3
-msgid "Install"
-msgstr ""
-
-#: data/org.xinux.Xeonitte.desktop.in.in:9
-msgid "Installer;Xeonitte;"
-msgstr ""
-
-#: data/org.xinux.Xeonitte.metainfo.xml.in.in:6 src/main.rs:32
+#: src/main.rs:32
 msgid "Xeonitte Installer"
 msgstr ""
 
-#: data/org.xinux.Xeonitte.metainfo.xml.in.in:7
-#: data/org.xinux.Xeonitte.metainfo.xml.in.in:9
-msgid "A graphical installer for NixOS based distributions."
-msgstr ""
-
-#: data/org.xinux.Xeonitte.policy.in.in:8
-msgid "Give Xeonitte Installer root access"
-msgstr ""
-
-#: data/org.xinux.Xeonitte.policy.in.in:9
-msgid "Authentication is required to install operating system"
-msgstr ""
-
-#: src/ui/pages/error.rs:55
+#: src/ui/error/error_model.rs:55
 msgid "Installation Failed!"
 msgstr ""
 
-#: src/ui/pages/error.rs:86
+#: src/ui/error/error_model.rs:86
 msgid "Upload Report"
 msgstr ""
 
-#: src/ui/pages/error.rs:104
+#: src/ui/error/error_model.rs:104
 msgid "Open Report"
 msgstr ""
 
-#: src/ui/pages/keyboard.rs:53
+#: src/ui/keyboard/keyboard_model.rs:55
 msgid "Keyboard Layout"
 msgstr ""
 
-#: src/ui/pages/keyboard.rs:61
+#: src/ui/keyboard/keyboard_model.rs:63
 msgid "Test the Keyboard Layout"
 msgstr ""
 
-#: src/ui/pages/keyboard.rs:99 src/ui/pages/timezone.rs:91
-#: src/ui/pages/welcome.rs:101
+#: src/ui/keyboard/keyboard_model.rs:101 src/ui/timezone/timezone_model.rs:92
+#: src/ui/welcome/welcome_model.rs:102
 msgid "Show less"
 msgstr ""
 
-#: src/ui/pages/keyboard.rs:99 src/ui/pages/timezone.rs:91
-#: src/ui/pages/welcome.rs:101
+#: src/ui/keyboard/keyboard_model.rs:101 src/ui/timezone/timezone_model.rs:92
+#: src/ui/welcome/welcome_model.rs:102
 msgid "Show all"
 msgstr ""
 
-#: src/ui/pages/list.rs:66
+#: src/ui/list/list_model.rs:66
 msgid "Clear"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:121
-msgid "Select a disk"
-msgstr ""
-
-#: src/ui/pages/partitions.rs:126
-msgid "Disk will be formatted and all data will be lost"
-msgstr ""
-
-#: src/ui/pages/partitions.rs:144
-msgid "Advanced"
-msgstr ""
-
-#: src/ui/pages/partitions.rs:159 src/ui/pages/partitions.rs:264
-msgid "Refresh"
-msgstr ""
-
-#: src/ui/pages/partitions.rs:169
-msgid "Select partitions"
-msgstr ""
-
-#: src/ui/pages/partitions.rs:216
-msgid "Ready to install!"
-msgstr ""
-
-#: src/ui/pages/partitions.rs:218
-msgid "Missing <tt>/boot</tt> partition"
-msgstr ""
-
-#: src/ui/pages/partitions.rs:220 src/ui/pages/partitions.rs:228
-msgid "Missing <tt>/</tt> partition"
-msgstr ""
-
-#: src/ui/pages/partitions.rs:222 src/ui/pages/partitions.rs:226
-msgid "Missing <tt>/</tt> and <tt>/boot</tt> partitions"
-msgstr ""
-
-#: src/ui/pages/partitions.rs:249
-msgid "Basic"
-msgstr ""
-
-#: src/ui/pages/partitions.rs:887
-msgid "Format"
-msgstr ""
-
-#: src/ui/pages/partitions.rs:908 src/ui/pages/partitions.rs:952
-msgid "Mount"
-msgstr ""
-
-#: src/ui/pages/partitions.rs:939 src/ui/pages/partitions.rs:1080
-msgid "Custom mount point"
-msgstr ""
-
-#: src/ui/pages/partitions.rs:962
-msgid "Encrypt"
-msgstr ""
-
-#: src/ui/pages/partitions.rs:964
-msgid "Encrypt this partition with LUKS"
-msgstr ""
-
-#: src/ui/pages/partitions.rs:980
-msgid "Delete"
-msgstr ""
-
-#: src/ui/pages/partitions.rs:995 src/ui/pages/summary.rs:321
-msgid "Do not mount"
-msgstr ""
-
-#: src/ui/pages/partitions.rs:1008
-msgid "Leave as is"
-msgstr ""
-
-#: src/ui/pages/partitions.rs:1075
-msgid "Mount point exists"
-msgstr ""
-
-#: src/ui/pages/partitions.rs:1173
-msgid "Total"
-msgstr ""
-
-#: src/ui/pages/partitions.rs:1187
-msgid "Free"
-msgstr ""
-
-#: src/ui/pages/partitions.rs:1239
-msgid "Free space"
-msgstr ""
-
-#: src/ui/pages/partitions.rs:1258
-msgid "Enter the new partition size"
-msgstr ""
-
-#: src/ui/pages/partitions.rs:1560
-msgid "Encryption"
-msgstr ""
-
-#: src/ui/pages/partitions.rs:1565
-msgid "Enable Disk Encryption"
-msgstr ""
-
-#: src/ui/pages/partitions.rs:1567
-msgid "Encrypt your disk with LUKS"
-msgstr ""
-
-#: src/ui/pages/partitions.rs:1576
-msgid "Encryption Password"
-msgstr ""
-
-#: src/ui/pages/partitions.rs:1585 src/ui/pages/user.rs:118
-msgid "Confirm Password"
-msgstr ""
-
-#: src/ui/pages/partitions.rs:1596
-msgid "Passwords do not match"
-msgstr ""
-
-#: src/ui/pages/partitions.rs:1603
-msgid "Password is required"
-msgstr ""
-
-#: src/ui/pages/partitions.rs:1665
+#: src/ui/partitions/hibernation.rs:24
 msgid "Hibernation"
 msgstr ""
 
-#: src/ui/pages/partitions.rs:1668
+#: src/ui/partitions/hibernation.rs:27
 msgid "Enable Hibernation"
 msgstr ""
 
-#: src/ui/pages/summary.rs:58
-msgid "Summary"
+#: src/ui/partitions/luks_password.rs:29
+msgid "Encryption"
 msgstr ""
 
-#: src/ui/pages/summary.rs:63
-msgid "Language"
+#: src/ui/partitions/luks_password.rs:34
+msgid "Enable Disk Encryption"
 msgstr ""
 
-#: src/ui/pages/summary.rs:74
-msgid "Keyboard"
+#: src/ui/partitions/luks_password.rs:36
+msgid "Encrypt your disk with LUKS"
 msgstr ""
 
-#: src/ui/pages/summary.rs:85 src/ui/pages/timezone.rs:53
-msgid "Timezone"
+#: src/ui/partitions/luks_password.rs:45
+msgid "Encryption Password"
 msgstr ""
 
-#: src/ui/pages/summary.rs:97 src/ui/pages/summary.rs:115
-#: src/ui/pages/summary.rs:121
-msgid "Partitions"
+#: src/ui/partitions/luks_password.rs:54 src/ui/user/user_model.rs:166
+msgid "Confirm Password"
 msgstr ""
 
-#: src/ui/pages/summary.rs:103
-msgid "Full Disk"
+#: src/ui/partitions/luks_password.rs:65
+msgid "Passwords do not match"
 msgstr ""
 
-#: src/ui/pages/summary.rs:106
-msgid "Entire disk will be formatted"
+#: src/ui/partitions/luks_password.rs:72
+msgid "Password is required"
 msgstr ""
 
-#: src/ui/pages/summary.rs:131
-msgid "User"
+#: src/ui/partitions/partition.rs:53
+msgid "Format"
 msgstr ""
 
-#: src/ui/pages/summary.rs:135 src/ui/pages/user.rs:70
-msgid "Name"
+#: src/ui/partitions/partition.rs:72 src/ui/partitions/partition.rs:91
+msgid "Mount"
 msgstr ""
 
-#: src/ui/pages/summary.rs:153 src/ui/pages/user.rs:78
-msgid "Username"
+#: src/ui/partitions/partition.rs:100
+msgid "Encrypt"
 msgstr ""
 
-#: src/ui/pages/summary.rs:171 src/ui/pages/user.rs:148
-msgid "Hostname"
+#: src/ui/partitions/partition.rs:102
+msgid "Encrypt this partition with LUKS"
 msgstr ""
 
-#: src/ui/pages/summary.rs:314
+#: src/ui/partitions/partition.rs:117
+msgid "Delete"
+msgstr ""
+
+#: src/ui/partitions/partition.rs:139 src/ui/summary/summary_factory.rs:41
+msgid "Do not mount"
+msgstr ""
+
+#: src/ui/partitions/partition.rs:140
+msgid "Leave as is"
+msgstr ""
+
+#: src/ui/partitions/partition_group.rs:79
+msgid "Total"
+msgstr ""
+
+#: src/ui/partitions/partition_group.rs:93
+msgid "Free"
+msgstr ""
+
+#: src/ui/partitions/partition_group.rs:145
+msgid "Free space"
+msgstr ""
+
+#: src/ui/partitions/partition_group.rs:164
+msgid "Enter the new partition size"
+msgstr ""
+
+#: src/ui/partitions/partition_model.rs:117
+msgid "Select a disk"
+msgstr ""
+
+#: src/ui/partitions/partition_model.rs:122
+msgid "Disk will be formatted and all data will be lost"
+msgstr ""
+
+#: src/ui/partitions/partition_model.rs:140
+msgid "Advanced"
+msgstr ""
+
+#: src/ui/partitions/partition_model.rs:155
+#: src/ui/partitions/partition_model.rs:260
+msgid "Refresh"
+msgstr ""
+
+#: src/ui/partitions/partition_model.rs:165
+msgid "Select partitions"
+msgstr ""
+
+#: src/ui/partitions/partition_model.rs:212
+msgid "Ready to install!"
+msgstr ""
+
+#: src/ui/partitions/partition_model.rs:214
+msgid "Missing <tt>/boot</tt> partition"
+msgstr ""
+
+#: src/ui/partitions/partition_model.rs:216
+#: src/ui/partitions/partition_model.rs:224
+msgid "Missing <tt>/</tt> partition"
+msgstr ""
+
+#: src/ui/partitions/partition_model.rs:218
+#: src/ui/partitions/partition_model.rs:222
+msgid "Missing <tt>/</tt> and <tt>/boot</tt> partitions"
+msgstr ""
+
+#: src/ui/partitions/partition_model.rs:245
+msgid "Basic"
+msgstr ""
+
+#: src/ui/summary/summary_factory.rs:34
 msgid "Mountpoint:"
 msgstr ""
 
-#: src/ui/pages/summary.rs:334
+#: src/ui/summary/summary_factory.rs:54
 msgid "Format:"
 msgstr ""
 
-#: src/ui/pages/summary.rs:341
+#: src/ui/summary/summary_factory.rs:61
 msgid "Do not format"
 msgstr ""
 
-#: src/ui/pages/user.rs:62
+#: src/ui/summary/summary_model.rs:59
+msgid "Summary"
+msgstr ""
+
+#: src/ui/summary/summary_model.rs:64
+msgid "Language"
+msgstr ""
+
+#: src/ui/summary/summary_model.rs:75
+msgid "Keyboard"
+msgstr ""
+
+#: src/ui/summary/summary_model.rs:86 src/ui/timezone/timezone_model.rs:54
+msgid "Timezone"
+msgstr ""
+
+#: src/ui/summary/summary_model.rs:98 src/ui/summary/summary_model.rs:116
+#: src/ui/summary/summary_model.rs:122
+msgid "Partitions"
+msgstr ""
+
+#: src/ui/summary/summary_model.rs:104
+msgid "Full Disk"
+msgstr ""
+
+#: src/ui/summary/summary_model.rs:107
+msgid "Entire disk will be formatted"
+msgstr ""
+
+#: src/ui/summary/summary_model.rs:132
+msgid "User"
+msgstr ""
+
+#: src/ui/summary/summary_model.rs:136 src/ui/user/user_model.rs:112
+msgid "Name"
+msgstr ""
+
+#: src/ui/summary/summary_model.rs:154 src/ui/user/user_model.rs:122
+msgid "Username"
+msgstr ""
+
+#: src/ui/summary/summary_model.rs:172 src/ui/user/user_model.rs:198
+msgid "Hostname"
+msgstr ""
+
+#: src/ui/user/user_model.rs:104
 msgid "Create a new user"
 msgstr ""
 
-#: src/ui/pages/user.rs:110
+#: src/ui/user/user_model.rs:156
 msgid "Password"
 msgstr ""
 
-#: src/ui/pages/user.rs:125
+#: src/ui/user/user_model.rs:175
 msgid "Log in automatically"
 msgstr ""
 
-#: src/ui/pages/user.rs:173
+#: src/ui/user/user_model.rs:226
 msgid "Root password"
 msgstr ""
 
-#: src/ui/pages/user.rs:181
+#: src/ui/user/user_model.rs:236
 msgid "Confirm root password"
 msgstr ""
 
-#: src/ui/pages/welcome.rs:43
+#: src/ui/welcome/welcome_model.rs:44
 msgid "Welcome!"
 msgstr ""
 
-#: src/ui/pages/welcome.rs:48
+#: src/ui/welcome/welcome_model.rs:49
 msgid "Choose a language"
 msgstr ""
 
-#: src/ui/window.rs:217
+#: src/ui/quitdialog.rs:21
+msgid "Quit Installation"
+msgstr ""
+
+#: src/ui/quitdialog.rs:23
+msgid ""
+"Quitting while the installation is in progress may leave your system in an "
+"unbootable state!"
+msgstr ""
+
+#: src/ui/quitdialog.rs:24 src/ui/quitdialog.rs:27
+msgid "Cancel"
+msgstr ""
+
+#: src/ui/quitdialog.rs:25 src/ui/quitdialog.rs:29
+msgid "Quit"
+msgstr ""
+
+#: src/ui/window.rs:201
 msgid "Installing…"
 msgstr ""
 
-#: src/ui/window.rs:223
+#: src/ui/window.rs:207
 msgid "Installation Finished"
 msgstr ""
 
-#: src/ui/window.rs:229
+#: src/ui/window.rs:213
 msgid "Installation Failed"
 msgstr ""
 
-#: src/ui/window.rs:340
+#: src/ui/window.rs:306
 msgid "Finished!"
 msgstr ""
 
-#: src/ui/window.rs:353
+#: src/ui/window.rs:319
 msgid "Reboot"
 msgstr ""
 
-#: src/ui/window.rs:369
+#: src/ui/window.rs:335
 msgid "No Internet"
 msgstr ""
 
-#: src/ui/window.rs:370
+#: src/ui/window.rs:336
 msgid "Please connect to the Internet to continue"
+msgstr ""
+
+#: src/utils/flow.rs:61
+msgid "Extra Options"
+msgstr ""
+
+#: src/utils/flow.rs:65
+msgid "Flatpak"
+msgstr ""
+
+#: src/utils/flow.rs:66
+msgid "Enable Flatpak support"
+msgstr ""
+
+#: src/utils/flow.rs:72
+msgid "AppImage"
+msgstr ""
+
+#: src/utils/flow.rs:74
+msgid ""
+"Enable AppImage support by installing the \"appimage-run\" package. For "
+"AppImages to work, you must run them with the \"appimage-run\" command."
+msgstr ""
+
+#: src/utils/flow.rs:81
+msgid "Minimal"
+msgstr ""
+
+#: src/utils/flow.rs:82
+msgid "Install minimal Xinux without GNOME core apps"
+msgstr ""
+
+#: src/utils/flow.rs:96
+msgid "LTS"
+msgstr ""
+
+#: src/utils/flow.rs:97
+msgid "Install the latest LTS kernel"
+msgstr ""
+
+#: src/utils/flow.rs:103
+msgid "Latest"
+msgstr ""
+
+#: src/utils/flow.rs:104
+msgid "Install the latest kernel"
+msgstr ""
+
+#: src/utils/flow.rs:110
+msgid "Libre"
+msgstr ""
+
+#: src/utils/flow.rs:111
+msgid "Install the libre kernel"
+msgstr ""
+
+#: src/utils/flow.rs:117
+msgid "Zen"
+msgstr ""
+
+#: src/utils/flow.rs:118
+msgid "Install the Zen kernel"
 msgstr ""

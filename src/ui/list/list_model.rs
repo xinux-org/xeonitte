@@ -1,4 +1,4 @@
-use crate::{ui::window::AppMsg, utils::parse::Choice};
+use crate::{ui::window::AppMsg, utils::flow::Choice};
 use adw::prelude::*;
 use gettextrs::gettext;
 use relm4::{factory::*, *};
@@ -85,8 +85,7 @@ impl SimpleComponent for ListModel {
         let choices: Vec<(String, Choice)> = init
             .choices
             .into_iter()
-            .map(|m| m.into_iter())
-            .flatten()
+            .flat_map(|m| m.into_iter())
             .collect();
 
         let selected = choices
@@ -121,7 +120,7 @@ impl SimpleComponent for ListModel {
         for (key, choice) in &model.choices {
             let item = ListItem {
                 title: key.to_string(),
-                description: choice.description.clone().unwrap_or_default(),
+                description: choice.description.clone(),
                 group: model.group.clone(),
                 locale: model.locale.clone(),
                 tracker: 0,

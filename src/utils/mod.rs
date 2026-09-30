@@ -1,10 +1,11 @@
 pub mod disko;
+pub mod flow;
 pub mod i18n;
 pub mod install;
 pub mod language;
+pub mod make_config;
 pub mod parse;
 pub mod report;
-pub mod make_config;
 
 use size::Size;
 
