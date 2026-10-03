@@ -4,9 +4,13 @@ use crate::{
     utils::{parse::parse_branding, report::ErrorPhase},
 };
 use anyhow::Context;
-use gtk::gio;
 use log::{debug, error};
-use relm4::{factory::*, *};
+use relm4::{
+    ComponentParts, ComponentSender, MessageBroker, RelmWidgetExt, SimpleComponent,
+    adw::{self},
+    factory::*,
+    gtk::{self, gio, glib},
+};
 use std::{fs::File, process::Command};
 use vte::{self, TerminalExt, TerminalExtManual};
 
@@ -152,7 +156,7 @@ impl SimpleComponent for InstallModel {
                 .register(async move {
                     loop {
                         pulsesender.input(InstallMsg::Pulse);
-                        tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+                        tokio::time::sleep(std::time::Duration::from_millis(20)).await;
                     }
                 })
                 .drop_on_shutdown()
@@ -163,7 +167,7 @@ impl SimpleComponent for InstallModel {
             shutdown_receiver
                 .register(async move {
                     loop {
-                        tokio::time::sleep(std::time::Duration::from_millis(12)).await;
+                        tokio::time::sleep(std::time::Duration::from_secs(10)).await;
                         slide_sender.input(InstallMsg::NextSlide);
                     }
                 })
