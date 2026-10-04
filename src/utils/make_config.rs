@@ -104,10 +104,14 @@ fn iterwrite(makeconfig: &MakeConfig, path: &str, efi: bool, arch: &str) -> Resu
                     );
                 }
                 // Installer can rewrite bootloader on release profile by default
-                if !cfg!(debug_assertions) {
+                else {
                     config = config.replace("@DEBUG_MODE_BOOTLOADER@", "");
                 }
             } else {
+                // Find better way to debug in both biosboot and efiboot without deleting
+                // boot order on development mode
+                config = config.replace("@DEBUG_MODE_BOOTLOADER@", "");
+
                 config = config.replace(
                     "@BOOTLOADER@",
                     &format!(
