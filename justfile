@@ -35,7 +35,7 @@ run: install
 clean:
     cargo clean
     rm -rf {{ builddir }} \
-    rm -rf ~/.local/etc/xeonitte \
+    ~/.local/etc/xeonitte \
     ~/.local/bin/{{ bin }}
 
 # Watch for changes and rebuild
