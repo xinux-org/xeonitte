@@ -86,6 +86,7 @@ fn iterwrite(makeconfig: &MakeConfig, path: &str, efi: bool, arch: &str) -> Resu
         } else if file.file_name().to_string_lossy().ends_with(".nix") {
             let mut config = fs::read_to_string(file.path())?;
             config = config.replace("@NVIDIAOFFLOAD@", "");
+            config = config.replace("@PACKAGEMANAGERS@", "");
             config = config.replace("@ARCH@", &format!("{}-linux", arch));
             config = config.replace("@DISKO@", &makeconfig.disko);
 
