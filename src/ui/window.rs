@@ -133,7 +133,7 @@ impl AppMsg {
 
 #[derive(Debug)]
 pub enum AppAsyncMsg {
-    SetPage(StackPage),
+    SetPage(StackPage, Flow),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -417,8 +417,10 @@ impl Component for AppModel {
                     }
                     tokio::time::sleep(std::time::Duration::from_secs(1)).await;
                 }
-                AppAsyncMsg::SetPage(StackPage::Carousel)
+                AppAsyncMsg::SetPage(StackPage::Carousel, Flow::Init)
             });
+        } else {
+            sender.input(AppMsg::SetStackPageConfig(StackPage::Carousel, Flow::Init));
         }
 
         let model = AppModel {
@@ -452,7 +454,6 @@ impl Component for AppModel {
             tracker: 0,
         };
 
-        sender.input(AppMsg::SetStackPageConfig(StackPage::Carousel, Flow::Init));
         let main_carousel = &model.carousel;
 
         let installpage = model.install.widget().clone();
@@ -739,11 +740,13 @@ impl Component for AppModel {
     fn update_cmd(
         &mut self,
         msg: Self::CommandOutput,
-        _sender: ComponentSender<Self>,
+        sender: ComponentSender<Self>,
         _root: &Self::Root,
     ) {
         match msg {
-            AppAsyncMsg::SetPage(page) => self.page = page,
+            AppAsyncMsg::SetPage(page, flow) => {
+                sender.input(AppMsg::SetStackPageConfig(page, flow));
+            }
         }
     }
 }
