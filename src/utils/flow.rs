@@ -59,7 +59,7 @@ impl Flow {
                     multiple: true,
                     required: false,
                     title: gettext("Extra Options"),
-                    id: ListId::PackageManager,
+                    id: ListId::PackageManagers,
                     choices: vec![
                         Choice {
                             name: gettext("Flatpak"),
@@ -161,12 +161,16 @@ pub enum Step {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ListId {
-    PackageManager,
+    PackageManagers,
     Kernel,
 }
 impl From<ListId> for String {
     fn from(value: ListId) -> Self {
-        format!("{value:?}")
+        match value {
+            ListId::Kernel => "KERNEL",
+            ListId::PackageManagers => "PACKAGEMANAGERS",
+        }
+        .into()
     }
 }
 
