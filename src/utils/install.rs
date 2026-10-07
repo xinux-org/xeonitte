@@ -304,19 +304,20 @@ impl Worker for InstallAsyncModel {
                             disko --mode destroy,format,mount {disko_path} --yes-wipe-all-disks; \
                             disko_rc=$?; shred -u -z -n 0 {key}; \
                             [ \"$disko_rc\" -eq 0 ] && nix flake lock {flake_url} && \
-                            mkdir -p /mnt/etc/nixos && \
-                            cp -rT {flake_url} /mnt/etc/nixos && \
-                            nixos-install --no-root-passwd --no-channel-copy --root /mnt --option build-dir /nix/var/nix/builds/xeonitte --flake {flake_attr}",
+                            mkdir -p {flake_url} && \
+                            nixos-install --no-root-passwd --no-channel-copy --root {tmpdir} --option build-dir {tmpdir} --flake {flake_attr}",
                             key = LUKS_PASSWORD_FILE,
+                            tmpdir = TMPDIR
                         )
+                        // removed: cp -rT {flake_url} {tmpdir}/etc/nixos && \
                     } else {
                         format!(
                             "swapoff -a || true; \
                             disko --mode destroy,format,mount {disko_path} --yes-wipe-all-disks --debug && \
                             nix flake lock {flake_url} && \
-                            mkdir -p /mnt/etc/nixos && \
-                            cp -rT {flake_url} /mnt/etc/nixos && \
-                            nixos-install --no-root-passwd --no-channel-copy --root /mnt --option build-dir /nix/var/nix/builds/xeonitte --flake {flake_attr}",
+                            mkdir -p {flake_url} && \
+                            nixos-install --no-root-passwd --no-channel-copy --root {tmpdir} --option build-dir {tmpdir} --flake {flake_attr}",
+                            tmpdir = TMPDIR
                         )
                     };
                     INSTALL_BROKER.send(InstallMsg::Install(vec![
@@ -419,7 +420,7 @@ impl Worker for InstallAsyncModel {
                     "pkexec".to_string(),
                     "nixos-enter".to_string(),
                     "--root".to_string(),
-                    "/mnt".to_string(),
+                    TMPDIR.to_string(),
                     "-c".to_string(),
                     active,
                 ]));
@@ -448,7 +449,7 @@ fn init_libreoffice_config(username: String) -> Result<()> {
         .arg("-p")
         .arg(format!(
             "{}/home/{}/.config/libreoffice/4/user/uno_packages/cache",
-            "/mnt", username
+            TMPDIR, username
         ))
         .output()?;
 
@@ -457,7 +458,7 @@ fn init_libreoffice_config(username: String) -> Result<()> {
         .arg("-p")
         .arg(format!(
             "{}/home/{}/.config/libreoffice/4/user/",
-            "/mnt", username
+            TMPDIR, username
         ))
         .output()?;
 
@@ -468,7 +469,7 @@ fn init_libreoffice_config(username: String) -> Result<()> {
         .arg(format!("{}/xeonitte/configcopy/uno_packages", SYSCONFDIR))
         .arg(format!(
             "{}/home/{}/.config/libreoffice/4/user/uno_packages/cache/",
-            "/mnt", username
+            TMPDIR, username
         ))
         .output()?;
 
@@ -476,7 +477,7 @@ fn init_libreoffice_config(username: String) -> Result<()> {
         .arg("rm")
         .arg(format!(
             "{}/home/{}/.config/libreoffice/4/user/registrymodifications.xcu",
-            "/mnt", username
+            TMPDIR, username
         ))
         .output()?;
 
@@ -489,7 +490,7 @@ fn init_libreoffice_config(username: String) -> Result<()> {
         ))
         .arg(format!(
             "{}/home/{}/.config/libreoffice/4/user/",
-            "/mnt", username
+            TMPDIR, username
         ))
         .output()?;
     Ok(())
@@ -532,7 +533,7 @@ fn setuserpasswd(username: Option<String>, password: Option<String>) -> Result<(
     let mut passwdcmd = Command::new("pkexec")
         .arg("nixos-enter")
         .arg("--root")
-        .arg("/mnt")
+        .arg(TMPDIR)
         .arg("-c")
         .arg("chpasswd -c SHA512")
         .stdin(Stdio::piped())
