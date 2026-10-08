@@ -44,7 +44,7 @@ stdenv.mkDerivation {
 
   cargoDeps = rustPlatform.fetchCargoVendor {
     src = ../..;
-    hash = "sha256-FhKXHrN9547It9fZXMU63Vi5vjKIREB3MD2j3SgHS1Q=";
+    hash = "sha256-T7OcrvGfhq3sDXjHFLGqOSzigEOWYBk2RZhKzJmKLLw=";
   };
 
   nativeBuildInputs = [

@@ -1,7 +1,7 @@
 use crate::{
     config::SYSCONFDIR,
     ui::window::AppMsg,
-    utils::{parse::parse_branding, report::ErrorPhase},
+    utils::{branding::get_slides, report::ErrorPhase},
 };
 use anyhow::Context;
 use log::{debug, error};
@@ -128,22 +128,22 @@ impl SimpleComponent for InstallModel {
             locale: None,
         };
 
-        if let Ok(brandingconfig) = parse_branding(&branding) {
-            let mut slides_guard = model.slides.guard();
-            for slide in brandingconfig.slides {
-                slides_guard.push_back(InstallSlide {
-                    title: slide.title,
-                    subtitle: slide.subtitle,
-                    image: format!(
-                        "{}/xeonitte/branding/{}/{}",
-                        SYSCONFDIR, branding, slide.image
-                    ),
-                    locale: model.locale.clone(),
-                    tracker: 0,
-                });
-            }
-            slides_guard.drop();
+        let mut slides_guard = model.slides.guard();
+
+        for slide in get_slides() {
+            slides_guard.push_back(InstallSlide {
+                title: gettext(slide.title),
+                subtitle: gettext(slide.subtitle),
+                image: format!(
+                    "{}/xeonitte/branding/{}/{}",
+                    SYSCONFDIR, branding, slide.image
+                ),
+                locale: model.locale.clone(),
+                tracker: 0,
+            });
         }
+
+        drop(slides_guard);
 
         let terminal = &model.terminal;
         let progressbar = &model.progressbar;
