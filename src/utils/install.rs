@@ -1,5 +1,6 @@
 use super::parse::ConfigType;
 use super::report::ErrorPhase;
+use crate::ui::install::install_model::ProgressState::{self};
 use crate::utils::flow::Choice;
 use crate::utils::make_config::{MakeConfig, makeconfig};
 use crate::{
@@ -250,6 +251,7 @@ impl Worker for InstallAsyncModel {
                 INSTALL_BROKER.send(InstallMsg::ProgressbarTitle(
                     "Step 4: Install Xinux".to_string(),
                 ));
+                INSTALL_BROKER.send(InstallMsg::ProgressBarState(ProgressState::Start));
                 if let Some(hostname) = user.as_ref().as_ref().map(|u| u.hostname.clone()) {
                     let flake_url = format!("{}/etc/nixos", TMPDIR);
                     // --flake <flake-url>#<flake-attr>
@@ -260,6 +262,7 @@ impl Worker for InstallAsyncModel {
                         TMPDIR, arch, hostname
                     );
 
+                    INSTALL_BROKER.send(InstallMsg::ProgressBarState(ProgressState::Setup));
                     let luks_passphrase =
                         partitions
                             .as_ref()
@@ -297,6 +300,7 @@ impl Worker for InstallAsyncModel {
                         }
                     }
 
+                    INSTALL_BROKER.send(InstallMsg::ProgressBarState(ProgressState::Disko));
                     // TODO: make better way to write this shell command
                     let cmd = if luks_passphrase.is_some() {
                         format!(
@@ -320,6 +324,7 @@ impl Worker for InstallAsyncModel {
                             tmpdir = TMPDIR
                         )
                     };
+                    INSTALL_BROKER.send(InstallMsg::ProgressBarState(ProgressState::Installation));
                     INSTALL_BROKER.send(InstallMsg::Install(vec![
                         "/usr/bin/env".to_string(),
                         "pkexec".to_string(),
@@ -338,6 +343,7 @@ impl Worker for InstallAsyncModel {
                     "Step 5: Set user passwords".to_string(),
                 ));
 
+                INSTALL_BROKER.send(InstallMsg::ProgressBarState(ProgressState::Properation));
                 if let Err(e) = setuserpasswd(self.username.clone(), self.password.clone()) {
                     sender.output(AppMsg::error(
                         ErrorPhase::PostInstall,
@@ -424,6 +430,7 @@ impl Worker for InstallAsyncModel {
                     "-c".to_string(),
                     active,
                 ]));
+                INSTALL_BROKER.send(InstallMsg::ProgressBarState(ProgressState::Finish))
             }
         }
     }

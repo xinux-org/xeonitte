@@ -6,7 +6,7 @@ use crate::{
 use anyhow::Context;
 use log::{debug, error};
 use relm4::{
-    ComponentParts, ComponentSender, MessageBroker, RelmWidgetExt, SimpleComponent,
+    ComponentParts, ComponentSender, MessageBroker, RelmWidgetExt, SharedState, SimpleComponent,
     adw::{self},
     factory::*,
     gtk::{self, gio, glib},
@@ -36,7 +36,21 @@ pub enum InstallMsg {
     PostInstall(Vec<String>),
     PreInstall(Vec<String>),
     ProgressbarTitle(String),
+    ProgressBarState(ProgressState),
 }
+
+#[derive(Default, Debug)]
+pub enum ProgressState {
+    #[default]
+    Start,
+    Setup,
+    Disko,
+    Installation,
+    Properation,
+    Finish,
+}
+
+// pub const PROGRESS_STATE: SharedState<ProgressState> = SharedState::new();
 
 pub static INSTALL_BROKER: MessageBroker<InstallMsg> = MessageBroker::new();
 
@@ -179,8 +193,42 @@ impl SimpleComponent for InstallModel {
 
     fn update(&mut self, msg: Self::Input, sender: ComponentSender<Self>) {
         match msg {
+            InstallMsg::ProgressBarState(state) => match state {
+                ProgressState::Start => {
+                    println!("State now: {state:?}");
+                    // self.progressbar.set_fraction(0.1);
+                    self.progressbar.set_text(Some("10%"));
+                }
+                ProgressState::Setup => {
+                    println!("State now: {state:?}");
+                    self.progressbar.set_fraction(0.15);
+                    self.progressbar.set_text(Some("15%"));
+                }
+                ProgressState::Disko => {
+                    println!("State now: {state:?}");
+                    self.progressbar.set_fraction(0.25);
+                    self.progressbar.set_text(Some("25%"));
+                }
+                ProgressState::Installation => {
+                    println!("State now: {state:?}");
+                    self.progressbar.set_fraction(0.6);
+                    self.progressbar.set_text(Some("60%"));
+                }
+                ProgressState::Properation => {
+                    println!("State now: {state:?}");
+                    self.progressbar.set_fraction(0.8);
+                    self.progressbar.set_text(Some("80%"));
+                }
+                ProgressState::Finish => {
+                    println!("State now: {state:?}");
+                    self.progressbar.set_fraction(1.0);
+                    self.progressbar.set_text(Some("100%"));
+                }
+            },
             InstallMsg::Pulse => {
-                self.progressbar.pulse();
+                if !(self.progressbar.fraction() > 0.0) {
+                    self.progressbar.pulse();
+                }
             }
             InstallMsg::NextSlide => {
                 let npages = self.slides.widget().n_pages();
