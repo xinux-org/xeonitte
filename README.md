@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="data/icons/org.xinux.Xeonitte.svg"/>
+<img src="data/icons/uz.xinux.Xeonitte.svg"/>
 
 # Xeonitte
 

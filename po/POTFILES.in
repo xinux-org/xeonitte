@@ -1,7 +1,7 @@
-data/org.xinux.Xeonitte.desktop.in.in
-data/org.xinux.Xeonitte.gschema.xml.in
-data/org.xinux.Xeonitte.metainfo.xml.in.in
-data/org.xinux.Xeonitte.policy.in.in
+data/uz.xinux.Xeonitte.desktop.in.in
+data/uz.xinux.Xeonitte.gschema.xml.in
+data/uz.xinux.Xeonitte.metainfo.xml.in.in
+data/uz.xinux.Xeonitte.policy.in.in
 
 # Rust files
 src/main.rs
