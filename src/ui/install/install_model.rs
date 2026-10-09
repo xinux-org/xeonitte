@@ -43,14 +43,16 @@ pub enum InstallMsg {
 pub enum ProgressState {
     #[default]
     Start,
-    Setup,
-    Disko,
-    Installation,
-    Properation,
+    State(PState),
     Finish,
 }
 
-// pub const PROGRESS_STATE: SharedState<ProgressState> = SharedState::new();
+#[derive(Default, Debug, Clone, Copy)]
+pub struct PState {
+    pub state: f64,
+}
+
+pub const PROGRESS_STATE: SharedState<PState> = SharedState::new();
 
 pub static INSTALL_BROKER: MessageBroker<InstallMsg> = MessageBroker::new();
 
@@ -176,6 +178,31 @@ impl SimpleComponent for InstallModel {
                 .drop_on_shutdown()
         });
 
+        let progress_fraction = sender.clone();
+        sender.command(move |_, shutdown_receiver| {
+            shutdown_receiver
+                .register(async move {
+                    loop {
+                        // fn add_fractions(&self, n: f64) {
+                        //     let mut fr = self.progressbar.fraction();
+                        //     while fr <= n {
+                        //         fr = fr + 0.01;
+                        //         self.progressbar.set_fraction(fr);
+                        //         tokio::time::sleep(std::time::Duration::from_secs(1));
+                        //         println!("Fraction: {fr} -- {n:?}");
+                        //     }
+                        //     println!("Fraction after: {n:?}");
+                        // }
+                        let a = *PROGRESS_STATE.read();
+                        println!("IN LOOP: {:?}", a.state);
+                        progress_fraction
+                            .input(InstallMsg::ProgressBarState(ProgressState::State(a)));
+                        tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+                    }
+                })
+                .drop_on_shutdown()
+        });
+
         let slide_sender = sender.clone();
         sender.command(move |_, shutdown_receiver| {
             shutdown_receiver
@@ -196,37 +223,29 @@ impl SimpleComponent for InstallModel {
             InstallMsg::ProgressBarState(state) => match state {
                 ProgressState::Start => {
                     println!("State now: {state:?}");
-                    // self.progressbar.set_fraction(0.1);
-                    self.progressbar.set_text(Some("10%"));
+                    self.progressbar.set_text(Some("0%"));
+                    // self.add_fractions(0.01);
                 }
-                ProgressState::Setup => {
+                ProgressState::State(n) => {
                     println!("State now: {state:?}");
-                    self.progressbar.set_fraction(0.15);
-                    self.progressbar.set_text(Some("15%"));
-                }
-                ProgressState::Disko => {
-                    println!("State now: {state:?}");
-                    self.progressbar.set_fraction(0.25);
-                    self.progressbar.set_text(Some("25%"));
-                }
-                ProgressState::Installation => {
-                    println!("State now: {state:?}");
-                    self.progressbar.set_fraction(0.6);
-                    self.progressbar.set_text(Some("60%"));
-                }
-                ProgressState::Properation => {
-                    println!("State now: {state:?}");
-                    self.progressbar.set_fraction(0.8);
-                    self.progressbar.set_text(Some("80%"));
+                    // let state = n.state;
+                    // let state: PState = PState { state: n};
+                    // *PROGRESS_STATE.write() = n;
+                    let ss = *PROGRESS_STATE.read();
+                    // self.add_fractions(ss.state);
+                    println!("SS now: {:?}", ss.state);
+                    self.progressbar.set_text(Some(&ss.state.to_string()));
                 }
                 ProgressState::Finish => {
                     println!("State now: {state:?}");
-                    self.progressbar.set_fraction(1.0);
+                    let state: PState = PState { state: 1.0 };
+                    *PROGRESS_STATE.write() = state;
+                    // self.add_fractions(1.0);
                     self.progressbar.set_text(Some("100%"));
                 }
             },
             InstallMsg::Pulse => {
-                if !(self.progressbar.fraction() > 0.0) {
+                if !(self.progressbar.fraction() > 0.01) {
                     self.progressbar.pulse();
                 }
             }
@@ -367,6 +386,20 @@ impl SimpleComponent for InstallModel {
             }
             InstallMsg::ProgressbarTitle(title) => self.progressbar_title = title,
         }
+    }
+}
+
+impl InstallModel {
+    fn add_fractions(&self, n: f64) {
+        let mut fr = self.progressbar.fraction();
+        while fr <= n {
+            fr = fr + 0.01;
+            self.progressbar.set_fraction(fr);
+            tokio::time::sleep(std::time::Duration::from_secs(1));
+
+            println!("Fraction: {fr} -- {n:?}");
+        }
+        println!("Fraction after: {n:?}");
     }
 }
 

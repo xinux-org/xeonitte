@@ -1,6 +1,7 @@
 use super::parse::ConfigType;
 use super::report::ErrorPhase;
 use crate::ui::install::install_model::ProgressState::{self};
+use crate::ui::install::install_model::{PROGRESS_STATE, PState};
 use crate::utils::flow::Choice;
 use crate::utils::make_config::{MakeConfig, makeconfig};
 use crate::{
@@ -262,7 +263,9 @@ impl Worker for InstallAsyncModel {
                         TMPDIR, arch, hostname
                     );
 
-                    INSTALL_BROKER.send(InstallMsg::ProgressBarState(ProgressState::Setup));
+                    *PROGRESS_STATE.write() = PState { state: 0.33 };
+                    println!("STATE IS 33% NOW");
+
                     let luks_passphrase =
                         partitions
                             .as_ref()
@@ -300,7 +303,7 @@ impl Worker for InstallAsyncModel {
                         }
                     }
 
-                    INSTALL_BROKER.send(InstallMsg::ProgressBarState(ProgressState::Disko));
+                    // INSTALL_BROKER.send(InstallMsg::ProgressBarState(ProgressState::State(0.35)));
                     // TODO: make better way to write this shell command
                     let cmd = if luks_passphrase.is_some() {
                         format!(
@@ -324,7 +327,7 @@ impl Worker for InstallAsyncModel {
                             tmpdir = TMPDIR
                         )
                     };
-                    INSTALL_BROKER.send(InstallMsg::ProgressBarState(ProgressState::Installation));
+                    // INSTALL_BROKER.send(InstallMsg::ProgressBarState(ProgressState::State(0.5)));
                     INSTALL_BROKER.send(InstallMsg::Install(vec![
                         "/usr/bin/env".to_string(),
                         "pkexec".to_string(),
@@ -343,7 +346,7 @@ impl Worker for InstallAsyncModel {
                     "Step 5: Set user passwords".to_string(),
                 ));
 
-                INSTALL_BROKER.send(InstallMsg::ProgressBarState(ProgressState::Properation));
+                // INSTALL_BROKER.send(InstallMsg::ProgressBarState(ProgressState::State(0.65)));
                 if let Err(e) = setuserpasswd(self.username.clone(), self.password.clone()) {
                     sender.output(AppMsg::error(
                         ErrorPhase::PostInstall,
