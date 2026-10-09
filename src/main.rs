@@ -47,7 +47,7 @@ fn main() -> Result<()> {
         Some(xeonitte::config::APP_ID),
         gio::ApplicationFlags::empty(),
     );
-    app.set_resource_base_path(Some("/org/xinux/Xeonitte"));
+    app.set_resource_base_path(Some("/uz/xinux/Xeonitte"));
     let app = RelmApp::from_app(app);
     app.run::<AppModel>(());
 
