@@ -96,14 +96,14 @@ impl Flow {
                             name: gettext("LTS"),
                             description: gettext("Install the latest LTS kernel"),
                             config: String::new(),
-                            default: true,
+                            default: false,
                             packages: vec![],
                         },
                         Choice {
                             name: gettext("Latest"),
                             description: gettext("Install the latest kernel").into(),
                             config: "boot.kernelPackages = pkgs.linuxPackages_latest;".into(),
-                            default: false,
+                            default: true,
                             packages: vec![],
                         },
                         Choice {
