@@ -35,4 +35,4 @@ src/ui/mod.rs
 src/ui/new_partition_dialog.rs
 src/ui/quitdialog.rs
 src/ui/window.rs
-src/utils/flow.rs
+src/utils/branding.rs

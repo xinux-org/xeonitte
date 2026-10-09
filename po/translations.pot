@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-22 12:56+0500\n"
+"POT-Creation-Date: 2026-10-09 10:38+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,36 +17,52 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/main.rs:32
+#: src/main.rs:38
 msgid "Xeonitte Installer"
 msgstr ""
 
-#: src/ui/error/error_model.rs:55
+#: src/ui/error/error_model.rs:57
 msgid "Installation Failed!"
 msgstr ""
 
-#: src/ui/error/error_model.rs:86
+#: src/ui/error/error_model.rs:89
 msgid "Upload Report"
 msgstr ""
 
-#: src/ui/error/error_model.rs:104
+#: src/ui/error/error_model.rs:102
+msgid "Failed to report"
+msgstr ""
+
+#: src/ui/error/error_model.rs:117
+msgid "Retry"
+msgstr ""
+
+#: src/ui/error/error_model.rs:128
+msgid "Reported"
+msgstr ""
+
+#: src/ui/error/error_model.rs:145
+msgid "Processing..."
+msgstr ""
+
+#: src/ui/error/error_model.rs:160
 msgid "Open Report"
 msgstr ""
 
-#: src/ui/keyboard/keyboard_model.rs:55
+#: src/ui/keyboard/keyboard_model.rs:65
 msgid "Keyboard Layout"
 msgstr ""
 
-#: src/ui/keyboard/keyboard_model.rs:63
+#: src/ui/keyboard/keyboard_model.rs:73
 msgid "Test the Keyboard Layout"
 msgstr ""
 
-#: src/ui/keyboard/keyboard_model.rs:101 src/ui/timezone/timezone_model.rs:92
+#: src/ui/keyboard/keyboard_model.rs:111 src/ui/timezone/timezone_model.rs:92
 #: src/ui/welcome/welcome_model.rs:102
 msgid "Show less"
 msgstr ""
 
-#: src/ui/keyboard/keyboard_model.rs:101 src/ui/timezone/timezone_model.rs:92
+#: src/ui/keyboard/keyboard_model.rs:111 src/ui/timezone/timezone_model.rs:92
 #: src/ui/welcome/welcome_model.rs:102
 msgid "Show all"
 msgstr ""
@@ -309,64 +325,57 @@ msgstr ""
 msgid "Please connect to the Internet to continue"
 msgstr ""
 
-#: src/utils/flow.rs:61
-msgid "Extra Options"
+#: src/utils/branding.rs:13
+msgid "Configurable and Customizable"
 msgstr ""
 
-#: src/utils/flow.rs:65
-msgid "Flatpak"
-msgstr ""
-
-#: src/utils/flow.rs:66
-msgid "Enable Flatpak support"
-msgstr ""
-
-#: src/utils/flow.rs:72
-msgid "AppImage"
-msgstr ""
-
-#: src/utils/flow.rs:74
+#: src/utils/branding.rs:14
 msgid ""
-"Enable AppImage support by installing the \"appimage-run\" package. For "
-"AppImages to work, you must run them with the \"appimage-run\" command."
+"Easily modify and manage your system configuration with the power of NixOS"
 msgstr ""
 
-#: src/utils/flow.rs:81
-msgid "Minimal"
+#: src/utils/branding.rs:18
+msgid "Nix Package Manager"
 msgstr ""
 
-#: src/utils/flow.rs:82
-msgid "Install minimal Xinux without GNOME core apps"
+#: src/utils/branding.rs:19
+msgid "Keep your system stable with Nix's reliable and reproducible packages"
 msgstr ""
 
-#: src/utils/flow.rs:96
-msgid "LTS"
+#: src/utils/branding.rs:23
+msgid "Over 140,000 packages available"
 msgstr ""
 
-#: src/utils/flow.rs:97
-msgid "Install the latest LTS kernel"
+#: src/utils/branding.rs:24 src/utils/branding.rs:44
+msgid "Easily find and install all the packages you need on your Xinux system"
 msgstr ""
 
-#: src/utils/flow.rs:103
-msgid "Latest"
+#: src/utils/branding.rs:28
+msgid "E-imzo Manager"
 msgstr ""
 
-#: src/utils/flow.rs:104
-msgid "Install the latest kernel"
+#: src/utils/branding.rs:29
+msgid "A graphical e-imzo keys manager for NixOS based distributions."
 msgstr ""
 
-#: src/utils/flow.rs:110
-msgid "Libre"
+#: src/utils/branding.rs:33
+msgid "Software Center"
 msgstr ""
 
-#: src/utils/flow.rs:111
-msgid "Install the libre kernel"
+#: src/utils/branding.rs:34
+msgid "A graphical app store for Nix built with libadwaita, GTK4, and Relm4."
 msgstr ""
 
-#: src/utils/flow.rs:117
-msgid "Zen"
+#: src/utils/branding.rs:38
+msgid "Module Manager"
 msgstr ""
 
-#: src/utils/flow.rs:118
-msgid "Install the Zen kernel"
+#: src/utils/branding.rs:39
+msgid ""
+"The goal of this project is to provide a simple graphical tool for modifying "
+"and managing desktop NixOS configurations."
+msgstr ""
+
+#: src/utils/branding.rs:43
+msgid "Uzbek Keyboard Layout"
 msgstr ""

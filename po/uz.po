@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-22 12:56+0500\n"
+"POT-Creation-Date: 2026-10-09 10:38+0500\n"
 "PO-Revision-Date: 2025-09-26 13:40+0500\n"
 "Last-Translator: BeMeritus <bemerituss@gmail.com>\n"
 "Language-Team: \n"
@@ -18,36 +18,54 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 3.5\n"
 
-#: src/main.rs:32
+#: src/main.rs:38
 msgid "Xeonitte Installer"
 msgstr "Xeonitte o‘rnatuvchisi"
 
-#: src/ui/error/error_model.rs:55
+#: src/ui/error/error_model.rs:57
 msgid "Installation Failed!"
 msgstr "O‘rnatish muvaffaqiyatsiz!"
 
-#: src/ui/error/error_model.rs:86
+#: src/ui/error/error_model.rs:89
 msgid "Upload Report"
 msgstr "Hisobotni yuklash"
 
-#: src/ui/error/error_model.rs:104
+#: src/ui/error/error_model.rs:102
+msgid "Failed to report"
+msgstr ""
+
+#: src/ui/error/error_model.rs:117
+msgid "Retry"
+msgstr ""
+
+#: src/ui/error/error_model.rs:128
+#, fuzzy
+#| msgid "Open Report"
+msgid "Reported"
+msgstr "Hisobotni ochish"
+
+#: src/ui/error/error_model.rs:145
+msgid "Processing..."
+msgstr ""
+
+#: src/ui/error/error_model.rs:160
 msgid "Open Report"
 msgstr "Hisobotni ochish"
 
-#: src/ui/keyboard/keyboard_model.rs:55
+#: src/ui/keyboard/keyboard_model.rs:65
 msgid "Keyboard Layout"
 msgstr "Klaviatura maketi"
 
-#: src/ui/keyboard/keyboard_model.rs:63
+#: src/ui/keyboard/keyboard_model.rs:73
 msgid "Test the Keyboard Layout"
 msgstr "Klaviatura maketini sinash"
 
-#: src/ui/keyboard/keyboard_model.rs:101 src/ui/timezone/timezone_model.rs:92
+#: src/ui/keyboard/keyboard_model.rs:111 src/ui/timezone/timezone_model.rs:92
 #: src/ui/welcome/welcome_model.rs:102
 msgid "Show less"
 msgstr "Kamroq ko‘rsatish"
 
-#: src/ui/keyboard/keyboard_model.rs:101 src/ui/timezone/timezone_model.rs:92
+#: src/ui/keyboard/keyboard_model.rs:111 src/ui/timezone/timezone_model.rs:92
 #: src/ui/welcome/welcome_model.rs:102
 msgid "Show all"
 msgstr "Hammasini ko‘rsatish"
@@ -314,69 +332,69 @@ msgstr "Internet yo‘q"
 msgid "Please connect to the Internet to continue"
 msgstr "Davom etish uchun internetga ulaning"
 
-#: src/utils/flow.rs:61
-#, fuzzy
-#| msgid "Encryption"
-msgid "Extra Options"
-msgstr "Shifrlash"
+#: src/utils/branding.rs:13
+msgid "Configurable and Customizable"
+msgstr "Sozlash va Moslash mumkin"
 
-#: src/utils/flow.rs:65
-msgid "Flatpak"
-msgstr ""
-
-#: src/utils/flow.rs:66
-msgid "Enable Flatpak support"
-msgstr ""
-
-#: src/utils/flow.rs:72
-msgid "AppImage"
-msgstr ""
-
-#: src/utils/flow.rs:74
+#: src/utils/branding.rs:14
 msgid ""
-"Enable AppImage support by installing the \"appimage-run\" package. For "
-"AppImages to work, you must run them with the \"appimage-run\" command."
+"Easily modify and manage your system configuration with the power of NixOS"
+msgstr "NixOS yordamida tizim sozlamalarini osongina o‘zgartiring va boshqaring"
+
+#: src/utils/branding.rs:18
+msgid "Nix Package Manager"
+msgstr "Nix paket menejeri"
+
+#: src/utils/branding.rs:19
+msgid "Keep your system stable with Nix's reliable and reproducible packages"
+msgstr "Nix’ning ishonchli va takrorlanadigan paketlari bilan tizimingizni barqaror saqlang"
+
+#: src/utils/branding.rs:23
+msgid "Over 140,000 packages available"
+msgstr "140,000dan ortiq paketlar mavjud"
+
+#: src/utils/branding.rs:24 src/utils/branding.rs:44
+msgid "Easily find and install all the packages you need on your Xinux system"
+msgstr "Xinux tizimida kerakli barcha paketlarni osongina toping va o‘rnating"
+
+#: src/utils/branding.rs:28
+msgid "E-imzo Manager"
 msgstr ""
 
-#: src/utils/flow.rs:81
-msgid "Minimal"
+#: src/utils/branding.rs:29
+#, fuzzy
+#| msgid "A graphical installer for NixOS based distributions."
+msgid "A graphical e-imzo keys manager for NixOS based distributions."
+msgstr "NixOS asosidagi distributivlar uchun grafik o‘rnatuvchi."
+
+#: src/utils/branding.rs:33
+msgid "Software Center"
 msgstr ""
 
-#: src/utils/flow.rs:82
-msgid "Install minimal Xinux without GNOME core apps"
+#: src/utils/branding.rs:34
+msgid "A graphical app store for Nix built with libadwaita, GTK4, and Relm4."
 msgstr ""
 
-#: src/utils/flow.rs:96
-msgid "LTS"
+#: src/utils/branding.rs:38
+msgid "Module Manager"
 msgstr ""
 
-#: src/utils/flow.rs:97
-msgid "Install the latest LTS kernel"
+#: src/utils/branding.rs:39
+msgid ""
+"The goal of this project is to provide a simple graphical tool for modifying "
+"and managing desktop NixOS configurations."
 msgstr ""
 
-#: src/utils/flow.rs:103
-msgid "Latest"
-msgstr ""
+#: src/utils/branding.rs:43
+#, fuzzy
+#| msgid "Keyboard Layout"
+msgid "Uzbek Keyboard Layout"
+msgstr "Klaviatura maketi"
 
-#: src/utils/flow.rs:104
-msgid "Install the latest kernel"
-msgstr ""
-
-#: src/utils/flow.rs:110
-msgid "Libre"
-msgstr ""
-
-#: src/utils/flow.rs:111
-msgid "Install the libre kernel"
-msgstr ""
-
-#: src/utils/flow.rs:117
-msgid "Zen"
-msgstr ""
-
-#: src/utils/flow.rs:118
-msgid "Install the Zen kernel"
-msgstr ""
+#, fuzzy
+#~| msgid "Encryption"
+#~ msgid "Extra Options"
+#~ msgstr "Shifrlash"
 
 #~ msgid "Install Xinux"
 #~ msgstr "Xinux o‘rnatish"
@@ -386,9 +404,6 @@ msgstr ""
 
 #~ msgid "Installer;Xeonitte;"
 #~ msgstr "O‘rnatuvchi;Xeonitte;"
-
-#~ msgid "A graphical installer for NixOS based distributions."
-#~ msgstr "NixOS asosidagi distributivlar uchun grafik o‘rnatuvchi."
 
 #~ msgid "Give Xeonitte Installer root access"
 #~ msgstr "Xeonitte o‘rnatuvchisiga root huquqini bering"

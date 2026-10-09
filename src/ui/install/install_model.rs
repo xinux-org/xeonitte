@@ -132,8 +132,8 @@ impl SimpleComponent for InstallModel {
 
         for slide in get_slides() {
             slides_guard.push_back(InstallSlide {
-                title: gettext(slide.title),
-                subtitle: gettext(slide.subtitle),
+                title: slide.title,
+                subtitle: slide.subtitle,
                 image: format!(
                     "{}/xeonitte/branding/{}/{}",
                     SYSCONFDIR, branding, slide.image

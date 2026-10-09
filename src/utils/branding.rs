@@ -1,3 +1,5 @@
+use gettextrs::gettext;
+
 #[derive(Debug, Clone)]
 pub struct Slide {
     pub title: String,
@@ -8,38 +10,50 @@ pub struct Slide {
 pub fn get_slides() -> Vec<Slide> {
     vec![
         Slide {
-            title: "Configurable and Customizable".into(),
-            subtitle: "Easily modify and manage your system configuration with the power of NixOS".into(),
+            title: gettext("Configurable and Customizable"),
+            subtitle: gettext(
+                "Easily modify and manage your system configuration with the power of NixOS",
+            ),
             image: "configuration.svg".into(),
         },
         Slide {
-            title: "Nix Package Manager".into(),
-            subtitle: "Keep your system stable with Nix's reliable and reproducible packages".into(),
+            title: gettext("Nix Package Manager"),
+            subtitle: gettext(
+                "Keep your system stable with Nix's reliable and reproducible packages",
+            ),
             image: "nix.svg".into(),
         },
         Slide {
-            title: "Over 140,000 packages available".into(),
-            subtitle: "Easily find and install all the packages you need on your Xinux system".into(),
+            title: gettext("Over 140,000 packages available"),
+            subtitle: gettext(
+                "Easily find and install all the packages you need on your Xinux system",
+            ),
             image: "apps.svg".into(),
         },
         Slide {
-            title: "E-imzo Manager".into(),
-            subtitle: "A graphical e-imzo keys manager for NixOS based distributions.".into(),
+            title: gettext("E-imzo Manager"),
+            subtitle: gettext("A graphical e-imzo keys manager for NixOS based distributions."),
             image: "e-imzo.png".into(),
         },
         Slide {
-            title: "Software Center".into(),
-            subtitle: "A graphical app store for Nix built with libadwaita, GTK4, and Relm4.".into(),
+            title: gettext("Software Center"),
+            subtitle: gettext(
+                "A graphical app store for Nix built with libadwaita, GTK4, and Relm4.",
+            ),
             image: "software-center.png".into(),
         },
         Slide {
-            title: "Module Manager".into(),
-            subtitle: "The goal of this project is to provide a simple graphical tool for modifying and managing desktop NixOS configurations.".into(),
+            title: gettext("Module Manager"),
+            subtitle: gettext(
+                "The goal of this project is to provide a simple graphical tool for modifying and managing desktop NixOS configurations.",
+            ),
             image: "module-manager.png".into(),
         },
         Slide {
-            title: "Uzbek Keyboard Layout".into(),
-            subtitle: "Easily find and install all the packages you need on your Xinux system".into(),
+            title: gettext("Uzbek Keyboard Layout"),
+            subtitle: gettext(
+                "Easily find and install all the packages you need on your Xinux system",
+            ),
             image: "keyboard.png".into(),
         },
     ]
