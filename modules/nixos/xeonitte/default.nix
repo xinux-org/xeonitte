@@ -10,7 +10,7 @@ with lib;
 let
   cfg = config.xeonitte;
   xeonitte-autostart = pkgs.makeAutostartItem {
-    name = "org.xinux.Xeonitte";
+    name = "uz.xinux.Xeonitte";
     package = pkgs.internal.xeonitte;
   };
 in

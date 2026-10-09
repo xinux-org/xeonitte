@@ -3,7 +3,7 @@ fn main() {
         // Name of the file that will be generated at `OUT_DIR`
         "icon_names.rs",
         // Optional app ID
-        Some("org.xinux.Xeonitte.Devel"),
+        Some("uz.xinux.Xeonitte.Devel"),
         // Custom base resource path:
         // * defaults to `/com/example/myapp` in this case if not specified explicitly
         // * or `/org/relm4` if app ID was not specified either
