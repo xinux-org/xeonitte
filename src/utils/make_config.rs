@@ -33,6 +33,7 @@ pub fn makeconfig(makeconfig: MakeConfig) -> Result<()> {
         @PACKAGES@ - Packages to install
         @STATEVERSION@ - NixOS State version
         @DISKO@ - Disko configuration
+        @PACKAGEMANAGERS@ - Package Managers (appimage & flatpak)
     */
 
     /* Value keys:
