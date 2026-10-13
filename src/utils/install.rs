@@ -1,7 +1,6 @@
 use super::parse::ConfigType;
 use super::report::ErrorPhase;
 use crate::ui::install::install_model::ProgressState::{self};
-use crate::ui::install::install_model::{PROGRESS_STATE, PState};
 use crate::utils::flow::Choice;
 use crate::utils::make_config::{MakeConfig, makeconfig};
 use crate::{
@@ -132,6 +131,7 @@ impl Worker for InstallAsyncModel {
                     return;
                 };
 
+                INSTALL_BROKER.send(InstallMsg::ProgressBarState(ProgressState::Start));
                 info!("Step 2: Generate base config");
                 INSTALL_BROKER.send(InstallMsg::ProgressbarTitle(
                     "Step 2: Generate base config".to_string(),
@@ -252,7 +252,6 @@ impl Worker for InstallAsyncModel {
                 INSTALL_BROKER.send(InstallMsg::ProgressbarTitle(
                     "Step 4: Install Xinux".to_string(),
                 ));
-                INSTALL_BROKER.send(InstallMsg::ProgressBarState(ProgressState::Start));
                 if let Some(hostname) = user.as_ref().as_ref().map(|u| u.hostname.clone()) {
                     let flake_url = format!("{}/etc/nixos", TMPDIR);
                     // --flake <flake-url>#<flake-attr>
@@ -262,9 +261,6 @@ impl Worker for InstallAsyncModel {
                         "{}/etc/nixos/systems/{}-linux/{}/disko.nix",
                         TMPDIR, arch, hostname
                     );
-
-                    *PROGRESS_STATE.write() = PState { state: 0.33 };
-                    println!("STATE IS 33% NOW");
 
                     let luks_passphrase =
                         partitions
@@ -327,7 +323,7 @@ impl Worker for InstallAsyncModel {
                             tmpdir = TMPDIR
                         )
                     };
-                    // INSTALL_BROKER.send(InstallMsg::ProgressBarState(ProgressState::State(0.5)));
+                    INSTALL_BROKER.send(InstallMsg::ProgressBarState(ProgressState::State(0.5)));
                     INSTALL_BROKER.send(InstallMsg::Install(vec![
                         "/usr/bin/env".to_string(),
                         "pkexec".to_string(),

@@ -5,13 +5,14 @@ use crate::{
 };
 use anyhow::Context;
 use log::{debug, error};
+use rand::{Rng, RngExt};
 use relm4::{
-    ComponentParts, ComponentSender, MessageBroker, RelmWidgetExt, SharedState, SimpleComponent,
+    ComponentParts, ComponentSender, MessageBroker, RelmWidgetExt, SimpleComponent,
     adw::{self},
     factory::*,
     gtk::{self, gio, glib},
 };
-use std::{fs::File, process::Command};
+use std::{fs::File, process::Command, thread, time::Duration};
 use vte::{self, TerminalExt, TerminalExtManual};
 
 pub struct InstallModel {
@@ -43,16 +44,9 @@ pub enum InstallMsg {
 pub enum ProgressState {
     #[default]
     Start,
-    State(PState),
+    State(f64),
     Finish,
 }
-
-#[derive(Default, Debug, Clone, Copy)]
-pub struct PState {
-    pub state: f64,
-}
-
-pub const PROGRESS_STATE: SharedState<PState> = SharedState::new();
 
 pub static INSTALL_BROKER: MessageBroker<InstallMsg> = MessageBroker::new();
 
@@ -178,31 +172,6 @@ impl SimpleComponent for InstallModel {
                 .drop_on_shutdown()
         });
 
-        let progress_fraction = sender.clone();
-        sender.command(move |_, shutdown_receiver| {
-            shutdown_receiver
-                .register(async move {
-                    loop {
-                        // fn add_fractions(&self, n: f64) {
-                        //     let mut fr = self.progressbar.fraction();
-                        //     while fr <= n {
-                        //         fr = fr + 0.01;
-                        //         self.progressbar.set_fraction(fr);
-                        //         tokio::time::sleep(std::time::Duration::from_secs(1));
-                        //         println!("Fraction: {fr} -- {n:?}");
-                        //     }
-                        //     println!("Fraction after: {n:?}");
-                        // }
-                        let a = *PROGRESS_STATE.read();
-                        println!("IN LOOP: {:?}", a.state);
-                        progress_fraction
-                            .input(InstallMsg::ProgressBarState(ProgressState::State(a)));
-                        tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-                    }
-                })
-                .drop_on_shutdown()
-        });
-
         let slide_sender = sender.clone();
         sender.command(move |_, shutdown_receiver| {
             shutdown_receiver
@@ -224,28 +193,21 @@ impl SimpleComponent for InstallModel {
                 ProgressState::Start => {
                     println!("State now: {state:?}");
                     self.progressbar.set_text(Some("0%"));
-                    // self.add_fractions(0.01);
+                    self.add_fractions(0.01);
                 }
                 ProgressState::State(n) => {
                     println!("State now: {state:?}");
-                    // let state = n.state;
-                    // let state: PState = PState { state: n};
-                    // *PROGRESS_STATE.write() = n;
-                    let ss = *PROGRESS_STATE.read();
-                    // self.add_fractions(ss.state);
-                    println!("SS now: {:?}", ss.state);
-                    self.progressbar.set_text(Some(&ss.state.to_string()));
+                    self.add_fractions(n);
+                    self.progressbar.set_text(Some(&n.to_string()));
                 }
                 ProgressState::Finish => {
                     println!("State now: {state:?}");
-                    let state: PState = PState { state: 1.0 };
-                    *PROGRESS_STATE.write() = state;
-                    // self.add_fractions(1.0);
+                    self.add_fractions(1.0);
                     self.progressbar.set_text(Some("100%"));
                 }
             },
             InstallMsg::Pulse => {
-                if !(self.progressbar.fraction() > 0.01) {
+                if !(self.progressbar.fraction() >= 0.01) {
                     self.progressbar.pulse();
                 }
             }
@@ -390,16 +352,23 @@ impl SimpleComponent for InstallModel {
 }
 
 impl InstallModel {
-    fn add_fractions(&self, n: f64) {
-        let mut fr = self.progressbar.fraction();
-        while fr <= n {
-            fr = fr + 0.01;
-            self.progressbar.set_fraction(fr);
-            tokio::time::sleep(std::time::Duration::from_secs(1));
+    fn add_fractions(&self, size: f64) {
+        let mut rng = rand::rng();
+        let mut current = self.progressbar.fraction();
+        while current < size {
+            let rem = size - current;
+            let num = rng.random_range(0.0_f64..=0.1_f64).min(rem);
 
-            println!("Fraction: {fr} -- {n:?}");
+            println!("Random num: {num}");
+            current += num;
+            self.progressbar.set_fraction(current);
+
+            if current < size {
+                thread::sleep(Duration::from_millis(300));
+            }
+            println!("Fraction: {current} -- {size:?}");
         }
-        println!("Fraction after: {n:?}");
+        println!("Fraction after: {current:?}");
     }
 }
 
