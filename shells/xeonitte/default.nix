@@ -11,7 +11,6 @@
   gnome-desktop,
   gobject-introspection,
   gtk4,
-  internal,
   libadwaita,
   libgweather,
   meson,
@@ -69,7 +68,6 @@ mkShell {
     gnome-desktop
     gobject-introspection
     gtk4
-    internal.convertyml
     libadwaita
     libgweather
     meson

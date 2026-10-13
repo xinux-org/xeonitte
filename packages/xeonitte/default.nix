@@ -10,7 +10,6 @@
   gnome-desktop,
   adwaita-icon-theme,
   gtk4,
-  internal,
   libadwaita,
   libgweather,
   meson,
@@ -33,9 +32,6 @@
   cryptsetup,
   ...
 }:
-let
-  convertyml = internal.convertyml;
-in
 stdenv.mkDerivation {
   pname = "xeonitte";
   version = "0.1.0";
@@ -54,7 +50,6 @@ stdenv.mkDerivation {
     cargo
     pkg-config
     gettext
-    convertyml
     desktop-file-utils
     polkit
     rustc
