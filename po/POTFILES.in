@@ -36,3 +36,4 @@ src/ui/new_partition_dialog.rs
 src/ui/quitdialog.rs
 src/ui/window.rs
 src/utils/branding.rs
+src/utils/flow.rs

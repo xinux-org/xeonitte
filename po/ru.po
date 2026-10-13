@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 10:38+0500\n"
+"POT-Creation-Date: 2026-10-13 19:32+0500\n"
 "PO-Revision-Date: 2025-09-26 13:55+0500\n"
 "Last-Translator: BeMeritus <bemerituss@gmail.com>\n"
 "Language-Team: \n"
@@ -336,65 +336,125 @@ msgstr "Пожалуйста, подключитесь к Интернету, ч
 msgid "Configurable and Customizable"
 msgstr "Настраиваемый и персонализируемый"
 
-#: src/utils/branding.rs:14
+#: src/utils/branding.rs:15
 msgid ""
 "Easily modify and manage your system configuration with the power of NixOS"
-msgstr "Легко изменяйте конфигурацию системы и управляйте ею благодаря возможностям NixOS."
+msgstr ""
+"Легко изменяйте конфигурацию системы и управляйте ею благодаря возможностям "
+"NixOS."
 
-#: src/utils/branding.rs:18
-msgid "Менеджер пакетов Nix"
+#: src/utils/branding.rs:20
+msgid "Nix Package Manager"
 msgstr ""
 
-#: src/utils/branding.rs:19
+#: src/utils/branding.rs:22
 msgid "Keep your system stable with Nix's reliable and reproducible packages"
-msgstr "Поддерживайте стабильность системы с помощью надежных и воспроизводимых пакетов Nix."
+msgstr ""
+"Поддерживайте стабильность системы с помощью надежных и воспроизводимых "
+"пакетов Nix."
 
-#: src/utils/branding.rs:23
+#: src/utils/branding.rs:27
 msgid "Over 140,000 packages available"
 msgstr "Доступно более 140 000 пакетов"
 
-#: src/utils/branding.rs:24 src/utils/branding.rs:44
+#: src/utils/branding.rs:29 src/utils/branding.rs:55
 msgid "Easily find and install all the packages you need on your Xinux system"
-msgstr "Легко найдите и установите все необходимые пакеты в вашей системе Xinux."
+msgstr ""
+"Легко найдите и установите все необходимые пакеты в вашей системе Xinux."
 
-#: src/utils/branding.rs:28
-msgid "E-imzo Manager"
+#: src/utils/branding.rs:34
+msgid "E-Imzo Manager"
 msgstr ""
 
-#: src/utils/branding.rs:29
-#, fuzzy
-#| msgid "A graphical installer for NixOS based distributions."
-msgid "A graphical e-imzo keys manager for NixOS based distributions."
-msgstr "Графический установщик для дистрибутивов на базе NixOS."
+#: src/utils/branding.rs:35
+msgid "A graphical E-Imzo keys manager for NixOS based distributions."
+msgstr "Графический менеджер ключей E-Imzo для дистрибутивов на базе NixOS."
 
-#: src/utils/branding.rs:33
+#: src/utils/branding.rs:39
 msgid "Software Center"
 msgstr ""
 
-#: src/utils/branding.rs:34
+#: src/utils/branding.rs:41
 msgid "A graphical app store for Nix built with libadwaita, GTK4, and Relm4."
 msgstr ""
 
-#: src/utils/branding.rs:38
+#: src/utils/branding.rs:46
 msgid "Module Manager"
 msgstr ""
 
-#: src/utils/branding.rs:39
+#: src/utils/branding.rs:48
 msgid ""
 "The goal of this project is to provide a simple graphical tool for modifying "
 "and managing desktop NixOS configurations."
 msgstr ""
 
-#: src/utils/branding.rs:43
+#: src/utils/branding.rs:53
 #, fuzzy
 #| msgid "Keyboard Layout"
 msgid "Uzbek Keyboard Layout"
 msgstr "Раскладка клавиатуры"
 
-#, fuzzy
-#~| msgid "Encryption"
-#~ msgid "Extra Options"
-#~ msgstr "Шифрование"
+#: src/utils/flow.rs:61
+msgid "Extra Options"
+msgstr "Дополнительные опции"
+
+#: src/utils/flow.rs:65
+msgid "Flatpak"
+msgstr ""
+
+#: src/utils/flow.rs:66
+msgid "Enable Flatpak support"
+msgstr ""
+
+#: src/utils/flow.rs:72
+msgid "AppImage"
+msgstr ""
+
+#: src/utils/flow.rs:74
+msgid ""
+"Enable AppImage support by installing the \"appimage-run\" package. For "
+"AppImages to work, you must run them with the \"appimage-run\" command."
+msgstr ""
+
+#: src/utils/flow.rs:81
+msgid "Minimal"
+msgstr ""
+
+#: src/utils/flow.rs:82
+msgid "Install minimal Xinux without GNOME core apps"
+msgstr ""
+
+#: src/utils/flow.rs:96
+msgid "LTS"
+msgstr ""
+
+#: src/utils/flow.rs:97
+msgid "Install the latest LTS kernel"
+msgstr ""
+
+#: src/utils/flow.rs:103
+msgid "Latest"
+msgstr ""
+
+#: src/utils/flow.rs:104
+msgid "Install the latest kernel"
+msgstr ""
+
+#: src/utils/flow.rs:110
+msgid "Libre"
+msgstr ""
+
+#: src/utils/flow.rs:111
+msgid "Install the libre kernel"
+msgstr ""
+
+#: src/utils/flow.rs:117
+msgid "Zen"
+msgstr ""
+
+#: src/utils/flow.rs:118
+msgid "Install the Zen kernel"
+msgstr ""
 
 #~ msgid "Install Xinux"
 #~ msgstr "Установить Xinux"

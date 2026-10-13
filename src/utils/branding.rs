@@ -31,8 +31,8 @@ pub fn get_slides() -> Vec<Slide> {
             image: "apps.svg".into(),
         },
         Slide {
-            title: gettext("E-imzo Manager"),
-            subtitle: gettext("A graphical e-imzo keys manager for NixOS based distributions."),
+            title: gettext("E-Imzo Manager"),
+            subtitle: gettext("A graphical E-Imzo keys manager for NixOS based distributions."),
             image: "e-imzo.png".into(),
         },
         Slide {
