@@ -10,7 +10,6 @@
   gnome-desktop,
   adwaita-icon-theme,
   gtk4,
-  internal,
   libadwaita,
   libgweather,
   meson,
@@ -33,9 +32,6 @@
   cryptsetup,
   ...
 }:
-let
-  convertyml = internal.convertyml;
-in
 stdenv.mkDerivation {
   pname = "xeonitte";
   version = "0.1.0";
@@ -44,7 +40,7 @@ stdenv.mkDerivation {
 
   cargoDeps = rustPlatform.fetchCargoVendor {
     src = ../..;
-    hash = "sha256-FhKXHrN9547It9fZXMU63Vi5vjKIREB3MD2j3SgHS1Q=";
+    hash = "sha256-T7OcrvGfhq3sDXjHFLGqOSzigEOWYBk2RZhKzJmKLLw=";
   };
 
   nativeBuildInputs = [
@@ -54,7 +50,6 @@ stdenv.mkDerivation {
     cargo
     pkg-config
     gettext
-    convertyml
     desktop-file-utils
     polkit
     rustc

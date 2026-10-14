@@ -1,3 +1,4 @@
+pub mod branding;
 pub mod disko;
 pub mod flow;
 pub mod i18n;
