@@ -465,7 +465,10 @@ fn init_libreoffice_config(username: String) -> Result<()> {
     Command::new("pkexec")
         .arg("cp")
         .arg("-a")
-        .arg(format!("{}/xeonitte/configcopy/uno_packages", SYSCONFDIR))
+        .arg(format!(
+            "{}/xeonitte/libreoffice_theme/uno_packages",
+            SYSCONFDIR
+        ))
         .arg(format!(
             "{}/home/{}/.config/libreoffice/4/user/uno_packages/cache/",
             "/mnt", username
@@ -484,7 +487,7 @@ fn init_libreoffice_config(username: String) -> Result<()> {
         .arg("cp")
         .arg("-a")
         .arg(format!(
-            "{}/xeonitte/configcopy/registrymodifications.xcu",
+            "{}/xeonitte/libreoffice_theme/registrymodifications.xcu",
             SYSCONFDIR
         ))
         .arg(format!(
