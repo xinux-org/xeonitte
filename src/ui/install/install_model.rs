@@ -7,18 +7,19 @@ use anyhow::Context;
 use log::{debug, error};
 use rand::{Rng, RngExt};
 use relm4::{
-    ComponentParts, ComponentSender, MessageBroker, RelmWidgetExt, SimpleComponent,
+    ComponentParts, ComponentSender, MessageBroker, RelmWidgetExt, SharedState, SimpleComponent,
     adw::{self},
     factory::*,
     gtk::{self, gio, glib},
 };
 use std::{fs::File, process::Command, thread, time::Duration};
-use vte::{self, TerminalExt, TerminalExtManual};
+use vte::{self, TerminalExt, TerminalExtManual, gtk::ProgressBar};
 
 pub struct InstallModel {
     terminal: vte::Terminal,
     progressbar_title: String,
     progressbar: gtk::ProgressBar,
+    progress_text: gtk::Label,
     showterminal: bool,
     installing: bool,
     slides: FactoryVecDeque<InstallSlide>,
@@ -37,16 +38,23 @@ pub enum InstallMsg {
     PostInstall(Vec<String>),
     PreInstall(Vec<String>),
     ProgressbarTitle(String),
-    ProgressBarState(ProgressState),
+    ProgressBarState(f64),
 }
 
-#[derive(Default, Debug)]
-pub enum ProgressState {
-    #[default]
-    Start,
-    State(f64),
-    Finish,
+// #[derive(Default, Debug)]
+// pub enum ProgressState {
+//     #[default]
+//     Start,
+//     State(f64),
+//     Finish,
+// }
+
+#[derive(Debug, Clone, Default)]
+pub struct ProgressState {
+    pub state: f64,
 }
+
+// pub static PROGRESS_STATE: SharedState<ProgressState> = SharedState::new();
 
 pub static INSTALL_BROKER: MessageBroker<InstallMsg> = MessageBroker::new();
 
@@ -110,6 +118,7 @@ impl SimpleComponent for InstallModel {
                         set_halign: gtk::Align::Fill,
                         set_pulse_step: 0.02,
                     },
+                    append: &model.progress_text,
                     gtk::Button {
                         set_valign: gtk::Align::Center,
                         add_css_class: "circular",
@@ -133,6 +142,7 @@ impl SimpleComponent for InstallModel {
             showterminal: false,
             progressbar_title: String::new(),
             progressbar: gtk::ProgressBar::new(),
+            progress_text: gtk::Label::new(Some("0%")),
             installing: false,
             slides: FactoryVecDeque::builder().launch_default().detach(),
             locale: None,
@@ -189,25 +199,28 @@ impl SimpleComponent for InstallModel {
 
     fn update(&mut self, msg: Self::Input, sender: ComponentSender<Self>) {
         match msg {
-            InstallMsg::ProgressBarState(state) => match state {
-                ProgressState::Start => {
-                    println!("State now: {state:?}");
-                    self.progressbar.set_text(Some("0%"));
-                    self.add_fractions(0.01);
-                }
-                ProgressState::State(n) => {
-                    println!("State now: {state:?}");
-                    self.add_fractions(n);
-                    self.progressbar.set_text(Some(&n.to_string()));
-                }
-                ProgressState::Finish => {
-                    println!("State now: {state:?}");
-                    self.add_fractions(1.0);
-                    self.progressbar.set_text(Some("100%"));
-                }
-            },
+            InstallMsg::ProgressBarState(val) => {
+                self.add_fractions(val);
+            }
+            // match state {
+            // ProgressState::Start => {
+            //     println!("State now: {state:?}");
+            //     self.progressbar.set_text(Some("0%"));
+            //     // self.add_fractions(0.01);
+            // }
+            // ProgressState::State(n) => {
+            //     println!("State now: {state:?}");
+            //     self.add_fractions();
+            //     self.progressbar.set_text(Some(&n.to_string()));
+            // }
+            // ProgressState::Finish => {
+            //     println!("State now: {state:?}");
+            //     self.add_fractions();
+            //     self.progressbar.set_text(Some("100%"));
+            // }
+            // },
             InstallMsg::Pulse => {
-                if !(self.progressbar.fraction() >= 0.01) {
+                if !(self.progressbar.fraction() > 0.0) {
                     self.progressbar.pulse();
                 }
             }
@@ -352,23 +365,43 @@ impl SimpleComponent for InstallModel {
 }
 
 impl InstallModel {
-    fn add_fractions(&self, size: f64) {
-        let mut rng = rand::rng();
-        let mut current = self.progressbar.fraction();
-        while current < size {
-            let rem = size - current;
-            let num = rng.random_range(0.0_f64..=0.1_f64).min(rem);
-
-            println!("Random num: {num}");
-            current += num;
-            self.progressbar.set_fraction(current);
-
-            if current < size {
-                thread::sleep(Duration::from_millis(300));
+    fn add_fractions(&self, val: f64) {
+        let progress = self.progressbar.clone();
+        let text = self.progress_text.clone();
+        // // let mut rng = rand::rng();
+        // let steps = 600;
+        // let mut step = 0;
+        let val = val.clamp(0.0, 1.0);
+        let duration = Duration::from_millis(600);
+        glib::timeout_add_local(duration, move || {
+            let current = progress.fraction();
+            if current >= val {
+                return glib::ControlFlow::Break;
             }
-            println!("Fraction: {current} -- {size:?}");
-        }
-        println!("Fraction after: {current:?}");
+            let diff = val - current;
+
+            if diff < 0.01 {
+                progress.set_fraction(val);
+                return glib::ControlFlow::Break;
+            };
+
+            let next = current + diff * 0.1;
+            progress.set_fraction(next);
+
+            text.set_label(&format!("{:.0}%", next * 100.0));
+
+            glib::ControlFlow::Continue
+            // step += 1;
+            // let t = (step as f64 / steps as f64).min(1.0);
+            // let eas = 1.0 - (1.0 - t).powi(3);
+            // let val = current + (size - current) * eas;
+            // &progress.set_fraction(val);
+            // if step >= steps {
+            //     glib::ControlFlow::Break
+            // } else {
+            //     glib::ControlFlow::Continue
+            // }
+        });
     }
 }
 
