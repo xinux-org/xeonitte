@@ -2,6 +2,7 @@ subdir('icons')
 subdir('resources')
 
 subdir('branding/xinux')
+install_subdir('relago', install_dir: pkgconfdir / 'xeonitte')
 # usually in ~/.local/etc/xeonitte/libreoffice_theme
 install_subdir('libreoffice_theme', install_dir: pkgconfdir / 'xeonitte')
 
