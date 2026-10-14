@@ -202,23 +202,6 @@ impl SimpleComponent for InstallModel {
             InstallMsg::ProgressBarState(val) => {
                 self.add_fractions(val);
             }
-            // match state {
-            // ProgressState::Start => {
-            //     println!("State now: {state:?}");
-            //     self.progressbar.set_text(Some("0%"));
-            //     // self.add_fractions(0.01);
-            // }
-            // ProgressState::State(n) => {
-            //     println!("State now: {state:?}");
-            //     self.add_fractions();
-            //     self.progressbar.set_text(Some(&n.to_string()));
-            // }
-            // ProgressState::Finish => {
-            //     println!("State now: {state:?}");
-            //     self.add_fractions();
-            //     self.progressbar.set_text(Some("100%"));
-            // }
-            // },
             InstallMsg::Pulse => {
                 if !(self.progressbar.fraction() > 0.0) {
                     self.progressbar.pulse();
@@ -368,9 +351,6 @@ impl InstallModel {
     fn add_fractions(&self, val: f64) {
         let progress = self.progressbar.clone();
         let text = self.progress_text.clone();
-        // // let mut rng = rand::rng();
-        // let steps = 600;
-        // let mut step = 0;
         let val = val.clamp(0.0, 1.0);
         let duration = Duration::from_millis(600);
         glib::timeout_add_local(duration, move || {
@@ -391,16 +371,6 @@ impl InstallModel {
             text.set_label(&format!("{:.0}%", next * 100.0));
 
             glib::ControlFlow::Continue
-            // step += 1;
-            // let t = (step as f64 / steps as f64).min(1.0);
-            // let eas = 1.0 - (1.0 - t).powi(3);
-            // let val = current + (size - current) * eas;
-            // &progress.set_fraction(val);
-            // if step >= steps {
-            //     glib::ControlFlow::Break
-            // } else {
-            //     glib::ControlFlow::Continue
-            // }
         });
     }
 }
