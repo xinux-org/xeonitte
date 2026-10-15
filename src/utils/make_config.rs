@@ -3,7 +3,8 @@ use log::debug;
 use std::{collections::HashMap, fs, process::Command};
 
 use crate::{
-    config::{LIBEXECDIR, SYSCONFDIR, TMPDIR},
+    config::{SYSCONFDIR, TMPDIR},
+    modules::disk::write_file,
     ui::window::UserConfig,
     utils::flow::Choice,
 };
@@ -271,35 +272,29 @@ libreoffice
                 ),
             );
 
-            let mut cmd = Command::new("pkexec")
-                .arg(format!("{}/xeonitte-helper", LIBEXECDIR))
-                .arg("write-file")
-                .arg("--path")
-                .arg(if path.is_empty() {
-                    format!(
-                        "{}/etc/nixos/{}",
-                        TMPDIR,
-                        file.file_name().to_string_lossy()
-                    )
-                } else {
-                    format!(
-                        "{}/etc/nixos/{}/{}",
-                        TMPDIR,
-                        path.replace("ARCH", &format!("{}-linux", arch)).replace(
-                            "HOSTNAME",
-                            makeconfig
-                                .user
-                                .as_ref()
-                                .map(|x| x.hostname.as_ref())
-                                .unwrap_or("nixos")
-                        ),
-                        file.file_name().to_string_lossy()
-                    )
-                })
-                .arg("--contents")
-                .arg(config)
-                .spawn()?;
-            cmd.wait()?;
+            let path = if path.is_empty() {
+                format!(
+                    "{}/etc/nixos/{}",
+                    TMPDIR,
+                    file.file_name().to_string_lossy()
+                )
+            } else {
+                format!(
+                    "{}/etc/nixos/{}/{}",
+                    TMPDIR,
+                    path.replace("ARCH", &format!("{}-linux", arch)).replace(
+                        "HOSTNAME",
+                        makeconfig
+                            .user
+                            .as_ref()
+                            .map(|x| x.hostname.as_ref())
+                            .unwrap_or("nixos")
+                    ),
+                    file.file_name().to_string_lossy()
+                )
+            };
+
+            write_file(&path, &config)?;
         } else if file.metadata()?.is_file() {
             Command::new("pkexec")
                 .arg("mkdir")

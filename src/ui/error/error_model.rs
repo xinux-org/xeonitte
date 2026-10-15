@@ -1,5 +1,6 @@
 use crate::{
-    config::LIBEXECDIR,
+    config::TMPDIR,
+    modules::disk::unmount,
     ui::window::AppMsg,
     utils::report::{ErrorPhase, send_report},
 };
@@ -7,7 +8,6 @@ use adw::prelude::*;
 use gettextrs::gettext;
 use log::error;
 use relm4::*;
-use std::process::Command;
 
 pub struct ErrorModel {
     messegebuffer: gtk::TextBuffer,
@@ -192,11 +192,7 @@ impl SimpleComponent for ErrorModel {
             ErrorMsg::Show(phase, message) => {
                 self.phase = phase;
                 self.message = message;
-                if let Err(e) = Command::new("pkexec")
-                    .arg(format!("{}/xeonitte-helper", LIBEXECDIR))
-                    .arg("unmount")
-                    .output()
-                {
+                if let Err(e) = unmount(TMPDIR) {
                     error!("Failed to unmount partitions: {}", e);
                 }
 

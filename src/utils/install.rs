@@ -1,9 +1,10 @@
 use super::parse::ConfigType;
 use super::report::ErrorPhase;
+use crate::modules::disk::ops::write_luks_key;
 use crate::utils::flow::Choice;
 use crate::utils::make_config::{MakeConfig, makeconfig};
 use crate::{
-    config::{LIBEXECDIR, SYSCONFDIR, TMPDIR},
+    config::{SYSCONFDIR, TMPDIR},
     ui::{
         install::install_model::{INSTALL_BROKER, InstallMsg},
         partitions::partition_model::PartitionSchema,
@@ -11,7 +12,7 @@ use crate::{
     },
     utils::disko::{Devices, LUKS_PASSWORD_FILE},
 };
-use anyhow::{Context, Result, anyhow};
+use anyhow::{Context, Result};
 use log::{error, info};
 use relm4::*;
 use std::{
@@ -268,27 +269,11 @@ impl Worker for InstallAsyncModel {
                                 PartitionSchema::FullDisk(opts) => opts.passphrase.clone(),
                                 PartitionSchema::Custom(opts) => opts.passphrase.clone(),
                             });
+
                     if let Some(passphrase) = &luks_passphrase {
                         info!("Step 4.1: Write LUKS key file");
-                        fn write_luks_key(passphrase: &str) -> Result<()> {
-                            let mut child = Command::new("pkexec")
-                                .arg(format!("{}/xeonitte-helper", LIBEXECDIR))
-                                .arg("write-luks-key")
-                                .arg("--path")
-                                .arg(LUKS_PASSWORD_FILE)
-                                .stdin(Stdio::piped())
-                                .spawn()?;
-                            child
-                                .stdin
-                                .as_mut()
-                                .context("Failed to open helper stdin")?
-                                .write_all(passphrase.as_bytes())?;
-                            if !child.wait()?.success() {
-                                return Err(anyhow!("xeonitte-helper write-luks-key failed"));
-                            }
-                            Ok(())
-                        }
-                        if let Err(e) = write_luks_key(passphrase) {
+
+                        if let Err(e) = write_luks_key(LUKS_PASSWORD_FILE, passphrase) {
                             sender.output(AppMsg::error(
                                 ErrorPhase::Installation,
                                 format!("Failed to write LUKS key file: {e}"),

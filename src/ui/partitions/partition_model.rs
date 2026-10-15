@@ -1,5 +1,12 @@
+use std::{collections::HashMap, convert::identity};
+
+use gettextrs::gettext;
+use log::{error, info, trace};
+use relm4::{MessageBroker, adw::prelude::*, factory::*, prelude::*};
+use serde::Serialize;
+use size::Size;
+
 use crate::{
-    config::LIBEXECDIR,
     ui::{
         partitions::{
             hibernation::Hibernation,
@@ -11,14 +18,8 @@ use crate::{
         templates::base::BaseComponent,
         window::AppMsg,
     },
-    utils::SizeType,
+    utils::{SizeType, disks::get_disks},
 };
-use gettextrs::gettext;
-use log::{debug, error, info, trace};
-use relm4::{adw::prelude::*, factory::*, *};
-use serde::{Deserialize, Serialize};
-use size::Size;
-use std::{collections::HashMap, convert::identity, process::Command};
 
 pub struct PartitionModel {
     disks: FactoryVecDeque<WholeDisk>,
@@ -91,8 +92,8 @@ pub struct CustomPartition {
     pub is_full: bool,
 }
 
-#[relm4::component(pub)]
-impl SimpleComponent for PartitionModel {
+#[relm4::component(pub async)]
+impl SimpleAsyncComponent for PartitionModel {
     type Input = PartitionMsg;
     type Output = AppMsg;
     type Init = ();
@@ -280,11 +281,11 @@ impl SimpleComponent for PartitionModel {
         },
     }
 
-    fn init(
+    async fn init(
         _parent_window: Self::Init,
         root: Self::Root,
-        sender: ComponentSender<Self>,
-    ) -> ComponentParts<Self> {
+        sender: AsyncComponentSender<Self>,
+    ) -> AsyncComponentParts<Self> {
         let luks_model = LuksPasswordComponent::builder()
             .launch(())
             .forward(sender.input_sender(), identity);
@@ -320,10 +321,10 @@ impl SimpleComponent for PartitionModel {
         let widgets = view_output!();
         widgets.liststack.set_vhomogeneous(false);
 
-        ComponentParts { model, widgets }
+        AsyncComponentParts { model, widgets }
     }
 
-    fn update(&mut self, msg: Self::Input, sender: ComponentSender<Self>) {
+    async fn update(&mut self, msg: Self::Input, sender: AsyncComponentSender<Self>) {
         match msg {
             PartitionMsg::Refresh => {
                 let mut disks_guard = self.disks.guard();
@@ -332,90 +333,61 @@ impl SimpleComponent for PartitionModel {
                 disks_guard.clear();
                 partition_groups_guard.clear();
 
-                let out = Command::new("pkexec")
-                    .arg(format!("{}/xeonitte-helper", LIBEXECDIR))
-                    .arg("get-partitions")
-                    .output();
+                match get_disks().await {
+                    Ok(disks) => {
+                        for disk in disks {
+                            disks_guard.push_back(WholeDisk {
+                                size: disk.size,
+                                name: disk.name.to_string(),
+                                group: self.diskgroupbtn.clone(),
+                            });
 
-                match out {
-                    Ok(out) => {
-                        let output = String::from_utf8_lossy(&out.stdout).to_string();
-                        let stderr = String::from_utf8_lossy(&out.stderr).to_string();
-                        #[derive(Deserialize, Debug)]
-                        struct InputDisk {
-                            name: String,
-                            size: u64,
-                            partitions: Vec<InputPartition>,
-                        }
+                            let mut part_factoryvec: FactoryVecDeque<Partition> =
+                                FactoryVecDeque::builder().launch_default().detach();
+                            let mut part_guard = part_factoryvec.guard();
 
-                        #[derive(Deserialize, Debug)]
-                        struct InputPartition {
-                            name: String,
-                            #[serde(rename = "format")]
-                            _format: String,
-                            size: u64,
-                        }
-                        let disks: serde_json::Result<Vec<InputDisk>> =
-                            serde_json::from_str(&output);
-                        if let Ok(disks) = disks {
-                            debug!("Got disks: {:?}", disks);
+                            for part in disk.partitions {
+                                info!(
+                                    "Partition: {:?} length {}",
+                                    part.name,
+                                    size::Size::from_bytes(part.size)
+                                );
 
-                            for disk in disks {
-                                disks_guard.push_back(WholeDisk {
-                                    name: disk.name.to_string(),
-                                    size: disk.size,
-                                    group: self.diskgroupbtn.clone(),
-                                });
-
-                                let mut part_factoryvec: FactoryVecDeque<Partition> =
-                                    FactoryVecDeque::builder().launch_default().detach();
-                                let mut part_guard = part_factoryvec.guard();
-
-                                for part in disk.partitions {
-                                    info!(
-                                        "Partition: {:?} length {}",
-                                        part.name,
-                                        size::Size::from_bytes(part.size)
-                                    );
-                                    part_guard.push_back(PartitionInit {
-                                        mountrow: adw::ComboRow::new(),
-                                        name: part.name.clone(),
-                                        size: part.size,
-                                        device: disk.name.to_string(),
-                                    });
-                                }
-
-                                part_guard.drop();
-
-                                let name = disk.name.to_string();
-                                let used = part_factoryvec.iter().map(|x| x.size).sum::<u64>();
-                                let total_size = disk.size;
-                                let free_space = Size::from_bytes(total_size - used);
-
-                                partition_groups_guard.push_back(PartitionGroup {
-                                    partitions: part_factoryvec,
-                                    creating_partition: false,
-                                    new_partition_size: Size::default(),
-                                    name,
-                                    free_space,
-                                    total_size,
-                                    size_type: SizeType::MB,
+                                part_guard.push_back(PartitionInit {
+                                    mountrow: adw::ComboRow::new(),
+                                    name: part.name.clone(),
+                                    size: part.size,
+                                    device: disk.name.to_string(),
                                 });
                             }
-                        } else {
-                            error!("Failed to parse partitions: {} : {}", output, stderr);
+
+                            part_guard.drop();
+
+                            let name = disk.name.to_string();
+                            let used = part_factoryvec.iter().map(|x| x.size).sum::<u64>();
+                            let total_size = disk.size;
+                            let free_space = Size::from_bytes(total_size - used);
+
+                            partition_groups_guard.push_back(PartitionGroup {
+                                partitions: part_factoryvec,
+                                creating_partition: false,
+                                new_partition_size: Size::default(),
+                                name,
+                                free_space,
+                                total_size,
+                                size_type: SizeType::MB,
+                            });
                         }
                     }
-                    Err(e) => {
-                        error!("Failed to get partitions: {}", e);
+                    Err(err) => {
+                        error!("Failed to get partitions: {}", err);
                     }
                 }
 
-                disks_guard.drop();
-                partition_groups_guard.drop();
                 self.schema = None;
                 self.encryption_enabled = self.method == PartitionMethod::Basic;
-                let _ = sender.output(AppMsg::SetCanGoForward(false));
+
+                sender.output_sender().emit(AppMsg::SetCanGoForward(false));
             }
             PartitionMsg::SetMethod(method) => {
                 self.method = method;
