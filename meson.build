@@ -65,7 +65,6 @@ ymlconvert = find_program('convertyml', required : true)
 subdir('data')
 subdir('po')
 subdir('src')
-subdir('xeonitte-helper/src')
 subdir('config')
 
 gnome.post_install(

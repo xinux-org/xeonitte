@@ -6,7 +6,6 @@
   gdk-pixbuf,
   gettext,
   glib,
-  lib,
   gnome-desktop,
   adwaita-icon-theme,
   gtk4,
@@ -23,9 +22,6 @@
   rustPlatform,
   vte-gtk4,
   wrapGAppsHook4,
-  util-linux,
-  dosfstools,
-  e2fsprogs,
   systemd,
   dbus,
   zlib,
@@ -82,17 +78,4 @@ stdenv.mkDerivation {
     dbus.dev
     zlib
   ];
-
-  postFixup = ''
-    wrapProgram $out/libexec/xeonitte-helper \
-      --prefix PATH : ${
-        lib.makeBinPath [
-          cryptsetup
-          dosfstools
-          e2fsprogs
-          parted
-          util-linux
-        ]
-      }
-  '';
 }

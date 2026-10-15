@@ -42,8 +42,8 @@ lsblk = "0.6.1"
 relm4-icons-build = "0.11.0"
 
 [workspace]
-members = [".", "xeonitte-helper", "test-config"]
-default-members = [".", "xeonitte-helper", "test-config"]
+members = [".", "test-config", "test-crate"]
+default-members = [".", "test-config"]
 
 [lints.rust]
 unused_must_use = "allow"
