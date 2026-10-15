@@ -59,7 +59,7 @@ impl Flow {
                     multiple: true,
                     required: false,
                     title: gettext("Extra Options"),
-                    id: ListId::PackageManager,
+                    id: ListId::PackageManagers,
                     choices: vec![
                         Choice {
                             name: gettext("Flatpak"),
@@ -96,14 +96,14 @@ impl Flow {
                             name: gettext("LTS"),
                             description: gettext("Install the latest LTS kernel"),
                             config: String::new(),
-                            default: true,
+                            default: false,
                             packages: vec![],
                         },
                         Choice {
                             name: gettext("Latest"),
                             description: gettext("Install the latest kernel").into(),
                             config: "boot.kernelPackages = pkgs.linuxPackages_latest;".into(),
-                            default: false,
+                            default: true,
                             packages: vec![],
                         },
                         Choice {
@@ -161,12 +161,16 @@ pub enum Step {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ListId {
-    PackageManager,
+    PackageManagers,
     Kernel,
 }
 impl From<ListId> for String {
     fn from(value: ListId) -> Self {
-        format!("{value:?}")
+        match value {
+            ListId::Kernel => "KERNEL",
+            ListId::PackageManagers => "PACKAGEMANAGERS",
+        }
+        .into()
     }
 }
 
