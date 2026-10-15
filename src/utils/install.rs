@@ -299,7 +299,6 @@ impl Worker for InstallAsyncModel {
                         }
                     }
 
-                    // INSTALL_BROKER.send(InstallMsg::ProgressBarState(ProgressState::State(0.35)));
                     // TODO: make better way to write this shell command
                     let cmd = if luks_passphrase.is_some() {
                         format!(
@@ -342,7 +341,6 @@ impl Worker for InstallAsyncModel {
                     "Step 5: Set user passwords".to_string(),
                 ));
 
-                // INSTALL_BROKER.send(InstallMsg::ProgressBarState(ProgressState::State(0.65)));
                 if let Err(e) = setuserpasswd(self.username.clone(), self.password.clone()) {
                     sender.output(AppMsg::error(
                         ErrorPhase::PostInstall,
