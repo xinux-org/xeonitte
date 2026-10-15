@@ -1,6 +1,5 @@
 use super::parse::ConfigType;
 use super::report::ErrorPhase;
-use crate::ui::install::install_model::ProgressState::{self};
 use crate::utils::flow::Choice;
 use crate::utils::make_config::{MakeConfig, makeconfig};
 use crate::{
@@ -131,7 +130,7 @@ impl Worker for InstallAsyncModel {
                     return;
                 };
 
-                INSTALL_BROKER.send(InstallMsg::ProgressBarState(ProgressState::Start));
+                INSTALL_BROKER.send(InstallMsg::ProgressBarState(0.25));
                 info!("Step 2: Generate base config");
                 INSTALL_BROKER.send(InstallMsg::ProgressbarTitle(
                     "Step 2: Generate base config".to_string(),
@@ -322,7 +321,6 @@ impl Worker for InstallAsyncModel {
                             tmpdir = TMPDIR
                         )
                     };
-                    INSTALL_BROKER.send(InstallMsg::ProgressBarState(ProgressState::State(0.5)));
                     INSTALL_BROKER.send(InstallMsg::Install(vec![
                         "/usr/bin/env".to_string(),
                         "pkexec".to_string(),
@@ -401,6 +399,7 @@ impl Worker for InstallAsyncModel {
                     return;
                 }
 
+                INSTALL_BROKER.send(InstallMsg::ProgressBarState(1.0));
                 self.postinstall_commands = commands;
                 sender.input(InstallAsyncMsg::RunNextCommand);
             }
@@ -427,7 +426,6 @@ impl Worker for InstallAsyncModel {
                     "-c".to_string(),
                     active,
                 ]));
-                INSTALL_BROKER.send(InstallMsg::ProgressBarState(ProgressState::Finish))
             }
         }
     }
