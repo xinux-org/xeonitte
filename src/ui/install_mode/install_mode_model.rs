@@ -1,16 +1,14 @@
 use crate::ui::window::{AppMsg, StackPage};
-use crate::utils::flow::Flow::{self, Basic};
+use crate::utils::flow::Flow;
 use gettextrs::gettext;
 use log::trace;
 use relm4::{
     ComponentParts, ComponentSender, RelmWidgetExt, SimpleComponent,
     adw::{self, prelude::*},
     gtk::{self},
-    *,
 };
 
 pub struct InstallModeModel {
-    config: Flow,
     selected: Option<Flow>,
 }
 
@@ -65,73 +63,20 @@ impl SimpleComponent for InstallModeModel {
                     },
                 },
             },
-            // #[local_ref]
-            // selectbox -> gtk::FlowBox {
-            //     set_orientation: gtk::Orientation::Horizontal,
-            //     set_align: gtk::Align::Center,
-            //     set_hexpand: true,
-            //     set_column_spacing: 20,
-            //     set_row_spacing: 20,
-            //     set_selection_mode: gtk::SelectionMode::None,
-            //     set_homogeneous: true,
-            // }
         }
     }
 
-    // Initialize the UI.
     fn init(
         init: Self::Init,
         root: Self::Root,
         sender: ComponentSender<Self>,
     ) -> ComponentParts<Self> {
         let model = InstallModeModel {
-            config: init,
             selected: Some(Flow::Basic),
         };
         sender.input(InstallModeMsg::SetSelected(Some(Flow::Basic)));
 
-        let choices = model
-            .config
-            .iter()
-            .filter(|&choise| choise != Flow::Init)
-            .collect::<Vec<_>>();
-
-        let selectbox = gtk::FlowBox::builder()
-            .max_children_per_line(choices.len() as u32)
-            .build();
-
         let widgets = view_output!();
-
-        choices.iter().for_each(|config| {
-            view! {
-                button = gtk::Button {
-                    set_size_request: (200, 200),
-                    set_align: gtk::Align::Center,
-                    connect_clicked[sender, config] => move |_| {
-                        sender.input(InstallModeMsg::SetSelected(Some(config)))
-                    },
-                    gtk::Box {
-                        set_orientation: gtk::Orientation::Vertical,
-                        set_align: gtk::Align::Center,
-                        set_spacing: 10,
-                        set_margin_all: 10,
-                        gtk::Image {
-                            set_icon_name: Some(config.logo()),
-                            set_pixel_size: 80,
-                            set_align: gtk::Align::Center,
-                        },
-                        gtk::Label {
-                            set_label: &gettext(format!("{config:?}")),
-                            set_align: gtk::Align::Center,
-                            set_wrap: true,
-                            set_justify: gtk::Justification::Center,
-                        }
-                    }
-                }
-            }
-            selectbox.append(&button);
-        });
-
         ComponentParts { model, widgets }
     }
 
