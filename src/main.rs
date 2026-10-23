@@ -20,7 +20,7 @@ fn main() -> Result<()> {
     relm4_icons::initialize_icons(icon_names::GRESOURCE_BYTES, icon_names::RESOURCE_PREFIX);
     CombinedLogger::init(vec![
         TermLogger::new(
-            LevelFilter::Warn,
+            LevelFilter::Debug,
             Config::default(),
             TerminalMode::Mixed,
             ColorChoice::Auto,

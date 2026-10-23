@@ -189,10 +189,12 @@ impl Component for AppModel {
                             }
                         },
                         StackPage::Carousel => {
-                            adw::CarouselIndicatorDots {
-                                set_halign: gtk::Align::Center,
-                                set_hexpand: true,
-                                set_carousel: Some(main_carousel)
+                            gtk::Label {
+                                // Translators: Do NOT translate the '{}'
+                                // The string reads "{distribution name} Installer"
+                                // Last page is install page.
+                                #[watch]
+                                set_label: &format!("Step {} of {}", model.current_page, model.carouselpages.len())
                             }
                         },
                         StackPage::Install => {
