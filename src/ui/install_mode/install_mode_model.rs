@@ -1,10 +1,13 @@
 use crate::ui::window::{AppMsg, StackPage};
-use crate::utils::flow::Flow;
+use crate::utils::flow::Flow::{self, Basic};
 use gettextrs::gettext;
-use gtk::prelude::{BoxExt, ButtonExt, OrientableExt, WidgetExt};
 use log::trace;
-use relm4::*;
-use relm4::{ComponentParts, ComponentSender, RelmWidgetExt, SimpleComponent, gtk};
+use relm4::{
+    ComponentParts, ComponentSender, RelmWidgetExt, SimpleComponent,
+    adw::{self, prelude::*},
+    gtk::{self},
+    *,
+};
 
 pub struct InstallModeModel {
     config: Flow,
@@ -26,16 +29,52 @@ impl SimpleComponent for InstallModeModel {
     view! {
         gtk::Box {
             set_margin_all: 20,
-            #[local_ref]
-            selectbox -> gtk::FlowBox {
-                set_orientation: gtk::Orientation::Horizontal,
-                set_align: gtk::Align::Center,
-                set_hexpand: true,
-                set_column_spacing: 20,
-                set_row_spacing: 20,
-                set_selection_mode: gtk::SelectionMode::None,
-                set_homogeneous: true,
-            }
+            adw::StatusPage {
+                set_icon_name: Some("archive-symbolic"),
+                set_title: &gettext("Type of installation"),
+                set_description: Some(&gettext("Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem
+                Ipsum has been the industry's standard dummy")),
+
+                #[wrap(Some)]
+                set_child = &gtk::Box {
+                    set_hexpand: true,
+                    set_orientation: gtk::Orientation::Vertical,
+                    set_align: gtk::Align::Center,
+                    set_spacing: 6,
+                    #[name(install_mode)]
+                    gtk::CheckButton {
+                        set_label: Some(&gettext("Basic mode")),
+                        #[watch]
+                        set_active: model.selected == Some(Flow::Basic),
+                        connect_toggled[sender] => move |btn| {
+                            if btn.is_active() {
+                                sender.input(InstallModeMsg::SetSelected(Some(Flow::Basic)))
+                            }
+                        },
+                    },
+                    gtk::CheckButton {
+                        set_label: Some(&gettext("Advanced mode")),
+                        set_group: Some(&install_mode),
+                        #[watch]
+                        set_active: model.selected == Some(Flow::Advanced),
+                        connect_toggled[sender] => move |btn| {
+                            if btn.is_active() {
+                                sender.input(InstallModeMsg::SetSelected(Some(Flow::Advanced)))
+                            }
+                        },
+                    },
+                },
+            },
+            // #[local_ref]
+            // selectbox -> gtk::FlowBox {
+            //     set_orientation: gtk::Orientation::Horizontal,
+            //     set_align: gtk::Align::Center,
+            //     set_hexpand: true,
+            //     set_column_spacing: 20,
+            //     set_row_spacing: 20,
+            //     set_selection_mode: gtk::SelectionMode::None,
+            //     set_homogeneous: true,
+            // }
         }
     }
 
@@ -47,8 +86,9 @@ impl SimpleComponent for InstallModeModel {
     ) -> ComponentParts<Self> {
         let model = InstallModeModel {
             config: init,
-            selected: None,
+            selected: Some(Flow::Basic),
         };
+        sender.input(InstallModeMsg::SetSelected(Some(Flow::Basic)));
 
         let choices = model
             .config
