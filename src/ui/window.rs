@@ -462,6 +462,8 @@ impl Component for AppModel {
         let errorpage = model.error.widget().clone();
         let widgets = view_output!();
 
+        debug!("Current page on init function: {}", model.current_page);
+
         ComponentParts { model, widgets }
     }
 
