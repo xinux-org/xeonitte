@@ -21,6 +21,10 @@ impl FactoryComponent for WholeDisk {
 
     view! {
         adw::ActionRow {
+            add_prefix = &gtk::Image {
+                set_pixel_size: 22,
+                set_icon_name: Some("harddisk-symbolic"),
+            },
             set_visible: !self.name.contains("zram"),
             set_title: &self.name,
             #[watch]
