@@ -18,6 +18,7 @@ struct Disk {
     name: String,
     size: u64,
     partitions: Vec<Partition>,
+    is_busy: bool,
 }
 
 #[derive(Serialize, Clone)]
@@ -100,6 +101,7 @@ fn main() {
                     name: device.path().to_str().unwrap().to_string(),
                     size: device.length() * sectorsize,
                     partitions: vec![],
+                    is_busy: device.is_busy(),
                 };
                 if let Ok(partdisk) = libparted::Disk::new(&mut device) {
                     let mut partvec = vec![];
