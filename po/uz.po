@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 19:32+0500\n"
+"POT-Creation-Date: 2026-10-26 18:11+0500\n"
 "PO-Revision-Date: 2025-09-26 13:40+0500\n"
 "Last-Translator: BeMeritus <bemerituss@gmail.com>\n"
 "Language-Team: \n"
@@ -252,7 +252,7 @@ msgstr "Nomi"
 msgid "Username"
 msgstr "Foydalanuvchi nomi"
 
-#: src/ui/summary/summary_model.rs:172 src/ui/user/user_model.rs:198
+#: src/ui/summary/summary_model.rs:172 src/ui/user/user_model.rs:182
 msgid "Hostname"
 msgstr "Host nomi"
 
@@ -264,17 +264,23 @@ msgstr "Yangi foydalanuvchi yaratish"
 msgid "Password"
 msgstr "Parol"
 
-#: src/ui/user/user_model.rs:175
-msgid "Log in automatically"
-msgstr "Avtomatik kirish"
+#: src/ui/user/user_model.rs:204
+#, fuzzy
+#| msgid "Root password"
+msgid "Root user's password"
+msgstr "Root parol"
 
-#: src/ui/user/user_model.rs:226
+#: src/ui/user/user_model.rs:210
 msgid "Root password"
 msgstr "Root parol"
 
-#: src/ui/user/user_model.rs:236
+#: src/ui/user/user_model.rs:220
 msgid "Confirm root password"
 msgstr "Root parolini tasdiqlash"
+
+#: src/ui/user/user_model.rs:230
+msgid "Log in automatically"
+msgstr "Avtomatik kirish"
 
 #: src/ui/welcome/welcome_model.rs:44
 msgid "Welcome!"
