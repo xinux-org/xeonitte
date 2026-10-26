@@ -170,22 +170,6 @@ impl SimpleComponent for UserModel {
                                 sender.input(UserMsg::Update(UserDataPatch {confirm_password: Some(entry.text().to_string()), ..Default::default()}));
                             }
                         },
-                        adw::ActionRow {
-                            #[watch]
-                            set_title: &gettext("Log in automatically"),
-                            set_activatable: true,
-                            connect_activated[autoswitch] => move |_| {
-                                autoswitch.activate();
-                            },
-                            #[name(autoswitch)]
-                            add_suffix = &gtk::Switch {
-                                set_valign: gtk::Align::Center,
-                                connect_state_set[sender] => move |_, state| {
-                                    sender.input(UserMsg::Update(UserDataPatch { autologin: Some(state), ..Default::default()}));
-                                    relm4::gtk::glib::Propagation::Proceed
-                                }
-                            }
-                        }
                     },
                     gtk::ListBox {
                         #[watch]
@@ -240,7 +224,15 @@ impl SimpleComponent for UserModel {
                                 sender.input(UserMsg::Update(UserDataPatch { confirm_root_password: Some(Some(entry.text().to_string())), ..Default::default()}));
                             }
                         }
-                    }
+                    },
+                    gtk::CheckButton {
+                        set_halign: gtk::Align::Center,
+                        set_label: Some(&gettext("Log in automatically")),
+                        connect_toggled[sender] => move |check_button| {
+                            let active = check_button.is_active();
+                            sender.input(UserMsg::Update(UserDataPatch { autologin: Some(active), ..Default::default()}));
+                        }
+                    },
                 }
             }
         }
