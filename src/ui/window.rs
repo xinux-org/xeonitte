@@ -194,7 +194,7 @@ impl Component for AppModel {
                                 // The string reads "{distribution name} Installer"
                                 // Last page is install page.
                                 #[watch]
-                                set_markup: &format!("<b>Step {} of {}</b>", model.current_page, model.carouselpages.len())
+                                set_markup: &format!("<b>Step {} of {}</b>", model.current_page + 1, model.carouselpages.len())
                             }
                         },
                         StackPage::Install => {
