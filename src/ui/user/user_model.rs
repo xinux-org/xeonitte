@@ -200,11 +200,11 @@ impl SimpleComponent for UserModel {
                             }
                         }
                     },
-                    gtk::ListBox {
+                    adw::PreferencesGroup {
+                        set_description: Some(&gettext("Root user's password")),
                         #[watch]
                         set_visible: model.showrootpassword,
                         add_css_class: "boxed-list",
-                        set_selection_mode: gtk::SelectionMode::None,
                         adw::PasswordEntryRow {
                             #[watch]
                             set_title: &gettext("Root password"),
