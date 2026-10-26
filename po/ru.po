@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 17:24+0500\n"
+"POT-Creation-Date: 2026-10-26 17:58+0500\n"
 "PO-Revision-Date: 2025-09-26 13:55+0500\n"
 "Last-Translator: BeMeritus <bemerituss@gmail.com>\n"
 "Language-Team: \n"
@@ -331,27 +331,47 @@ msgstr ""
 msgid "Quit"
 msgstr ""
 
-#: src/ui/window.rs:203
-msgid "Installation Finished"
+#: src/ui/window.rs:188
+#, fuzzy
+#| msgid "Install"
+msgid "<b>%d Installer</b>"
+msgstr "Установить"
+
+#: src/ui/window.rs:197
+msgid "<b>Step %d of %f</b>"
+msgstr ""
+
+#: src/ui/window.rs:205
+#, fuzzy
+#| msgid "Installing…"
+msgid "<b>Installing…</b>"
+msgstr "Установка…"
+
+#: src/ui/window.rs:211
+#, fuzzy
+#| msgid "Installation Finished"
+msgid "<b>Installation Finished</b>"
 msgstr "Установка завершена"
 
-#: src/ui/window.rs:209
-msgid "Installation Failed"
+#: src/ui/window.rs:217
+#, fuzzy
+#| msgid "Installation Failed"
+msgid "<b>Installation Failed</b>"
 msgstr "Установка не удалась"
 
-#: src/ui/window.rs:302
+#: src/ui/window.rs:310
 msgid "Finished!"
 msgstr "Законченный!"
 
-#: src/ui/window.rs:315
+#: src/ui/window.rs:323
 msgid "Reboot"
 msgstr "Перезагрузить"
 
-#: src/ui/window.rs:331
+#: src/ui/window.rs:339
 msgid "No Internet"
 msgstr "Нет интернета"
 
-#: src/ui/window.rs:332
+#: src/ui/window.rs:340
 msgid "Please connect to the Internet to continue"
 msgstr "Пожалуйста, подключитесь к Интернету, чтобы продолжить."
 
@@ -478,9 +498,6 @@ msgstr ""
 #: src/utils/flow.rs:118
 msgid "Install the Zen kernel"
 msgstr ""
-
-#~ msgid "Installing…"
-#~ msgstr "Установка…"
 
 #~ msgid "Launch GParted"
 #~ msgstr "Запустить GParted"

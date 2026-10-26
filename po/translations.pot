@@ -8,13 +8,13 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 17:30+0500\n"
+"POT-Creation-Date: 2026-10-26 17:58+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
 #: data/uz.xinux.Xeonitte.desktop.in.in:2
@@ -322,27 +322,39 @@ msgstr ""
 msgid "Quit"
 msgstr ""
 
-#: src/ui/window.rs:203
-msgid "Installation Finished"
+#: src/ui/window.rs:188
+msgid "<b>%d Installer</b>"
 msgstr ""
 
-#: src/ui/window.rs:209
-msgid "Installation Failed"
+#: src/ui/window.rs:197
+msgid "<b>Step %d of %f</b>"
 msgstr ""
 
-#: src/ui/window.rs:302
+#: src/ui/window.rs:205
+msgid "<b>Installing…</b>"
+msgstr ""
+
+#: src/ui/window.rs:211
+msgid "<b>Installation Finished</b>"
+msgstr ""
+
+#: src/ui/window.rs:217
+msgid "<b>Installation Failed</b>"
+msgstr ""
+
+#: src/ui/window.rs:310
 msgid "Finished!"
 msgstr ""
 
-#: src/ui/window.rs:315
+#: src/ui/window.rs:323
 msgid "Reboot"
 msgstr ""
 
-#: src/ui/window.rs:331
+#: src/ui/window.rs:339
 msgid "No Internet"
 msgstr ""
 
-#: src/ui/window.rs:332
+#: src/ui/window.rs:340
 msgid "Please connect to the Internet to continue"
 msgstr ""
 
