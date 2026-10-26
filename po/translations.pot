@@ -8,17 +8,42 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 19:32+0500\n"
+"POT-Creation-Date: 2026-10-26 17:30+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/main.rs:38
+#: data/uz.xinux.Xeonitte.desktop.in.in:2
+msgid "Install Xinux"
+msgstr ""
+
+#: data/uz.xinux.Xeonitte.desktop.in.in:3
+msgid "Install"
+msgstr ""
+
+#: data/uz.xinux.Xeonitte.desktop.in.in:9
+msgid "Installer;Xeonitte;"
+msgstr ""
+
+#: data/uz.xinux.Xeonitte.metainfo.xml.in.in:6 src/main.rs:38
 msgid "Xeonitte Installer"
+msgstr ""
+
+#: data/uz.xinux.Xeonitte.metainfo.xml.in.in:7
+#: data/uz.xinux.Xeonitte.metainfo.xml.in.in:9
+msgid "A graphical installer for NixOS based distributions."
+msgstr ""
+
+#: data/uz.xinux.Xeonitte.policy.in.in:8
+msgid "Give Xeonitte Installer root access"
+msgstr ""
+
+#: data/uz.xinux.Xeonitte.policy.in.in:9
+msgid "Authentication is required to install operating system"
 msgstr ""
 
 #: src/ui/error/error_model.rs:57
@@ -297,31 +322,27 @@ msgstr ""
 msgid "Quit"
 msgstr ""
 
-#: src/ui/window.rs:201
-msgid "Installing…"
-msgstr ""
-
-#: src/ui/window.rs:207
+#: src/ui/window.rs:203
 msgid "Installation Finished"
 msgstr ""
 
-#: src/ui/window.rs:213
+#: src/ui/window.rs:209
 msgid "Installation Failed"
 msgstr ""
 
-#: src/ui/window.rs:306
+#: src/ui/window.rs:302
 msgid "Finished!"
 msgstr ""
 
-#: src/ui/window.rs:319
+#: src/ui/window.rs:315
 msgid "Reboot"
 msgstr ""
 
-#: src/ui/window.rs:335
+#: src/ui/window.rs:331
 msgid "No Internet"
 msgstr ""
 
-#: src/ui/window.rs:336
+#: src/ui/window.rs:332
 msgid "Please connect to the Internet to continue"
 msgstr ""
 

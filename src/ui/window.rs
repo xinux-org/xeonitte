@@ -22,7 +22,7 @@ use crate::{
             NixValue, Partition, PartitionContent, Swap, canonical, luks_encrypted,
         },
         flow::{BRANDING, Choice, DISTRO_NAME, Flow, INTERNET_CHECK_URL, Step},
-        i18n::i18n_f,
+        i18n::{i18n, i18n_f},
         install::{InstallAsyncModel, InstallAsyncMsg},
         language::{get_country, get_lang},
         report::ErrorPhase,
@@ -193,14 +193,15 @@ impl Component for AppModel {
                                 // Translators: Do NOT translate the '{}'
                                 // The string reads "{distribution name} Installer"
                                 // Last page is install page.
+                                // gettext("<b>Step {} of {}</b>")
                                 #[watch]
-                                set_markup: &format!("<b>Step {} of {}</b>", model.current_page + 1, model.carouselpages.len())
+                                set_markup: &i18n_f("<b>Step {} of {}</b>", &[&(model.current_page + 1).to_string(), &(model.carouselpages.len()).to_string()])
                             }
                         },
                         StackPage::Install => {
                             gtk::Label {
                                 #[watch]
-                                set_label: &gettext("Installing…")
+                                set_label: &i18n("Installing…")
                             }
                         },
                         StackPage::Finished => {

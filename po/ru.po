@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 19:32+0500\n"
+"POT-Creation-Date: 2026-10-26 17:24+0500\n"
 "PO-Revision-Date: 2025-09-26 13:55+0500\n"
 "Last-Translator: BeMeritus <bemerituss@gmail.com>\n"
 "Language-Team: \n"
@@ -18,9 +18,36 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 3.5\n"
 
-#: src/main.rs:38
+#: data/uz.xinux.Xeonitte.desktop.in.in:2
+msgid "Install Xinux"
+msgstr "Установить Xinux"
+
+#: data/uz.xinux.Xeonitte.desktop.in.in:3
+msgid "Install"
+msgstr "Установить"
+
+#: data/uz.xinux.Xeonitte.desktop.in.in:9
+msgid "Installer;Xeonitte;"
+msgstr "Установщик;Xeonitte;"
+
+#: data/uz.xinux.Xeonitte.metainfo.xml.in.in:6 src/main.rs:38
 msgid "Xeonitte Installer"
 msgstr "Установщик Xeonitte"
+
+#: data/uz.xinux.Xeonitte.metainfo.xml.in.in:7
+#: data/uz.xinux.Xeonitte.metainfo.xml.in.in:9
+#, fuzzy
+#| msgid "A graphical E-Imzo keys manager for NixOS based distributions."
+msgid "A graphical installer for NixOS based distributions."
+msgstr "Графический менеджер ключей E-Imzo для дистрибутивов на базе NixOS."
+
+#: data/uz.xinux.Xeonitte.policy.in.in:8
+msgid "Give Xeonitte Installer root access"
+msgstr "Предоставьте установщику Xeonitte root-доступ"
+
+#: data/uz.xinux.Xeonitte.policy.in.in:9
+msgid "Authentication is required to install operating system"
+msgstr "Для установки операционной системы требуется аутентификация."
 
 #: src/ui/error/error_model.rs:57
 msgid "Installation Failed!"
@@ -304,31 +331,27 @@ msgstr ""
 msgid "Quit"
 msgstr ""
 
-#: src/ui/window.rs:201
-msgid "Installing…"
-msgstr "Установка…"
-
-#: src/ui/window.rs:207
+#: src/ui/window.rs:203
 msgid "Installation Finished"
 msgstr "Установка завершена"
 
-#: src/ui/window.rs:213
+#: src/ui/window.rs:209
 msgid "Installation Failed"
 msgstr "Установка не удалась"
 
-#: src/ui/window.rs:306
+#: src/ui/window.rs:302
 msgid "Finished!"
 msgstr "Законченный!"
 
-#: src/ui/window.rs:319
+#: src/ui/window.rs:315
 msgid "Reboot"
 msgstr "Перезагрузить"
 
-#: src/ui/window.rs:335
+#: src/ui/window.rs:331
 msgid "No Internet"
 msgstr "Нет интернета"
 
-#: src/ui/window.rs:336
+#: src/ui/window.rs:332
 msgid "Please connect to the Internet to continue"
 msgstr "Пожалуйста, подключитесь к Интернету, чтобы продолжить."
 
@@ -456,20 +479,8 @@ msgstr ""
 msgid "Install the Zen kernel"
 msgstr ""
 
-#~ msgid "Install Xinux"
-#~ msgstr "Установить Xinux"
-
-#~ msgid "Install"
-#~ msgstr "Установить"
-
-#~ msgid "Installer;Xeonitte;"
-#~ msgstr "Установщик;Xeonitte;"
-
-#~ msgid "Give Xeonitte Installer root access"
-#~ msgstr "Предоставьте установщику Xeonitte root-доступ"
-
-#~ msgid "Authentication is required to install operating system"
-#~ msgstr "Для установки операционной системы требуется аутентификация."
+#~ msgid "Installing…"
+#~ msgstr "Установка…"
 
 #~ msgid "Launch GParted"
 #~ msgstr "Запустить GParted"
