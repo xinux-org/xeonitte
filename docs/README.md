@@ -181,7 +181,7 @@ Configuration snippets:
 - `@KEYBOARD@` - Keyboard layout
 - `@AUTOLOGIN@` - Autologin config
 - `@PACKAGES@` - Packages to install
-- `@STATEVERSION@` - NixOS version found by running `nixos-version`
+- `@STATEVERSION@` - Xinux version found by running `nixos-version`
 
 Standalone values:
 

@@ -85,7 +85,7 @@ impl Worker for InstallAsyncModel {
                     .as_ref()
                     .map(|u| u.hostname.clone())
                     .unwrap_or_else(|| "nixos".to_string());
-                let archout = match Command::new("uname")
+                let archout: std::process::Output = match Command::new("uname")
                     .arg("-m")
                     .output()
                     .context("Failed to get architecture")

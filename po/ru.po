@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 17:58+0500\n"
+"POT-Creation-Date: 2026-10-26 18:17+0500\n"
 "PO-Revision-Date: 2025-09-26 13:55+0500\n"
 "Last-Translator: BeMeritus <bemerituss@gmail.com>\n"
 "Language-Team: \n"
@@ -38,7 +38,7 @@ msgstr "Установщик Xeonitte"
 #: data/uz.xinux.Xeonitte.metainfo.xml.in.in:9
 #, fuzzy
 #| msgid "A graphical E-Imzo keys manager for NixOS based distributions."
-msgid "A graphical installer for NixOS based distributions."
+msgid "A graphical installer for Xinux based distributions."
 msgstr "Графический менеджер ключей E-Imzo для дистрибутивов на базе NixOS."
 
 #: data/uz.xinux.Xeonitte.policy.in.in:8
@@ -380,8 +380,11 @@ msgid "Configurable and Customizable"
 msgstr "Настраиваемый и персонализируемый"
 
 #: src/utils/branding.rs:15
+#, fuzzy
+#| msgid ""
+#| "Easily modify and manage your system configuration with the power of NixOS"
 msgid ""
-"Easily modify and manage your system configuration with the power of NixOS"
+"Easily modify and manage your system configuration with the power of nix"
 msgstr ""
 "Легко изменяйте конфигурацию системы и управляйте ею благодаря возможностям "
 "NixOS."
@@ -428,7 +431,7 @@ msgstr ""
 #: src/utils/branding.rs:48
 msgid ""
 "The goal of this project is to provide a simple graphical tool for modifying "
-"and managing desktop NixOS configurations."
+"and managing desktop Xinux configurations."
 msgstr ""
 
 #: src/utils/branding.rs:53
