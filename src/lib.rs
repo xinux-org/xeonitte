@@ -1,9 +1,16 @@
+use anyhow::Context;
+use gettextrs::LocaleCategory;
+use log::LevelFilter;
+use simplelog::{ColorChoice, CombinedLogger, Config, TermLogger, TerminalMode, WriteLogger};
 use size::Size;
+use std::fs::File;
+
+use crate::config::{GETTEXT_PACKAGE, LOCALEDIR};
 
 pub mod config;
+pub mod modules;
 pub mod ui;
 pub mod utils;
-pub mod modules;
 
 pub fn get_memory_size() -> Option<u64> {
     let contents = std::fs::read_to_string("/proc/meminfo").unwrap_or_else(|e| {
@@ -87,4 +94,40 @@ pub fn get_storage_size_for_disko(size: Size) -> String {
         .unwrap_or_default();
 
     format!("{}{}", number_part, size_part) // e.g: 100M, 500G
+}
+
+pub fn setup_logger() -> anyhow::Result<()> {
+    let mut log_level_filter = LevelFilter::Warn;
+
+    if cfg!(debug_assertions) {
+        log_level_filter = LevelFilter::Debug;
+    }
+
+    CombinedLogger::init(vec![
+        TermLogger::new(
+            log_level_filter,
+            Config::default(),
+            TerminalMode::Mixed,
+            ColorChoice::Auto,
+        ),
+        WriteLogger::new(
+            LevelFilter::Debug,
+            Config::default(),
+            File::create("/tmp/xeonitte.log").context("Can't open log file: /tmp/xeonitte.log")?,
+        ),
+    ])
+    .context("Failed to initialize loggers")?;
+
+    Ok(())
+}
+
+pub fn setup_gettext() -> anyhow::Result<()> {
+    // Prepare i18n
+    gettextrs::setlocale(LocaleCategory::LcAll, "");
+    gettextrs::bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR)
+        .context("Unable to bind the text domain")?;
+    gettextrs::bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8")
+        .context("Unable to bind the text domain codeset to UTF-8")?;
+    gettextrs::textdomain(GETTEXT_PACKAGE).context("Unable to switch to the text domain")?;
+    Ok(())
 }
