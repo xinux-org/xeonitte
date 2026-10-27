@@ -190,10 +190,8 @@ impl Component for AppModel {
                         },
                         StackPage::Carousel => {
                             gtk::Label {
-                                // Translators: Do NOT translate the '{}'
-                                // The string reads "{distribution name} Installer"
-                                // Last page is install page.
                                 #[watch]
+                                // Translators: Do NOT translate the "&d" and "%f"
                                 set_markup: &gettext("<b>Step %d of %f</b>")
                                     .replace("%d", &(model.current_page + 1).to_string())
                                     .replace("%f", &model.carouselpages.len().to_string()),

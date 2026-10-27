@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 18:17+0500\n"
+"POT-Creation-Date: 2026-10-27 15:41+0500\n"
 "PO-Revision-Date: 2026-10-27 14:18+0500\n"
 "Last-Translator: BeMeritus <bemerituss@gmail.com>\n"
 "Language-Team: \n"
@@ -30,7 +30,7 @@ msgstr "O‘rnatish"
 msgid "Installer;Xeonitte;"
 msgstr "O‘rnatuvchi;Xeonitte;"
 
-#: data/uz.xinux.Xeonitte.metainfo.xml.in.in:6 src/main.rs:38
+#: data/uz.xinux.Xeonitte.metainfo.xml.in.in:6 src/main.rs:23
 msgid "Xeonitte Installer"
 msgstr "Xeonitte o‘rnatuvchisi"
 
@@ -329,35 +329,35 @@ msgstr "Chiqish"
 msgid "<b>%d Installer</b>"
 msgstr "<b>%d oʻrnatish</b>"
 
-#: src/ui/window.rs:197
+#: src/ui/window.rs:195
 msgid "<b>Step %d of %f</b>"
 msgstr "<b>Step %d of %f</b>"
 
-#: src/ui/window.rs:205
+#: src/ui/window.rs:203
 msgid "<b>Installing…</b>"
 msgstr "<b>O‘rnatilmoqda…</b>"
 
-#: src/ui/window.rs:211
+#: src/ui/window.rs:209
 msgid "<b>Installation Finished</b>"
 msgstr "<b>O‘rnatish yakunlandi</b>"
 
-#: src/ui/window.rs:217
+#: src/ui/window.rs:215
 msgid "<b>Installation Failed</b>"
 msgstr "<b>Muvaffaqiyatsiz oʻrnatish</b>"
 
-#: src/ui/window.rs:310
+#: src/ui/window.rs:308
 msgid "Finished!"
 msgstr "Tamom!"
 
-#: src/ui/window.rs:323
+#: src/ui/window.rs:321
 msgid "Reboot"
 msgstr "Qayta ishga tushirish"
 
-#: src/ui/window.rs:339
+#: src/ui/window.rs:337
 msgid "No Internet"
 msgstr "Internet yo‘q"
 
-#: src/ui/window.rs:340
+#: src/ui/window.rs:338
 msgid "Please connect to the Internet to continue"
 msgstr "Davom etish uchun internetga ulaning"
 
