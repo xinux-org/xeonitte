@@ -185,34 +185,39 @@ impl Component for AppModel {
                                 #[watch]
                                 // Translators: Do NOT translate the '{}'
                                 // The string reads "{distribution name} Installer"
-                                set_markup: &gettext("<b>%d Installer</b>").replace("%d", DISTRO_NAME),
+                                set_label: &gettext("%d Installer").replace("%d", DISTRO_NAME),
+                                add_css_class: "heading",
                             }
                         },
                         StackPage::Carousel => {
                             gtk::Label {
                                 #[watch]
                                 // Translators: Do NOT translate the "&d" and "%f"
-                                set_markup: &gettext("<b>Step %d of %f</b>")
+                                set_label: &gettext("Step %d of %f")
                                     .replace("%d", &(model.current_page + 1).to_string())
                                     .replace("%f", &model.carouselpages.len().to_string()),
+                                add_css_class: "heading",
                             }
                         },
                         StackPage::Install => {
                             gtk::Label {
                                 #[watch]
-                                set_markup: &gettext("<b>Installing…</b>")
+                                set_label: &gettext("Installing…"),
+                                add_css_class: "heading",
                             }
                         },
                         StackPage::Finished => {
                             gtk::Label {
                                 #[watch]
-                                set_markup: &gettext("<b>Installation Finished</b>")
+                                set_label: &gettext("Installation Finished"),
+                                add_css_class: "heading",
                             }
                         },
                         StackPage::Error => {
                             gtk::Label {
                                 #[watch]
-                                set_markup: &gettext("<b>Installation Failed</b>")
+                                set_label: &gettext("Installation Failed"),
+                                add_css_class: "heading",
                             }
                         }
                     }
