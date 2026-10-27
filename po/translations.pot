@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 15:42+0500\n"
+"POT-Creation-Date: 2026-10-27 16:58+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -323,38 +323,38 @@ msgid "Quit"
 msgstr ""
 
 #: src/ui/window.rs:188
-msgid "<b>%d Installer</b>"
+msgid "%d Installer"
 msgstr ""
 
-#: src/ui/window.rs:195
-msgid "<b>Step %d of %f</b>"
+#: src/ui/window.rs:196
+msgid "Step %d of %f"
 msgstr ""
 
-#: src/ui/window.rs:203
-msgid "<b>Installing…</b>"
+#: src/ui/window.rs:205
+msgid "Installing…"
 msgstr ""
 
-#: src/ui/window.rs:209
-msgid "<b>Installation Finished</b>"
+#: src/ui/window.rs:212
+msgid "Installation Finished"
 msgstr ""
 
-#: src/ui/window.rs:215
-msgid "<b>Installation Failed</b>"
+#: src/ui/window.rs:219
+msgid "Installation Failed"
 msgstr ""
 
-#: src/ui/window.rs:308
+#: src/ui/window.rs:313
 msgid "Finished!"
 msgstr ""
 
-#: src/ui/window.rs:321
+#: src/ui/window.rs:326
 msgid "Reboot"
 msgstr ""
 
-#: src/ui/window.rs:337
+#: src/ui/window.rs:342
 msgid "No Internet"
 msgstr ""
 
-#: src/ui/window.rs:338
+#: src/ui/window.rs:343
 msgid "Please connect to the Internet to continue"
 msgstr ""
 

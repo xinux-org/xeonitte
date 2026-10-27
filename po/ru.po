@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 15:41+0500\n"
-"PO-Revision-Date: 2026-10-27 14:53+0500\n"
+"POT-Creation-Date: 2026-10-27 16:44+0500\n"
+"PO-Revision-Date: 2026-10-27 17:00+0500\n"
 "Last-Translator: BeMeritus <bemerituss@gmail.com>\n"
 "Language-Team: \n"
 "Language: ru\n"
@@ -326,38 +326,38 @@ msgid "Quit"
 msgstr "Выйти"
 
 #: src/ui/window.rs:188
-msgid "<b>%d Installer</b>"
-msgstr "<b>%d установщик</b>"
+msgid "%d Installer"
+msgstr "%d установщик"
 
-#: src/ui/window.rs:195
-msgid "<b>Step %d of %f</b>"
-msgstr "<b>Этап %d из %f</b>"
+#: src/ui/window.rs:196
+msgid "Step %d of %f"
+msgstr "Этап %d из %f"
 
-#: src/ui/window.rs:203
-msgid "<b>Installing…</b>"
-msgstr "<b>Установка...</b>"
+#: src/ui/window.rs:205
+msgid "Installing…"
+msgstr "Установка..."
 
-#: src/ui/window.rs:209
-msgid "<b>Installation Finished</b>"
-msgstr "<b>Установка завершена</b>"
+#: src/ui/window.rs:212
+msgid "Installation Finished"
+msgstr "Установка завершена"
 
-#: src/ui/window.rs:215
-msgid "<b>Installation Failed</b>"
-msgstr "<b>Установка не удалась</b>"
+#: src/ui/window.rs:219
+msgid "Installation Failed"
+msgstr "Установка не удалас"
 
-#: src/ui/window.rs:308
+#: src/ui/window.rs:313
 msgid "Finished!"
 msgstr "Законченный!"
 
-#: src/ui/window.rs:321
+#: src/ui/window.rs:326
 msgid "Reboot"
 msgstr "Перезагрузить"
 
-#: src/ui/window.rs:337
+#: src/ui/window.rs:342
 msgid "No Internet"
 msgstr "Нет интернета"
 
-#: src/ui/window.rs:338
+#: src/ui/window.rs:343
 msgid "Please connect to the Internet to continue"
 msgstr "Пожалуйста, подключитесь к Интернету, чтобы продолжить"
 
@@ -486,6 +486,9 @@ msgstr "Zen"
 #: src/utils/flow.rs:118
 msgid "Install the Zen kernel"
 msgstr "Install the Zen kernel"
+
+#~ msgid "<b>Installation Failed</b>"
+#~ msgstr "<b>Установка не удалась</b>"
 
 #~ msgid "Launch GParted"
 #~ msgstr "Запустить GParted"

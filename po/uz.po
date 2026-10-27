@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 15:41+0500\n"
-"PO-Revision-Date: 2026-10-27 15:53+0500\n"
+"POT-Creation-Date: 2026-10-27 16:44+0500\n"
+"PO-Revision-Date: 2026-10-27 17:02+0500\n"
 "Last-Translator: BeMeritus <bemerituss@gmail.com>\n"
 "Language-Team: \n"
 "Language: uz\n"
@@ -326,38 +326,38 @@ msgid "Quit"
 msgstr "Chiqish"
 
 #: src/ui/window.rs:188
-msgid "<b>%d Installer</b>"
-msgstr "<b>%d oʻrnatish</b>"
+msgid "%d Installer"
+msgstr "%d oʻrnatish"
 
-#: src/ui/window.rs:195
-msgid "<b>Step %d of %f</b>"
-msgstr "<b>%d/%f-bosqich</b>"
+#: src/ui/window.rs:196
+msgid "Step %d of %f"
+msgstr "%d/%f-bosqich"
 
-#: src/ui/window.rs:203
-msgid "<b>Installing…</b>"
-msgstr "<b>O‘rnatilmoqda…</b>"
+#: src/ui/window.rs:205
+msgid "Installing…"
+msgstr "O‘rnatilmoqda…"
 
-#: src/ui/window.rs:209
-msgid "<b>Installation Finished</b>"
-msgstr "<b>O‘rnatish yakunlandi</b>"
+#: src/ui/window.rs:212
+msgid "Installation Finished"
+msgstr "O‘rnatish yakunlandi"
 
-#: src/ui/window.rs:215
-msgid "<b>Installation Failed</b>"
-msgstr "<b>Muvaffaqiyatsiz oʻrnatish</b>"
+#: src/ui/window.rs:219
+msgid "Installation Failed"
+msgstr "O‘rnatish muvaffaqiyatsiz"
 
-#: src/ui/window.rs:308
+#: src/ui/window.rs:313
 msgid "Finished!"
 msgstr "Tamom!"
 
-#: src/ui/window.rs:321
+#: src/ui/window.rs:326
 msgid "Reboot"
 msgstr "Qayta ishga tushirish"
 
-#: src/ui/window.rs:337
+#: src/ui/window.rs:342
 msgid "No Internet"
 msgstr "Internet yo‘q"
 
-#: src/ui/window.rs:338
+#: src/ui/window.rs:343
 msgid "Please connect to the Internet to continue"
 msgstr "Davom etish uchun internetga ulaning"
 
@@ -487,6 +487,9 @@ msgstr "Zen"
 #: src/utils/flow.rs:118
 msgid "Install the Zen kernel"
 msgstr "Zen kernel oʻrnatish"
+
+#~ msgid "<b>Installation Failed</b>"
+#~ msgstr "<b>Muvaffaqiyatsiz oʻrnatish</b>"
 
 #~ msgid "Launch GParted"
 #~ msgstr "GParted ishga tushirish"
