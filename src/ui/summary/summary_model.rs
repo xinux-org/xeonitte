@@ -139,10 +139,10 @@ impl SimpleComponent for SummaryModel {
                                 set_valign: gtk::Align::Center,
                                 gtk::Label {
                                     #[watch]
-                                    set_markup: &if let Some(userconf) = &model.userconfig {
-                                        format!("<tt>{}</tt>", userconf.name)
+                                    set_label: &if let Some(userconf) = &model.userconfig {
+                                        userconf.name.to_string()
                                     } else {
-                                        "<tt>N/A</tt>".to_string()
+                                        "N/A".to_string()
                                     },
                                 },
                                 set_can_target: false,
@@ -157,10 +157,10 @@ impl SimpleComponent for SummaryModel {
                                 set_valign: gtk::Align::Center,
                                 gtk::Label {
                                     #[watch]
-                                    set_markup: &if let Some(userconf) = &model.userconfig {
-                                        format!("<tt>{}</tt>", userconf.username)
+                                    set_label: &if let Some(userconf) = &model.userconfig {
+                                        userconf.username.to_string()
                                     } else {
-                                        "<tt>N/A</tt>".to_string()
+                                        "N/A".to_string()
                                     },
                                 },
                                 set_can_target: false,
@@ -177,10 +177,10 @@ impl SimpleComponent for SummaryModel {
                                 set_valign: gtk::Align::Center,
                                 gtk::Label {
                                     #[watch]
-                                    set_markup: &if let Some(userconf) = &model.userconfig {
-                                        format!("<tt>{}</tt>", userconf.hostname)
+                                    set_label: &if let Some(userconf) = &model.userconfig {
+                                        userconf.hostname.to_string()
                                     } else {
-                                        "<tt>N/A</tt>".to_string()
+                                        "N/A".to_string()
                                     },
                                 },
                                 set_can_target: false,
