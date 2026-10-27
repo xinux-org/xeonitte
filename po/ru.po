@@ -9,14 +9,14 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-10-26 18:17+0500\n"
-"PO-Revision-Date: 2025-09-26 13:55+0500\n"
+"PO-Revision-Date: 2026-10-27 14:53+0500\n"
 "Last-Translator: BeMeritus <bemerituss@gmail.com>\n"
 "Language-Team: \n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 3.5\n"
+"X-Generator: Poedit 3.10\n"
 
 #: data/uz.xinux.Xeonitte.desktop.in.in:2
 msgid "Install Xinux"
@@ -36,10 +36,8 @@ msgstr "Установщик Xeonitte"
 
 #: data/uz.xinux.Xeonitte.metainfo.xml.in.in:7
 #: data/uz.xinux.Xeonitte.metainfo.xml.in.in:9
-#, fuzzy
-#| msgid "A graphical E-Imzo keys manager for NixOS based distributions."
-msgid "A graphical installer for Xinux based distributions."
-msgstr "Графический менеджер ключей E-Imzo для дистрибутивов на базе NixOS."
+msgid "A graphical installer for NixOS based distributions."
+msgstr "Графический менеджер ключей E-IMZO для дистрибутивов на базе NixOS."
 
 #: data/uz.xinux.Xeonitte.policy.in.in:8
 msgid "Give Xeonitte Installer root access"
@@ -47,7 +45,7 @@ msgstr "Предоставьте установщику Xeonitte root-досту
 
 #: data/uz.xinux.Xeonitte.policy.in.in:9
 msgid "Authentication is required to install operating system"
-msgstr "Для установки операционной системы требуется аутентификация."
+msgstr "Для установки операционной системы требуется аутентификация"
 
 #: src/ui/error/error_model.rs:57
 msgid "Installation Failed!"
@@ -59,21 +57,19 @@ msgstr "Загрузить отчет"
 
 #: src/ui/error/error_model.rs:102
 msgid "Failed to report"
-msgstr ""
+msgstr "Не удалось сообщить об ошибке"
 
 #: src/ui/error/error_model.rs:117
 msgid "Retry"
-msgstr ""
+msgstr "Повторить"
 
 #: src/ui/error/error_model.rs:128
-#, fuzzy
-#| msgid "Open Report"
 msgid "Reported"
-msgstr "Открытый отчет"
+msgstr "Сообщено"
 
 #: src/ui/error/error_model.rs:145
 msgid "Processing..."
-msgstr ""
+msgstr "Обработка…"
 
 #: src/ui/error/error_model.rs:160
 msgid "Open Report"
@@ -99,17 +95,15 @@ msgstr "Показать все"
 
 #: src/ui/list/list_model.rs:66
 msgid "Clear"
-msgstr "Прозрачный"
+msgstr "Очистить"
 
 #: src/ui/partitions/hibernation.rs:24
 msgid "Hibernation"
-msgstr ""
+msgstr "Гибернация"
 
 #: src/ui/partitions/hibernation.rs:27
-#, fuzzy
-#| msgid "Enable Disk Encryption"
 msgid "Enable Hibernation"
-msgstr "Включить шифрование диска"
+msgstr "Включить гибернацию"
 
 #: src/ui/partitions/luks_password.rs:29
 msgid "Encryption"
@@ -145,7 +139,7 @@ msgstr "Формат"
 
 #: src/ui/partitions/partition.rs:72 src/ui/partitions/partition.rs:91
 msgid "Mount"
-msgstr "Устанавливать"
+msgstr "Моунт"
 
 #: src/ui/partitions/partition.rs:100
 msgid "Encrypt"
@@ -240,7 +234,7 @@ msgstr "Не форматировать"
 
 #: src/ui/summary/summary_model.rs:59
 msgid "Summary"
-msgstr "Краткое содержание"
+msgstr "Сводка"
 
 #: src/ui/summary/summary_model.rs:64
 msgid "Language"
@@ -265,7 +259,7 @@ msgstr "Полный диск"
 
 #: src/ui/summary/summary_model.rs:107
 msgid "Entire disk will be formatted"
-msgstr "Весь диск будет отформатирован."
+msgstr "Весь диск будет отформатирован"
 
 #: src/ui/summary/summary_model.rs:132
 msgid "User"
@@ -312,52 +306,44 @@ msgid "Choose a language"
 msgstr "Выберите язык"
 
 #: src/ui/quitdialog.rs:21
-#, fuzzy
-#| msgid "Installation Failed"
 msgid "Quit Installation"
-msgstr "Установка не удалась"
+msgstr "Выйти из установки"
 
 #: src/ui/quitdialog.rs:23
 msgid ""
 "Quitting while the installation is in progress may leave your system in an "
 "unbootable state!"
 msgstr ""
+"Выход во время установки может привести к невозможности загрузки вашей "
+"системы!"
 
 #: src/ui/quitdialog.rs:24 src/ui/quitdialog.rs:27
 msgid "Cancel"
-msgstr ""
+msgstr "Отменить"
 
 #: src/ui/quitdialog.rs:25 src/ui/quitdialog.rs:29
 msgid "Quit"
-msgstr ""
+msgstr "Выйти"
 
 #: src/ui/window.rs:188
-#, fuzzy
-#| msgid "Install"
 msgid "<b>%d Installer</b>"
-msgstr "Установить"
+msgstr "<b>%d установщик</b>"
 
 #: src/ui/window.rs:197
 msgid "<b>Step %d of %f</b>"
-msgstr ""
+msgstr "<b>Этап %d из %f</b>"
 
 #: src/ui/window.rs:205
-#, fuzzy
-#| msgid "Installing…"
 msgid "<b>Installing…</b>"
-msgstr "Установка…"
+msgstr "<b>Установка...</b>"
 
 #: src/ui/window.rs:211
-#, fuzzy
-#| msgid "Installation Finished"
 msgid "<b>Installation Finished</b>"
-msgstr "Установка завершена"
+msgstr "<b>Установка завершена</b>"
 
 #: src/ui/window.rs:217
-#, fuzzy
-#| msgid "Installation Failed"
 msgid "<b>Installation Failed</b>"
-msgstr "Установка не удалась"
+msgstr "<b>Установка не удалась</b>"
 
 #: src/ui/window.rs:310
 msgid "Finished!"
@@ -373,31 +359,26 @@ msgstr "Нет интернета"
 
 #: src/ui/window.rs:340
 msgid "Please connect to the Internet to continue"
-msgstr "Пожалуйста, подключитесь к Интернету, чтобы продолжить."
+msgstr "Пожалуйста, подключитесь к Интернету, чтобы продолжить"
 
 #: src/utils/branding.rs:13
 msgid "Configurable and Customizable"
 msgstr "Настраиваемый и персонализируемый"
 
 #: src/utils/branding.rs:15
-#, fuzzy
-#| msgid ""
-#| "Easily modify and manage your system configuration with the power of NixOS"
 msgid ""
 "Easily modify and manage your system configuration with the power of nix"
-msgstr ""
-"Легко изменяйте конфигурацию системы и управляйте ею благодаря возможностям "
-"NixOS."
+msgstr "Легко изменяйте и управляйте конфигурацией системы с помощью никс"
 
 #: src/utils/branding.rs:20
 msgid "Nix Package Manager"
-msgstr ""
+msgstr "Nix Пакетный менеджер"
 
 #: src/utils/branding.rs:22
 msgid "Keep your system stable with Nix's reliable and reproducible packages"
 msgstr ""
 "Поддерживайте стабильность системы с помощью надежных и воспроизводимых "
-"пакетов Nix."
+"пакетов nix"
 
 #: src/utils/branding.rs:27
 msgid "Over 140,000 packages available"
@@ -406,39 +387,41 @@ msgstr "Доступно более 140 000 пакетов"
 #: src/utils/branding.rs:29 src/utils/branding.rs:55
 msgid "Easily find and install all the packages you need on your Xinux system"
 msgstr ""
-"Легко найдите и установите все необходимые пакеты в вашей системе Xinux."
+"Легко найдите и установите все необходимые пакеты в вашей системе Xinux"
 
 #: src/utils/branding.rs:34
 msgid "E-Imzo Manager"
-msgstr ""
+msgstr "E-IMZO менеджер"
 
 #: src/utils/branding.rs:35
 msgid "A graphical E-Imzo keys manager for NixOS based distributions."
-msgstr "Графический менеджер ключей E-Imzo для дистрибутивов на базе NixOS."
+msgstr "Графический менеджер ключей E-IMZO для дистрибутивов на базе NixOS."
 
 #: src/utils/branding.rs:39
 msgid "Software Center"
-msgstr ""
+msgstr "Центр программного обеспечения"
 
 #: src/utils/branding.rs:41
 msgid "A graphical app store for Nix built with libadwaita, GTK4, and Relm4."
 msgstr ""
+"Графический магазин приложений для Nix, построенный на libვაita, GTK4 и "
+"Relm4."
 
 #: src/utils/branding.rs:46
 msgid "Module Manager"
-msgstr ""
+msgstr "Менеджер модулей"
 
 #: src/utils/branding.rs:48
 msgid ""
 "The goal of this project is to provide a simple graphical tool for modifying "
 "and managing desktop Xinux configurations."
 msgstr ""
+"Целью данного проекта является предоставление простого графического "
+"инструмента для изменения и управления конфигурациями рабочего стола Xinux."
 
 #: src/utils/branding.rs:53
-#, fuzzy
-#| msgid "Keyboard Layout"
 msgid "Uzbek Keyboard Layout"
-msgstr "Раскладка клавиатуры"
+msgstr "Узбекская раскладка клавиатуры"
 
 #: src/utils/flow.rs:61
 msgid "Extra Options"
@@ -446,61 +429,63 @@ msgstr "Дополнительные опции"
 
 #: src/utils/flow.rs:65
 msgid "Flatpak"
-msgstr ""
+msgstr "Flatpak"
 
 #: src/utils/flow.rs:66
 msgid "Enable Flatpak support"
-msgstr ""
+msgstr "Включить поддержку Flatpak"
 
 #: src/utils/flow.rs:72
 msgid "AppImage"
-msgstr ""
+msgstr "AppImage"
 
 #: src/utils/flow.rs:74
 msgid ""
 "Enable AppImage support by installing the \"appimage-run\" package. For "
 "AppImages to work, you must run them with the \"appimage-run\" command."
 msgstr ""
+"Включите поддержку AppImage, установив пакет \"appimage-run.\" Для работы "
+"AppImages необходимо запустить их с помощью команды \"appimage-run\"."
 
 #: src/utils/flow.rs:81
 msgid "Minimal"
-msgstr ""
+msgstr "Минимальный"
 
 #: src/utils/flow.rs:82
 msgid "Install minimal Xinux without GNOME core apps"
-msgstr ""
+msgstr "Установить минимальный Xinux без основных приложений GNOME"
 
 #: src/utils/flow.rs:96
 msgid "LTS"
-msgstr ""
+msgstr "LTS"
 
 #: src/utils/flow.rs:97
 msgid "Install the latest LTS kernel"
-msgstr ""
+msgstr "Установите последнее ядро LTS"
 
 #: src/utils/flow.rs:103
 msgid "Latest"
-msgstr ""
+msgstr "Последние"
 
 #: src/utils/flow.rs:104
 msgid "Install the latest kernel"
-msgstr ""
+msgstr "Установить последнее ядро"
 
 #: src/utils/flow.rs:110
 msgid "Libre"
-msgstr ""
+msgstr "Libre"
 
 #: src/utils/flow.rs:111
 msgid "Install the libre kernel"
-msgstr ""
+msgstr "Установить ядро Libra"
 
 #: src/utils/flow.rs:117
 msgid "Zen"
-msgstr ""
+msgstr "Zen"
 
 #: src/utils/flow.rs:118
 msgid "Install the Zen kernel"
-msgstr ""
+msgstr "Install the Zen kernel"
 
 #~ msgid "Launch GParted"
 #~ msgstr "Запустить GParted"

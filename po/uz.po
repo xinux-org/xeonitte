@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-10-26 18:17+0500\n"
-"PO-Revision-Date: 2026-10-26 18:08+0500\n"
+"PO-Revision-Date: 2026-10-27 14:18+0500\n"
 "Last-Translator: BeMeritus <bemerituss@gmail.com>\n"
 "Language-Team: \n"
 "Language: uz\n"
@@ -36,10 +36,8 @@ msgstr "Xeonitte o‘rnatuvchisi"
 
 #: data/uz.xinux.Xeonitte.metainfo.xml.in.in:7
 #: data/uz.xinux.Xeonitte.metainfo.xml.in.in:9
-#, fuzzy
-#| msgid "A graphical E-Imzo keys manager for NixOS based distributions."
-msgid "A graphical installer for Xinux based distributions."
-msgstr "NixOS asosidagi distributivlar uchun grafik E-Imzo kalitlari menejeri."
+msgid "A graphical installer for NixOS based distributions."
+msgstr "Xinux asosidagi distributivlar uchun grafik E-IMZO kalitlari menejeri."
 
 #: data/uz.xinux.Xeonitte.policy.in.in:8
 msgid "Give Xeonitte Installer root access"
@@ -59,25 +57,23 @@ msgstr "Hisobotni yuklash"
 
 #: src/ui/error/error_model.rs:102
 msgid "Failed to report"
-msgstr ""
+msgstr "Hisobot berib boʻlmadi"
 
 #: src/ui/error/error_model.rs:117
 msgid "Retry"
-msgstr ""
+msgstr "Qayta urinish"
 
 #: src/ui/error/error_model.rs:128
-#, fuzzy
-#| msgid "Open Report"
 msgid "Reported"
-msgstr "Hisobotni ochish"
+msgstr "Yuborildi"
 
 #: src/ui/error/error_model.rs:145
 msgid "Processing..."
-msgstr ""
+msgstr "Jarayonda…"
 
 #: src/ui/error/error_model.rs:160
 msgid "Open Report"
-msgstr "Hisobotni ochish"
+msgstr "Hisobot"
 
 #: src/ui/keyboard/keyboard_model.rs:65
 msgid "Keyboard Layout"
@@ -103,13 +99,11 @@ msgstr "Tiniq"
 
 #: src/ui/partitions/hibernation.rs:24
 msgid "Hibernation"
-msgstr ""
+msgstr "Gibernatsiya"
 
 #: src/ui/partitions/hibernation.rs:27
-#, fuzzy
-#| msgid "Enable Disk Encryption"
 msgid "Enable Hibernation"
-msgstr "Disk shifrlashni yoqish"
+msgstr "Gibernatsiya rejimini yoqish"
 
 #: src/ui/partitions/luks_password.rs:29
 msgid "Encryption"
@@ -312,52 +306,44 @@ msgid "Choose a language"
 msgstr "Tilni tanlang"
 
 #: src/ui/quitdialog.rs:21
-#, fuzzy
-#| msgid "Installation Failed"
 msgid "Quit Installation"
-msgstr "O‘rnatilmadi"
+msgstr "Oʻrnatishdan chiqish"
 
 #: src/ui/quitdialog.rs:23
 msgid ""
 "Quitting while the installation is in progress may leave your system in an "
 "unbootable state!"
 msgstr ""
+"Oʻrnatish jarayonida dasturdan chiqish tizimingizni ishga tushirib "
+"boʻlmaydigan holatga keltirib qoʻyishi mumkin!"
 
 #: src/ui/quitdialog.rs:24 src/ui/quitdialog.rs:27
 msgid "Cancel"
-msgstr ""
+msgstr "Bekor qilish"
 
 #: src/ui/quitdialog.rs:25 src/ui/quitdialog.rs:29
 msgid "Quit"
-msgstr ""
+msgstr "Chiqish"
 
 #: src/ui/window.rs:188
-#, fuzzy
-#| msgid "Install"
 msgid "<b>%d Installer</b>"
-msgstr "O‘rnatish"
+msgstr "<b>%d oʻrnatish</b>"
 
 #: src/ui/window.rs:197
 msgid "<b>Step %d of %f</b>"
-msgstr ""
+msgstr "<b>Step %d of %f</b>"
 
 #: src/ui/window.rs:205
-#, fuzzy
-#| msgid "Installing…"
 msgid "<b>Installing…</b>"
-msgstr "O‘rnatilmoqda..."
+msgstr "<b>O‘rnatilmoqda…</b>"
 
 #: src/ui/window.rs:211
-#, fuzzy
-#| msgid "Installation Finished"
 msgid "<b>Installation Finished</b>"
-msgstr "O‘rnatish yakunlandi"
+msgstr "<b>O‘rnatish yakunlandi</b>"
 
 #: src/ui/window.rs:217
-#, fuzzy
-#| msgid "Installation Failed"
 msgid "<b>Installation Failed</b>"
-msgstr "O‘rnatilmadi"
+msgstr "<b>Muvaffaqiyatsiz oʻrnatish</b>"
 
 #: src/ui/window.rs:310
 msgid "Finished!"
@@ -380,9 +366,6 @@ msgid "Configurable and Customizable"
 msgstr "Sozlash va Moslash mumkin"
 
 #: src/utils/branding.rs:15
-#, fuzzy
-#| msgid ""
-#| "Easily modify and manage your system configuration with the power of NixOS"
 msgid ""
 "Easily modify and manage your system configuration with the power of nix"
 msgstr ""
@@ -408,35 +391,37 @@ msgstr "Xinux tizimida kerakli barcha paketlarni osongina toping va o‘rnating"
 
 #: src/utils/branding.rs:34
 msgid "E-Imzo Manager"
-msgstr ""
+msgstr "E-IMZO menejer"
 
 #: src/utils/branding.rs:35
 msgid "A graphical E-Imzo keys manager for NixOS based distributions."
-msgstr "NixOS asosidagi distributivlar uchun grafik E-Imzo kalitlari menejeri."
+msgstr "NixOS asosidagi distributivlar uchun grafik E-Imzo kalitlar menejeri."
 
 #: src/utils/branding.rs:39
 msgid "Software Center"
-msgstr ""
+msgstr "Dasturiy taminot"
 
 #: src/utils/branding.rs:41
 msgid "A graphical app store for Nix built with libadwaita, GTK4, and Relm4."
 msgstr ""
+"Libadwaita, GTK4 va Relm4 yordamida yaratilgan, nix uchun moʻljallangan "
+"grafik ilovalar doʻkoni."
 
 #: src/utils/branding.rs:46
 msgid "Module Manager"
-msgstr ""
+msgstr "Modul menager"
 
 #: src/utils/branding.rs:48
 msgid ""
 "The goal of this project is to provide a simple graphical tool for modifying "
 "and managing desktop Xinux configurations."
 msgstr ""
+"Ushbu loyihaning maqsadi — ish stolida Xinux konfiguratsiyalarini "
+"o‘zgartirish va boshqarish uchun qulay grafik ilovalar taqdim etish."
 
 #: src/utils/branding.rs:53
-#, fuzzy
-#| msgid "Keyboard Layout"
 msgid "Uzbek Keyboard Layout"
-msgstr "Klaviatura maketi"
+msgstr "Oʻzbek klaviatura maketi"
 
 #: src/utils/flow.rs:61
 msgid "Extra Options"
@@ -444,61 +429,64 @@ msgstr "Qo‘shimcha parametrlar"
 
 #: src/utils/flow.rs:65
 msgid "Flatpak"
-msgstr ""
+msgstr "Flatpak"
 
 #: src/utils/flow.rs:66
 msgid "Enable Flatpak support"
-msgstr ""
+msgstr "Flatpak paket menejerini yoqish"
 
 #: src/utils/flow.rs:72
 msgid "AppImage"
-msgstr ""
+msgstr "AppImage paket menejerini yoqish"
 
 #: src/utils/flow.rs:74
 msgid ""
 "Enable AppImage support by installing the \"appimage-run\" package. For "
 "AppImages to work, you must run them with the \"appimage-run\" command."
 msgstr ""
+"\"appimage-run\" paketini oʻrnatish orqali AppImage qoʻllab-quvvatlashini "
+"yoqing. AppImage fayllari ishlashi uchun \"appimage-run\" buyrugʻi yordamida "
+"ishga tushirishingiz kerak."
 
 #: src/utils/flow.rs:81
 msgid "Minimal"
-msgstr ""
+msgstr "Minimal"
 
 #: src/utils/flow.rs:82
 msgid "Install minimal Xinux without GNOME core apps"
-msgstr ""
+msgstr "GNOME asosiy ilovalarisiz, minimal Xinux tizimini oʻrnatish"
 
 #: src/utils/flow.rs:96
 msgid "LTS"
-msgstr ""
+msgstr "LTS (stabil)"
 
 #: src/utils/flow.rs:97
 msgid "Install the latest LTS kernel"
-msgstr ""
+msgstr "So‘nggi LTS linux yadrosini o‘rnatish"
 
 #: src/utils/flow.rs:103
 msgid "Latest"
-msgstr ""
+msgstr "Soʻnggi"
 
 #: src/utils/flow.rs:104
 msgid "Install the latest kernel"
-msgstr ""
+msgstr "Soʻnggi yadro versiyasini o‘rnatish"
 
 #: src/utils/flow.rs:110
 msgid "Libre"
-msgstr ""
+msgstr "Libre"
 
 #: src/utils/flow.rs:111
 msgid "Install the libre kernel"
-msgstr ""
+msgstr "Libre kernel oʻrnatish"
 
 #: src/utils/flow.rs:117
 msgid "Zen"
-msgstr ""
+msgstr "Zen"
 
 #: src/utils/flow.rs:118
 msgid "Install the Zen kernel"
-msgstr ""
+msgstr "Zen kernel oʻrnatish"
 
 #~ msgid "Launch GParted"
 #~ msgstr "GParted ishga tushirish"
