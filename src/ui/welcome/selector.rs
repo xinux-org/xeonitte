@@ -2,6 +2,8 @@ use gtk::prelude::*;
 use relm4::factory::{DynamicIndex, FactoryComponent, FactorySender, FactoryVecDeque};
 use relm4::{ComponentParts, ComponentSender, SimpleComponent, gtk};
 
+use crate::ui::welcome::welcome_model::{WelcomeModel, WelcomeMsg};
+
 #[derive(Debug)]
 pub struct SelectorRow {
     value: String,
@@ -13,17 +15,17 @@ pub struct SelectorRow {
 // }
 
 #[derive(Debug)]
-enum SelectorRowOutput {
+pub enum SelectorRowOutput {
     Select(String),
 }
 
-#[relm4::factory]
+#[relm4::factory(pub)]
 impl FactoryComponent for SelectorRow {
     type Init = String;
     type Input = ();
     type Output = SelectorRowOutput;
     type CommandOutput = ();
-    type ParentWidget = gtk::Box;
+    type ParentWidget = gtk::ListBox;
 
     view! {
         #[root]
@@ -52,21 +54,16 @@ pub struct Selector {
     rows: FactoryVecDeque<SelectorRow>,
 }
 
-#[derive(Debug)]
-enum SelectorOutput {
-    Select(String),
-}
-
-#[relm4::component]
+#[relm4::component(pub)]
 impl SimpleComponent for Selector {
     type Init = Vec<String>;
     type Input = ();
-    type Output = SelectorOutput;
+    type Output = WelcomeMsg;
 
     view! {
-        gtk::ListBox{
+        gtk::Box{
             #[local_ref]
-            rows_box -> gtk::Box,
+            rows_box -> gtk::ListBox,
         }
     }
 
@@ -77,9 +74,9 @@ impl SimpleComponent for Selector {
     ) -> ComponentParts<Self> {
         // create elements from input
         let mut rows = FactoryVecDeque::builder()
-            .launch(gtk::Box::default())
+            .launch(gtk::ListBox::default())
             .forward(sender.output_sender(), |output| match output {
-                SelectorRowOutput::Select(row) => SelectorOutput::Select(row),
+                SelectorRowOutput::Select(row) => WelcomeMsg::SetSelected(row.into()),
             });
         for item in init {
             rows.guard().push_back(item);

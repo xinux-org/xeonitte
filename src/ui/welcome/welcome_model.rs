@@ -10,7 +10,6 @@ use gettextrs::gettext;
 use log::{info, trace};
 use relm4::*;
 
-#[tracker::track]
 pub struct WelcomeModel {
     showall: bool,
     default_language: String,
@@ -22,7 +21,7 @@ pub struct WelcomeModel {
 
 #[derive(Debug)]
 pub enum WelcomeMsg {
-    ToggleShowall,
+    // ToggleShowall,
     SetSelected(Option<String>),
     CheckSelected,
 }
@@ -34,6 +33,7 @@ impl SimpleComponent for WelcomeModel {
     type Output = AppMsg;
 
     view! {
+        #[root]
         gtk::ScrolledWindow {
             set_hexpand: true,
             set_vexpand: true,
@@ -55,62 +55,45 @@ impl SimpleComponent for WelcomeModel {
                         set_label: &gettext("Choose a language"),
                         add_css_class: "title-3"
                     },
-                    #[name(langstack)]
-                    if model.showall {
-                        #[local_ref]
-                        langbox -> gtk::ListBox {
-                            add_css_class: "boxed-list",
-                            set_selection_mode: gtk::SelectionMode::None,
-                            connect_row_activated[sender] => move |_, row| {
-                                row
-                                    .child()
-                                    .and_then(|w| w.downcast::<gtk::Box>().ok())
-                                    .and_then(|b| b.last_child())
-                                    .and_then(|w| w.downcast::<gtk::CheckButton>().ok())
-                                    .map_or_else(
-                                        || {
-                                            sender.output(AppMsg::error(
-                                                ErrorPhase::Setup,
-                                                "Language check button widget not found",
-                                            ));
-                                        },
-                                        |checkbutton| checkbutton.set_active(true)
-                                    );
-                            },
-                        }
-                    } else {
-                        #[local_ref]
-                        shortlangbox -> gtk::ListBox {
-                            add_css_class: "boxed-list",
-                            set_selection_mode: gtk::SelectionMode::None,
-                            connect_row_activated[sender] => move |_, row| {
-                                row
-                                    .child()
-                                    .and_then(|w| w.downcast::<gtk::Box>().ok())
-                                    .and_then(|b| b.last_child())
-                                    .and_then(|b| b.downcast::<gtk::CheckButton>().ok())
-                                    .map_or_else(
-                                        || {
-                                            sender.output(AppMsg::error(
-                                                ErrorPhase::Setup,
-                                                "Language check button widget not found",
-                                            ));
-                                        },
-                                        |checkbutton| checkbutton.set_active(true)
-                                    );
-                            },
-                        }
-                    },
-                    gtk::Button {
-                        add_css_class: "pill",
-                        set_halign: gtk::Align::Center,
-                        #[watch]
-                        set_label: &if model.showall { gettext("Show less") } else { gettext("Show all") },
-                        connect_clicked[sender] => move |_| {
-                            sender.input(WelcomeMsg::ToggleShowall);
-                            sender.input(WelcomeMsg::SetSelected(None));
-                        }
-                    }
+
+                    model.languages_component.widget(),
+
+                    // #[name(langstack)]
+                    // if model.showall {
+                    //     gtk::ListBox {
+                    //         add_css_class: "boxed-list",
+                    //         set_selection_mode: gtk::SelectionMode::None,
+                    //         connect_row_activated[sender] => move |_, row| {
+                    //             row
+                    //                 .child()
+                    //                 .and_then(|w| w.downcast::<gtk::Box>().ok())
+                    //                 .and_then(|b| b.last_child())
+                    //                 .and_then(|w| w.downcast::<gtk::CheckButton>().ok())
+                    //                 .map_or_else(
+                    //                     || {
+                    //                         sender.output(AppMsg::error(
+                    //                             ErrorPhase::Setup,
+                    //                             "Language check button widget not found",
+                    //                         ));
+                    //                     },
+                    //                     |checkbutton| checkbutton.set_active(true)
+                    //                 );
+                    //         },
+                    //     }
+                    // } else {
+                    //     model.languages_component.widget()
+                    // },
+                    //
+                    // gtk::Button {
+                    //     add_css_class: "pill",
+                    //     set_halign: gtk::Align::Center,
+                    //     #[watch]
+                    //     set_label: &if model.showall { gettext("Show less") } else { gettext("Show all") },
+                    //     connect_clicked[sender] => move |_| {
+                    //         sender.input(WelcomeMsg::ToggleShowall);
+                    //         sender.input(WelcomeMsg::SetSelected(None));
+                    //     }
+                    // }
                 }
             }
         }
@@ -123,149 +106,149 @@ impl SimpleComponent for WelcomeModel {
     ) -> ComponentParts<Self> {
         let mut languages = get_languages().into_iter().collect::<Vec<_>>();
         languages.sort_by(|a, b| a.0.cmp(&b.0));
+
         let languages_component = Selector::builder()
-            .launch(WelcomeModel::format_languages(languages))
+            .launch(WelcomeModel::format_languages(languages.clone()))
             .forward(sender.input_sender(), identity);
 
-        let mut model = WelcomeModel {
+        let model = WelcomeModel {
             showall: false,
             default_language: "uz_UZ.UTF-8".to_owned(),
             selected: None,
             selectiongroup: gtk::CheckButton::new(),
             expanders: vec![],
             languages_component,
-            tracker: 0,
         };
 
-        let langbox = gtk::ListBox::new();
+        // let langbox = gtk::ListBox::new();
         // let shortlangbox = Selector::init(languages, root, sender);
         // let shortlangbox = Self::create_shortlang_boxes(&model, &sender, languages.clone());
 
-        for (title, languages) in languages {
-            if languages.len() > 1 {
-                view! {
-                    expander = adw::ExpanderRow {
-                        set_title: &title,
-                    }
-                };
-                langbox.append(&expander);
+        // for (title, languages) in languages {
+        //     if languages.len() > 1 {
+        //         view! {
+        //             expander = adw::ExpanderRow {
+        //                 set_title: &title,
+        //             }
+        //         };
+        //         langbox.append(&expander);
 
-                let mut langvec = languages.into_iter().collect::<Vec<_>>();
-                langvec.sort_by(|a, b| a.1.cmp(&b.1));
-                for (locale, title) in &langvec {
-                    view! {
-                        row = adw::PreferencesRow {
-                            set_title: locale,
-                            set_activatable: true,
-                            #[wrap(Some)]
-                            set_child = &gtk::Box {
-                                set_orientation: gtk::Orientation::Horizontal,
-                                set_spacing: 6,
-                                set_margin_start: 15,
-                                set_margin_end: 7,
-                                set_margin_top: 15,
-                                set_margin_bottom: 15,
-                                gtk::Label {
-                                    set_label: title,
-                                },
-                                #[template]
-                                BaseSeparator,
-                                gtk::CheckButton {
-                                    set_halign: gtk::Align::End,
-                                    set_group: Some(&model.selectiongroup),
-                                    connect_toggled[sender, locale] => move |x| {
-                                        if x.is_active() {
-                                            sender.input(WelcomeMsg::SetSelected(Some(locale.to_string())))
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    };
-                    expander
-                        .first_child()
-                        .and_then(|w| w.last_child())
-                        .and_then(|w| w.first_child())
-                        .and_then(|w| w.downcast::<gtk::ListBox>().ok())
-                        .map_or_else(
-                            || {
-                                sender.output(AppMsg::error(
-                                    ErrorPhase::Setup,
-                                    "Language expander row widget not found",
-                                ));
-                            },
-                            |lb| {
-                                let sender = sender.clone();
-                                lb.connect_row_activated(move |_, x| {
-                                    x.child()
-                                        .and_then(|w| w.downcast::<gtk::Box>().ok())
-                                        .and_then(|b| b.last_child())
-                                        .and_then(|w| w.downcast::<gtk::CheckButton>().ok())
-                                        .map_or_else(
-                                            || {
-                                                sender.output(AppMsg::error(
-                                                    ErrorPhase::Setup,
-                                                    "Language check button widget not found",
-                                                ));
-                                            },
-                                            |checkbutton| checkbutton.set_active(true),
-                                        );
-                                });
-                            },
-                        );
-                    expander.add_row(&row);
-                }
-                model.expanders.push(expander);
-            } else if let Some((locale, title)) = languages.into_iter().next() {
-                view! {
-                    row = adw::PreferencesRow {
-                        set_title: &locale,
-                        set_activatable: true,
-                        #[wrap(Some)]
-                        set_child = &gtk::Box {
-                            set_orientation: gtk::Orientation::Horizontal,
-                            set_spacing: 6,
-                            set_margin_start: 15,
-                            set_margin_end: 7,
-                            set_margin_top: 15,
-                            set_margin_bottom: 15,
-                            gtk::Label {
-                                set_label: &title,
-                            },
-                            #[template]
-                            BaseSeparator,
-                            gtk::CheckButton {
-                                set_halign: gtk::Align::End,
-                                set_group: Some(&model.selectiongroup),
-                                connect_toggled[sender, locale] => move |x| {
-                                    if x.is_active() {
-                                        sender.input(WelcomeMsg::SetSelected(Some(locale.to_string())))
-                                    }
-                                }
-                            }
-                        }
-                    }
-                };
-                langbox.append(&row);
-            }
-        }
+        //         let mut langvec = languages.into_iter().collect::<Vec<_>>();
+        //         langvec.sort_by(|a, b| a.1.cmp(&b.1));
+        //         for (locale, title) in &langvec {
+        //             view! {
+        //                 row = adw::PreferencesRow {
+        //                     set_title: locale,
+        //                     set_activatable: true,
+        //                     #[wrap(Some)]
+        //                     set_child = &gtk::Box {
+        //                         set_orientation: gtk::Orientation::Horizontal,
+        //                         set_spacing: 6,
+        //                         set_margin_start: 15,
+        //                         set_margin_end: 7,
+        //                         set_margin_top: 15,
+        //                         set_margin_bottom: 15,
+        //                         gtk::Label {
+        //                             set_label: title,
+        //                         },
+        //                         #[template]
+        //                         BaseSeparator,
+        //                         gtk::CheckButton {
+        //                             set_halign: gtk::Align::End,
+        //                             set_group: Some(&model.selectiongroup),
+        //                             connect_toggled[sender, locale] => move |x| {
+        //                                 if x.is_active() {
+        //                                     sender.input(WelcomeMsg::SetSelected(Some(locale.to_string())))
+        //                                 }
+        //                             }
+        //                         }
+        //                     }
+        //                 }
+        //             };
+        //             expander
+        //                 .first_child()
+        //                 .and_then(|w| w.last_child())
+        //                 .and_then(|w| w.first_child())
+        //                 .and_then(|w| w.downcast::<gtk::ListBox>().ok())
+        //                 .map_or_else(
+        //                     || {
+        //                         sender.output(AppMsg::error(
+        //                             ErrorPhase::Setup,
+        //                             "Language expander row widget not found",
+        //                         ));
+        //                     },
+        //                     |lb| {
+        //                         let sender = sender.clone();
+        //                         lb.connect_row_activated(move |_, x| {
+        //                             x.child()
+        //                                 .and_then(|w| w.downcast::<gtk::Box>().ok())
+        //                                 .and_then(|b| b.last_child())
+        //                                 .and_then(|w| w.downcast::<gtk::CheckButton>().ok())
+        //                                 .map_or_else(
+        //                                     || {
+        //                                         sender.output(AppMsg::error(
+        //                                             ErrorPhase::Setup,
+        //                                             "Language check button widget not found",
+        //                                         ));
+        //                                     },
+        //                                     |checkbutton| checkbutton.set_active(true),
+        //                                 );
+        //                         });
+        //                     },
+        //                 );
+        //             expander.add_row(&row);
+        //         }
+        //         model.expanders.push(expander);
+        //     } else if let Some((locale, title)) = languages.into_iter().next() {
+        //         view! {
+        //             row = adw::PreferencesRow {
+        //                 set_title: &locale,
+        //                 set_activatable: true,
+        //                 #[wrap(Some)]
+        //                 set_child = &gtk::Box {
+        //                     set_orientation: gtk::Orientation::Horizontal,
+        //                     set_spacing: 6,
+        //                     set_margin_start: 15,
+        //                     set_margin_end: 7,
+        //                     set_margin_top: 15,
+        //                     set_margin_bottom: 15,
+        //                     gtk::Label {
+        //                         set_label: &title,
+        //                     },
+        //                     #[template]
+        //                     BaseSeparator,
+        //                     gtk::CheckButton {
+        //                         set_halign: gtk::Align::End,
+        //                         set_group: Some(&model.selectiongroup),
+        //                         connect_toggled[sender, locale] => move |x| {
+        //                             if x.is_active() {
+        //                                 sender.input(WelcomeMsg::SetSelected(Some(locale.to_string())))
+        //                             }
+        //                         }
+        //                     }
+        //                 }
+        //             }
+        //         };
+        //         langbox.append(&row);
+        //     }
+        // }
         let widgets = view_output!();
-        widgets.langstack.set_vhomogeneous(false);
+        // widgets.langstack.set_vhomogeneous(false);
 
         ComponentParts { model, widgets }
     }
 
     fn update(&mut self, msg: Self::Input, sender: ComponentSender<Self>) {
-        self.reset();
+        // self.reset();
         match msg {
-            WelcomeMsg::ToggleShowall => {
-                if !self.showall {
-                    self.expanders
-                        .iter()
-                        .for_each(|expander| expander.set_expand(false));
-                }
-                self.set_showall(!self.showall);
-            }
+            // WelcomeMsg::ToggleShowall => {
+            //     if !self.showall {
+            //         self.expanders
+            //             .iter()
+            //             .for_each(|expander| expander.set_expand(false));
+            //     }
+            //     self.set_showall(!self.showall);
+            // }
             WelcomeMsg::SetSelected(lang) => {
                 info!("Selected language: {:?}", lang);
                 // TODO: Change output and input signal values with SharedState
