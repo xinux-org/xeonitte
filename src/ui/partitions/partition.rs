@@ -133,21 +133,6 @@ impl FactoryComponent for Partition {
                     ));
                 }
             },
-            add_row = &adw::ActionRow {
-                set_activatable: false,
-                add_suffix = &gtk::Button {
-                    #[watch]
-                    set_label: &gettext("Delete"),
-                    add_css_class: "raised",
-                    add_css_class: "destructive-action",
-                    set_halign: gtk::Align::End,
-                    set_margin_top: 8,
-                    set_margin_bottom: 8,
-
-                    connect_activate => PartitionRowMsg::Delete,
-                    connect_clicked => PartitionRowMsg::Delete
-                },
-            },
         }
     }
     fn init_model(parent: Self::Init, _index: &DynamicIndex, _sender: FactorySender<Self>) -> Self {
