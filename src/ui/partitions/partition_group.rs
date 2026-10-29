@@ -130,7 +130,7 @@ impl FactoryComponent for PartitionGroup {
                     },
                    // TODO: make the logic better
                     #[local_ref]
-                    testbox -> gtk::ListBox {
+                    partition_box -> gtk::ListBox {
                         #[watch]
                         set_visible: !self.partitions.is_empty(),
                         set_hexpand: true,
@@ -256,7 +256,7 @@ impl FactoryComponent for PartitionGroup {
         _returned_widget: &<Self::ParentWidget as FactoryView>::ReturnedWidget,
         sender: FactorySender<Self>,
     ) -> Self::Widgets {
-        let testbox = self.partitions.widget();
+        let partition_box = self.partitions.widget();
         let widgets = view_output!();
         widgets.dropdown.set_selected(2);
         widgets

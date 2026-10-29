@@ -1,9 +1,15 @@
 use crate::ui::partitions::partition_model::{PARTITION_BROKER, PartitionMsg};
 use gettextrs::gettext;
-use relm4::{adw::prelude::*, factory::*, *};
+use relm4::{
+    actions::{RelmAction, RelmActionGroup},
+    adw::prelude::*,
+    factory::*,
+    *,
+};
 
 #[derive(Default, Debug, PartialEq, Eq, Clone)]
 pub struct Partition {
+    // example: /dev/nvme0n1p1
     pub name: String,
     pub size: u64,
     pub mountrow: adw::ComboRow,
@@ -44,10 +50,25 @@ impl FactoryComponent for Partition {
     type ParentWidget = gtk::ListBox;
     type CommandOutput = ();
 
+    menu! {
+        block_menu: {
+            section! {
+                &gettext("Delete...") => DeletePartitionAction,
+            }
+        }
+    }
+
     view! {
-        adw::ExpanderRow {
+        #[root]
+        &adw::ExpanderRow {
             set_title: &self.name,
             set_subtitle: &size::Size::from_bytes(self.size).to_string(),
+            add_suffix = &gtk::MenuButton {
+                set_icon_name: "view-more-symbolic",
+                set_tooltip_text: Some(&gettext("Partition Options")),
+                set_menu_model: Some(&block_menu),
+                add_css_class: "flat",
+            },
             add_row = &adw::ComboRow {
                 #[watch]
                 set_title: &gettext("Format"),
@@ -149,6 +170,15 @@ impl FactoryComponent for Partition {
     ) -> Self::Widgets {
         let mountrow = &self.mountrow.clone();
         let widgets = view_output!();
+
+        let mut actions = RelmActionGroup::<PartitionActionGroup>::new();
+        let delete_partition_action =
+            RelmAction::<DeletePartitionAction>::new_stateless(move |_| {
+                sender.input(PartitionRowMsg::Delete);
+            });
+        actions.add_action(delete_partition_action);
+        actions.register_for_widget(&root);
+
         widgets
     }
     fn update(&mut self, msg: Self::Input, _sender: FactorySender<Self>) {
@@ -173,3 +203,10 @@ impl FactoryComponent for Partition {
         }
     }
 }
+
+relm4::new_action_group!(pub PartitionActionGroup, "partition");
+relm4::new_stateless_action!(
+    DeletePartitionAction,
+    PartitionActionGroup,
+    "delete-partition"
+);
