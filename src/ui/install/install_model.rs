@@ -262,18 +262,6 @@ impl SimpleComponent for InstallModel {
             InstallMsg::VTEOutput(status) => {
                 debug!("VTE command exited with status: {}", status);
 
-                let Ok(_) = Command::new("touch")
-                    .arg("/tmp/xeonitte-term.log")
-                    .output()
-                    .context("Cannot create /tmp/xeonitte-term.log")
-                else {
-                    sender.output(AppMsg::error(
-                        ErrorPhase::Installation,
-                        "Failed to create /tmp/xeonitte-term.log",
-                    ));
-                    return;
-                };
-
                 if let Ok(file) = File::create("/tmp/xeonitte-term.log") {
                     let output = gio::WriteOutputStream::new(file);
                     if let Err(e) = self.terminal.write_contents_sync(
@@ -284,6 +272,12 @@ impl SimpleComponent for InstallModel {
                         error!("InstallMsg::VTEOutput_+| {:?}", e);
                     }
                     let _ = output.flush(gio::Cancellable::NONE);
+                } else {
+                    sender.output(AppMsg::error(
+                        ErrorPhase::Installation,
+                        "Failed to create /tmp/xeonitte-term.log",
+                    ));
+                    return;
                 }
                 if self.installing {
                     if status == 0 {
