@@ -1,5 +1,6 @@
 use crate::ui::partitions::partition_model::{PARTITION_BROKER, PartitionMsg};
 use gettextrs::gettext;
+use libgweather::gio;
 use relm4::{
     actions::{RelmAction, RelmActionGroup},
     adw::prelude::*,
@@ -63,6 +64,7 @@ impl FactoryComponent for Partition {
         &adw::ExpanderRow {
             set_title: &self.name,
             set_subtitle: &size::Size::from_bytes(self.size).to_string(),
+            #[name = "block_menu_id"]
             add_suffix = &gtk::MenuButton {
                 set_icon_name: "view-more-symbolic",
                 set_tooltip_text: Some(&gettext("Partition Options")),
@@ -177,7 +179,8 @@ impl FactoryComponent for Partition {
                 sender.input(PartitionRowMsg::Delete);
             });
         actions.add_action(delete_partition_action);
-        actions.register_for_widget(&root);
+        // actions.register_for_widget(&root);
+        actions.register_for_widget(&widgets.block_menu_id);
 
         widgets
     }
