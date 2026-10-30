@@ -62,8 +62,8 @@ impl FactoryComponent for Partition {
     view! {
         #[root]
         &adw::ExpanderRow {
-            set_title: &self.name,
-            set_subtitle: &size::Size::from_bytes(self.size).to_string(),
+            set_title: &size::Size::from_bytes(self.size).to_string(),
+            set_subtitle: &self.name,
             #[name = "block_menu_id"]
             add_suffix = &gtk::MenuButton {
                 set_icon_name: "view-more-symbolic",
