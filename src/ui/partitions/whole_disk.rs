@@ -1,5 +1,5 @@
 use crate::{
-    ui::partitions::partition_model::{PARTITION_BROKER, PartitionMsg},
+    ui::partitions::partition_page::{PARTITION_BROKER, PartitionMsg},
     utils::i18n::i18n_f,
 };
 use relm4::{adw::prelude::*, factory::*, *};

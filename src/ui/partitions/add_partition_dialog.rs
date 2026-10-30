@@ -1,4 +1,4 @@
-use crate::ui::partitions::partition_model::{PARTITION_BROKER, PartitionMsg};
+use crate::ui::partitions::partition_page::{PARTITION_BROKER, PartitionMsg};
 use gettextrs::gettext;
 use relm4::{adw::prelude::*, *};
 

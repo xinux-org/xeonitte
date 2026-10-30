@@ -6,7 +6,7 @@ use crate::{
     config::{LIBEXECDIR, SYSCONFDIR, TMPDIR},
     ui::{
         install::install_model::{INSTALL_BROKER, InstallMsg},
-        partitions::partition_model::PartitionSchema,
+        partitions::partition_page::PartitionSchema,
         window::{AppMsg, UserConfig},
     },
     utils::disko::{Devices, LUKS_PASSWORD_FILE},

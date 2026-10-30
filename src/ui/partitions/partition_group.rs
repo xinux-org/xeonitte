@@ -2,7 +2,7 @@ use crate::{
     format_size,
     ui::partitions::{
         add_partition_dialog::{XAddPartitionDialogModel, XAddPartitionDialogOutput},
-        partition_model::CustomPartition,
+        partition_page::CustomPartition,
         partition_row::{Partition, PartitionInit, PartitionOut},
     },
     utils::{SizeType, represent},

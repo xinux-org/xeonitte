@@ -6,7 +6,7 @@ use crate::{
         install_mode::install_mode_model::{InstallModeModel, InstallModeMsg},
         keyboard::keyboard_model::{KeyboardModel, KeyboardMsg},
         list::list_model::{ListInit, ListModel, ListMsg},
-        partitions::partition_model::{
+        partitions::partition_page::{
             CustomOptions, FullDiskOptions, PARTITION_BROKER, PartitionModel, PartitionMsg,
             PartitionSchema,
         },
