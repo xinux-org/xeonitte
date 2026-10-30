@@ -209,5 +209,5 @@ relm4::new_stateless_action!(
 relm4::new_stateless_action!(
     AddBtrfsSubvolumeAction,
     PartitionActionGroup,
-    "delete-partition"
+    "add-btrfs-subvolume"
 );
