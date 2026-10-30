@@ -1,3 +1,4 @@
+pub mod add_partition_dialog;
 pub mod hibernation;
 pub mod luks_password;
 pub mod partition;

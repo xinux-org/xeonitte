@@ -1,6 +1,5 @@
 use crate::ui::partitions::partition_model::{PARTITION_BROKER, PartitionMsg};
 use gettextrs::gettext;
-use libgweather::gio;
 use relm4::{
     actions::{RelmAction, RelmActionGroup},
     adw::prelude::*,
@@ -55,6 +54,7 @@ impl FactoryComponent for Partition {
         block_menu: {
             section! {
                 &gettext("Delete...") => DeletePartitionAction,
+                &gettext("Add Btrfs subvolume") => AddBtrfsSubvolumeAction,
             }
         }
     }
@@ -159,12 +159,20 @@ impl FactoryComponent for Partition {
         let widgets = view_output!();
 
         let mut actions = RelmActionGroup::<PartitionActionGroup>::new();
+
+        let delete_sender = sender.clone();
         let delete_partition_action =
             RelmAction::<DeletePartitionAction>::new_stateless(move |_| {
-                sender.input(PartitionRowMsg::Delete);
+                delete_sender.input(PartitionRowMsg::Delete);
             });
+
+        // let add_btrfs_subvolume_action =
+        //     RelmAction::<DeletePartitionAction>::new_stateless(move |_| {
+        //         sender.input(PartitionRowMsg::Delete);
+        //     });
+
         actions.add_action(delete_partition_action);
-        // actions.register_for_widget(&root);
+        // actions.add_action(add_btrfs_subvolume_action);
         actions.register_for_widget(&widgets.block_menu_id);
 
         widgets
@@ -195,6 +203,11 @@ impl FactoryComponent for Partition {
 relm4::new_action_group!(pub PartitionActionGroup, "partition");
 relm4::new_stateless_action!(
     DeletePartitionAction,
+    PartitionActionGroup,
+    "delete-partition"
+);
+relm4::new_stateless_action!(
+    AddBtrfsSubvolumeAction,
     PartitionActionGroup,
     "delete-partition"
 );
