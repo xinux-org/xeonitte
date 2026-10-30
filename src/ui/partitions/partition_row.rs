@@ -71,6 +71,12 @@ impl FactoryComponent for Partition {
                 set_menu_model: Some(&block_menu),
                 add_css_class: "flat",
             },
+            add_row = &adw::ActionRow {
+                set_title: "Mountpoint",
+                #[watch]
+                set_subtitle: &self.name,
+                set_subtitle_selectable: true,
+            },
             add_row = &adw::ComboRow {
                 #[watch]
                 set_title: &gettext("Format"),
