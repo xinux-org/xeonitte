@@ -44,8 +44,10 @@ fn main() -> Result<()> {
                 "/uz/xinux/Xeonitte/style.css",
                 gio::ResourceLookupFlags::NONE,
             )
-            .unwrap();
-        relm4::set_global_css(&glib::GString::from_utf8_checked(data.to_vec()).unwrap());
+            .context("Failed to load css")?;
+        relm4::set_global_css(
+            &glib::GString::from_utf8_checked(data.to_vec()).context("Failed to set global css")?,
+        );
     } else {
         error!("Failed to load resources");
     }
