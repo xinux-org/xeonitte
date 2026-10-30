@@ -273,7 +273,7 @@ impl SimpleComponent for InstallModel {
                     }
                     let _ = output.flush(gio::Cancellable::NONE);
                 } else {
-                    sender.output(AppMsg::error(
+                    sender.output_sender().emit(AppMsg::error(
                         ErrorPhase::Installation,
                         "Failed to create /tmp/xeonitte-term.log",
                     ));
