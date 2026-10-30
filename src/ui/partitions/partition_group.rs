@@ -1,8 +1,8 @@
 use crate::{
     format_size,
     ui::partitions::{
-        partition::{Partition, PartitionInit, PartitionOut},
         partition_model::CustomPartition,
+        partition_row::{Partition, PartitionInit, PartitionOut},
     },
     utils::{SizeType, represent},
 };

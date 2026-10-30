@@ -4,8 +4,8 @@ use crate::{
         partitions::{
             hibernation::Hibernation,
             luks_password::{LuksPasswordComponent, LuksPasswordMsg},
-            partition::{Partition, PartitionInit, PartitionRowMsg},
             partition_group::PartitionGroup,
+            partition_row::{Partition, PartitionInit, PartitionRowMsg},
             whole_disk::WholeDisk,
         },
         templates::base::BaseComponent,
