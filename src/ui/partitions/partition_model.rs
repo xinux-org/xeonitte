@@ -400,6 +400,7 @@ impl SimpleComponent for PartitionModel {
                                     free_space,
                                     total_size,
                                     size_type: SizeType::MB,
+                                    add_partition_dialog: None,
                                 });
                             }
                         } else {

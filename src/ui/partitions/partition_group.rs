@@ -1,6 +1,7 @@
 use crate::{
     format_size,
     ui::partitions::{
+        add_partition_dialog::{XAddPartitionDialogModel, XAddPartitionDialogOutput},
         partition_model::CustomPartition,
         partition_row::{Partition, PartitionInit, PartitionOut},
     },
@@ -20,10 +21,13 @@ pub struct PartitionGroup {
     pub free_space: Size,
     pub total_size: u64,
     pub size_type: SizeType,
+    // We create dialog model for each disk.
+    pub add_partition_dialog: Option<Controller<XAddPartitionDialogModel>>,
 }
 
 #[derive(Debug)]
 pub enum PartitionGroupMsg {
+    AddPartitionDialog,
     ShowSizeEntry,
     CloseEntry,
     Input(Option<String>),
@@ -122,7 +126,7 @@ impl FactoryComponent for PartitionGroup {
                                     set_icon_name: "value-increase",
                                     add_css_class: "circular",
                                     connect_clicked[sender] => move |_| {
-                                        sender.input(PartitionGroupMsg::ShowSizeEntry);
+                                        sender.input(PartitionGroupMsg::AddPartitionDialog);
                                     }
                                 },
                             },
@@ -218,6 +222,13 @@ impl FactoryComponent for PartitionGroup {
     }
 
     fn init_model(parent: Self::Init, _index: &DynamicIndex, sender: FactorySender<Self>) -> Self {
+        let add_partition_dialog = XAddPartitionDialogModel::builder().launch(()).forward(
+            sender.input_sender(),
+            |message| match message {
+                XAddPartitionDialogOutput::Apply => PartitionGroupMsg::Apply,
+            },
+        );
+
         let mut partitions = FactoryVecDeque::builder()
             .launch(gtk::ListBox::default())
             .forward(sender.input_sender(), |output| match output {
@@ -246,6 +257,7 @@ impl FactoryComponent for PartitionGroup {
             total_size: parent.total_size,
             size_type: parent.size_type,
             partitions,
+            add_partition_dialog: Some(add_partition_dialog),
         }
     }
 
@@ -400,7 +412,7 @@ impl FactoryComponent for PartitionGroup {
             }
 
             PartitionGroupMsg::SetSizeType(x) => {
-                let new_size = represent(
+                let new_size: Size = represent(
                     x,
                     widgets.size_entry.text().parse::<f64>().unwrap_or_default(),
                 );
@@ -427,6 +439,13 @@ impl FactoryComponent for PartitionGroup {
                     widgets.size_entry.add_css_class("error");
                     widgets.apply_button.set_can_target(false);
                     widgets.apply_button.add_css_class("dimmed");
+                }
+            }
+            PartitionGroupMsg::AddPartitionDialog => {
+                if let Some(dialog) = &self.add_partition_dialog {
+                    dialog
+                        .widget()
+                        .present(relm4::main_application().active_window().as_ref());
                 }
             }
         }

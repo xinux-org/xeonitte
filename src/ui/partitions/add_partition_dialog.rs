@@ -4,22 +4,23 @@ use relm4::{adw::prelude::*, *};
 
 use relm4::{Component, ComponentParts, ComponentSender, gtk};
 
+#[derive(Debug)]
 pub struct XAddPartitionDialogModel {}
 
 #[derive(Debug)]
 pub enum XAddPartitionDialogInput {}
 
 #[derive(Debug)]
-pub enum XAddPartitionDialogOutput {}
-
-pub struct XAddPartitionDialogInit {}
+pub enum XAddPartitionDialogOutput {
+    Apply,
+}
 
 #[relm4::component(pub)]
 impl Component for XAddPartitionDialogModel {
     type CommandOutput = ();
     type Input = XAddPartitionDialogInput;
     type Output = XAddPartitionDialogOutput;
-    type Init = XAddPartitionDialogInit;
+    type Init = ();
 
     view! {
         dialog = adw::Dialog {
