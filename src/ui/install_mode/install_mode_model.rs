@@ -30,9 +30,7 @@ impl SimpleComponent for InstallModeModel {
             adw::StatusPage {
                 set_icon_name: Some("archive-symbolic"),
                 set_title: &gettext("Type of installation"),
-                set_description: Some(&gettext("Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem
-                Ipsum has been the industry's standard dummy")),
-
+                set_description: Some(&gettext("Recommended mode is standard for most users. Advanced mode has multiple disk customization")),
                 #[wrap(Some)]
                 set_child = &gtk::Box {
                     set_hexpand: true,
@@ -41,7 +39,7 @@ impl SimpleComponent for InstallModeModel {
                     set_spacing: 6,
                     #[name(install_mode)]
                     gtk::CheckButton {
-                        set_label: Some(&gettext("Basic mode")),
+                        set_label: Some(&gettext("Recommended")),
                         #[watch]
                         set_active: model.selected == Some(Flow::Basic),
                         connect_toggled[sender] => move |btn| {
