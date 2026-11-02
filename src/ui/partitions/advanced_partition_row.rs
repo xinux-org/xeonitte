@@ -21,14 +21,6 @@ pub struct Partition {
     pub donotformat: String,
 }
 
-#[derive(Default, Debug, PartialEq, Eq, Clone)]
-pub struct PartitionInit {
-    pub name: String,
-    pub size: u64,
-    pub mountrow: adw::ComboRow,
-    pub device: String,
-}
-
 #[derive(Debug)]
 pub enum PartitionRowMsg {
     Deselect(String),
@@ -44,7 +36,7 @@ pub enum PartitionOut {
 
 #[relm4::factory(pub)]
 impl FactoryComponent for Partition {
-    type Init = PartitionInit;
+    type Init = Partition;
     type Input = PartitionRowMsg;
     type Output = PartitionOut;
     type ParentWidget = gtk::ListBox;
@@ -147,11 +139,10 @@ impl FactoryComponent for Partition {
             size: parent.size,
             mountrow: parent.mountrow,
             device: parent.device,
-            is_swap: false,
-            is_boot: false,
-            is_full: false,
             donotmount: gettext("Do not mount"),
             donotformat: gettext("Leave as is"),
+            // is_swap, is_boot, is_full are selected at GUI
+            ..Default::default()
         }
     }
     fn init_widgets(

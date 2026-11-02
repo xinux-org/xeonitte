@@ -2,8 +2,8 @@ use crate::{
     format_size,
     ui::partitions::{
         add_partition_dialog::{XAddPartitionDialogModel, XAddPartitionDialogOutput},
-        partition_page::CustomPartition,
-        partition_row::{Partition, PartitionInit, PartitionOut},
+        advanced_partition_row::{Partition, PartitionOut},
+        partition_page::{ALL_DISKS, CustomPartition},
     },
     utils::{SizeType, represent},
 };
@@ -225,6 +225,11 @@ impl FactoryComponent for PartitionGroup {
     }
 
     fn init_model(parent: Self::Init, _index: &DynamicIndex, sender: FactorySender<Self>) -> Self {
+        // ALL_DISKS.subscribe(sender.input_sender(), |state| PartitionMsg::XXX {
+        //     system_packages: state.installed_system_packages.clone(),
+        //     user_packages: state.installed_user_packages.clone(),
+        // });
+
         let add_partition_dialog = XAddPartitionDialogModel::builder().launch(()).detach();
 
         let mut partitions = FactoryVecDeque::builder()
@@ -237,11 +242,12 @@ impl FactoryComponent for PartitionGroup {
             .partitions
             .iter()
             .map(|x| {
-                let p = PartitionInit {
+                let p = Partition {
                     name: x.name.clone(),
-                    device: x.device.clone(),
-                    mountrow: adw::ComboRow::new(),
                     size: x.size,
+                    mountrow: adw::ComboRow::new(),
+                    device: x.device.clone(),
+                    ..Default::default()
                 };
                 partitions.guard().push_back(p);
             })

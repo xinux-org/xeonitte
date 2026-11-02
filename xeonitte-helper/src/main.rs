@@ -13,16 +13,17 @@ use std::{
 
 const TMPDIR: &str = "/nix/var/nix/builds/xeonitte";
 
-#[derive(Serialize, Clone)]
+#[derive(Serialize, Deserialize, Clone)]
 struct Disk {
     name: String,
     size: u64,
     partitions: Vec<Partition>,
 }
 
-#[derive(Serialize, Clone)]
+#[derive(Serialize, Deserialize, Clone)]
 struct Partition {
     name: String,
+    #[serde(rename = "format")]
     format: String,
     size: u64,
 }

@@ -93,6 +93,10 @@ impl Component for XAddPartitionDialogModel {
                           adw::SpinRow {
                             set_title: "Free Space",
                             set_subtitle: "Space following new partition",
+                            // connect_output[sender] => move |asd| {
+                            //
+                            // },
+
                             #[wrap(Some)]
                             #[name(free_following_adjustment)]
                             set_adjustment = &gtk::Adjustment {
@@ -102,7 +106,9 @@ impl Component for XAddPartitionDialogModel {
                               set_page_increment: 10.0,
                               #[watch]
                               set_value: size_adjustment.upper() - model.size_adjustment_value,
-                              // connect_value_changed
+                              // connect_value_changed[sender] => move |adjustment| {
+                              //     sender.input(XAddPartitionDialogInput::SetPartitionSize(adjustment.value()));
+                              // },
                             },
                           }
                         }
