@@ -51,6 +51,7 @@ pub struct PartitionModel {
     encryption_enabled: bool,
     luks_password: Controller<LuksPasswordComponent>,
     hibernation: Controller<Hibernation>,
+    disks_list: Vec<InputDisk>,
 }
 
 #[derive(Debug)]
@@ -69,6 +70,8 @@ pub enum PartitionMsg {
     SetPassphraseConfirm,
     CheckSelected,
     Refresh,
+    RefreshBasic,
+    RefreshAdvanced,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -316,6 +319,7 @@ impl SimpleComponent for PartitionModel {
             FactoryVecDeque::builder().launch_default().detach();
 
         let model = PartitionModel {
+            disks_list: vec![],
             basic_partition_factory,
             advanced_partition_groups: FactoryVecDeque::builder()
                 .launch(gtk::Box::new(gtk::Orientation::Vertical, 20))
@@ -345,12 +349,6 @@ impl SimpleComponent for PartitionModel {
     fn update(&mut self, msg: Self::Input, sender: ComponentSender<Self>) {
         match msg {
             PartitionMsg::Refresh => {
-                let mut basic_partition_factory_guard = self.basic_partition_factory.guard();
-                let mut advansed_partition_groups_guard = self.advanced_partition_groups.guard();
-
-                basic_partition_factory_guard.clear();
-                advansed_partition_groups_guard.clear();
-
                 let out = Command::new("pkexec")
                     .arg(format!("{}/xeonitte-helper", LIBEXECDIR))
                     .arg("get-partitions")
@@ -365,53 +363,13 @@ impl SimpleComponent for PartitionModel {
                             serde_json::from_str(&output);
                         if let Ok(disks) = disks {
                             debug!("Got disks: {:#?}", disks);
+                            self.disks_list = disks;
 
-                            //
-                            *ALL_DISKS.write() = disks.clone();
-
-                            for disk in disks {
-                                basic_partition_factory_guard.push_back(WholeDisk {
-                                    name: disk.name.to_string(),
-                                    size: disk.size,
-                                    group: self.diskgroupbtn.clone(),
-                                });
-
-                                let mut part_factoryvec: FactoryVecDeque<Partition> =
-                                    FactoryVecDeque::builder().launch_default().detach();
-                                let mut part_guard = part_factoryvec.guard();
-
-                                for part in disk.partitions {
-                                    info!(
-                                        "Partition: {:?} length {}",
-                                        part.name,
-                                        size::Size::from_bytes(part.size)
-                                    );
-                                    part_guard.push_back(Partition {
-                                        name: part.name.clone(),
-                                        size: part.size,
-                                        mountrow: adw::ComboRow::new(),
-                                        device: disk.name.to_string(),
-                                        ..Default::default()
-                                    });
+                            match self.method {
+                                PartitionMethod::Basic => sender.input(PartitionMsg::RefreshBasic),
+                                PartitionMethod::Advanced => {
+                                    sender.input(PartitionMsg::RefreshAdvanced)
                                 }
-
-                                part_guard.drop();
-
-                                let name = disk.name.to_string();
-                                let used = part_factoryvec.iter().map(|x| x.size).sum::<u64>();
-                                let total_size = disk.size;
-                                let free_space = Size::from_bytes(total_size - used);
-
-                                advansed_partition_groups_guard.push_back(PartitionGroup {
-                                    partitions: part_factoryvec,
-                                    creating_partition: false,
-                                    new_partition_size: Size::default(),
-                                    name,
-                                    free_space,
-                                    total_size,
-                                    size_type: SizeType::MB,
-                                    add_partition_dialog: None,
-                                });
                             }
                         } else {
                             error!("Failed to parse partitions: {} : {}", output, stderr);
@@ -421,12 +379,66 @@ impl SimpleComponent for PartitionModel {
                         error!("Failed to get partitions: {}", e);
                     }
                 }
-
-                basic_partition_factory_guard.drop();
-                advansed_partition_groups_guard.drop();
                 self.schema = None;
                 self.encryption_enabled = self.method == PartitionMethod::Basic;
                 let _ = sender.output(AppMsg::SetCanGoForward(false));
+            }
+            PartitionMsg::RefreshBasic => {
+                let mut basic_partition_factory_guard = self.basic_partition_factory.guard();
+                basic_partition_factory_guard.clear();
+
+                for disk in &self.disks_list {
+                    basic_partition_factory_guard.push_back(WholeDisk {
+                        name: disk.name.to_string(),
+                        size: disk.size,
+                        group: self.diskgroupbtn.clone(),
+                    });
+                }
+                basic_partition_factory_guard.drop();
+            }
+            PartitionMsg::RefreshAdvanced => {
+                let mut advansed_partition_groups_guard = self.advanced_partition_groups.guard();
+                advansed_partition_groups_guard.clear();
+
+                for disk in &self.disks_list {
+                    let mut part_factoryvec: FactoryVecDeque<Partition> =
+                        FactoryVecDeque::builder().launch_default().detach();
+                    let mut part_guard = part_factoryvec.guard();
+
+                    for part in &disk.partitions {
+                        info!(
+                            "Partition: {:?} length {}",
+                            part.name,
+                            size::Size::from_bytes(part.size)
+                        );
+                        part_guard.push_back(Partition {
+                            name: part.name.clone(),
+                            size: part.size,
+                            mountrow: adw::ComboRow::new(),
+                            device: disk.name.to_string(),
+                            ..Default::default()
+                        });
+                    }
+
+                    part_guard.drop();
+
+                    let name = disk.name.to_string();
+                    let used = part_factoryvec.iter().map(|x| x.size).sum::<u64>();
+                    let total_size = disk.size;
+                    let free_space = Size::from_bytes(total_size - used);
+
+                    advansed_partition_groups_guard.push_back(PartitionGroup {
+                        partitions: part_factoryvec,
+                        creating_partition: false,
+                        new_partition_size: Size::default(),
+                        name,
+                        free_space,
+                        total_size,
+                        size_type: SizeType::MB,
+                        add_partition_dialog: None,
+                    });
+                }
+                advansed_partition_groups_guard.drop();
             }
             PartitionMsg::SetMethod(method) => {
                 self.method = method;
