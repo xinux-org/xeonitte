@@ -427,7 +427,7 @@ impl SimpleComponent for PartitionModel {
                     let name = disk.name.to_string();
                     let used = part_factoryvec.iter().map(|x| x.size).sum::<u64>();
                     let total_size = disk.size;
-                    let free_space = Size::from_bytes(total_size - used);
+                    let free_space = total_size - used;
 
                     advansed_partition_groups_guard.push_back(AdvancedDiskGroup {
                         partitions: part_factoryvec,

@@ -10,9 +10,10 @@ pub mod report;
 
 use size::Size;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default)]
 pub enum SizeType {
     TB,
+    #[default]
     GB,
     MB,
     KB,

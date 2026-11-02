@@ -18,7 +18,7 @@ pub struct AdvancedDiskGroup {
     pub partitions: FactoryVecDeque<Partition>,
     pub creating_partition: bool,
     pub new_partition_size: Size,
-    pub free_space: Size,
+    pub free_space: u64,
     pub total_size: u64,
     pub size_type: SizeType,
     // We create dialog model for each disk.
@@ -100,7 +100,7 @@ impl FactoryComponent for AdvancedDiskGroup {
                                 #[name = "free_space"]
                                 gtk::Label {
                                     #[watch]
-                                    set_text: &format_size(self.free_space),
+                                    set_text: &self.free_space.to_string(),
                                 },
                             },
                             gtk::Box {
@@ -148,7 +148,7 @@ impl FactoryComponent for AdvancedDiskGroup {
                         adw::ActionRow {
                             set_title: &gettext("Free space"),
                             #[watch]
-                            set_subtitle: &format_size(self.free_space),
+                            set_subtitle: &self.free_space.to_string(),
                             set_selectable: false,
                             set_activatable: false,
                         },
@@ -226,8 +226,17 @@ impl FactoryComponent for AdvancedDiskGroup {
         //     system_packages: state.installed_system_packages.clone(),
         //     user_packages: state.installed_user_packages.clone(),
         // });
-
-        let add_partition_dialog = XAddPartitionDialogModel::builder().launch(()).detach();
+        let add_partition_dialog = XAddPartitionDialogModel::builder()
+            .launch(XAddPartitionDialogModel {
+                name: disk.name.clone(),
+                creating_partition: disk.creating_partition,
+                new_partition_size: disk.new_partition_size,
+                free_space: disk.free_space as f64,
+                total_size: disk.total_size,
+                size_type: disk.size_type,
+                ..Default::default()
+            })
+            .detach();
 
         let mut partitions = FactoryVecDeque::builder()
             .launch(gtk::ListBox::default())
@@ -398,7 +407,7 @@ impl FactoryComponent for AdvancedDiskGroup {
             //                 sender.input(PartitionGroupMsg::Validate);
             //             }
             AdvancedDiskGroupMsg::Delete(name) => {
-                let (index, x) = self
+                let (index, partition) = self
                     .partitions
                     .iter()
                     .cloned()
@@ -406,7 +415,7 @@ impl FactoryComponent for AdvancedDiskGroup {
                     .find_map(|(i, x)| if x.name == name { Some((i, x)) } else { None })
                     .unwrap_or_default();
 
-                self.free_space.add_assign(Size::from_bytes(x.size));
+                self.free_space.add_assign(partition.size);
                 self.partitions.guard().remove(index);
             }
 

@@ -1,11 +1,21 @@
 use gettextrs::gettext;
+use libgweather::glib;
 use relm4::{adw::prelude::*, *};
 
 use relm4::{Component, ComponentParts, ComponentSender, gtk};
 
-#[derive(Debug)]
+use crate::utils::SizeType;
+
+#[derive(Debug, Default)]
 pub struct XAddPartitionDialogModel {
-    size_adjustment_value: f64,
+    pub name: String,
+    pub creating_partition: bool,
+    pub new_partition_size: size::Size,
+    pub free_space: f64,
+    pub total_size: u64,
+    pub size_type: SizeType,
+
+    pub size_adjustment_value: f64,
 }
 
 #[derive(Debug)]
@@ -20,10 +30,10 @@ pub enum XAddPartitionDialogOutput {
 
 #[relm4::component(pub)]
 impl Component for XAddPartitionDialogModel {
-    type CommandOutput = ();
+    type Init = XAddPartitionDialogModel;
     type Input = XAddPartitionDialogInput;
     type Output = ();
-    type Init = ();
+    type CommandOutput = ();
 
     view! {
         #[root]
@@ -75,14 +85,17 @@ impl Component for XAddPartitionDialogModel {
                           #[name(size_row)]
                           adw::SpinRow {
                             set_title: "Partition Size",
+                            #[watch]
+                            set_text: &format!("{} MB", model.size_adjustment_value),
                             #[wrap(Some)]
                             #[name(size_adjustment)]
                             set_adjustment = &gtk::Adjustment {
                               #[watch]
-                              // #[block_signal(upper_handler)]
-                              set_upper: 100.0,
+                              set_upper: model.free_space,
                               set_step_increment: 1.0,
                               set_page_increment: 10.0,
+                              // #[block_signal(upper_handler)]
+                              #[watch]
                               set_value: model.size_adjustment_value,
                               connect_value_changed[sender] => move |adjustment| {
                                   sender.input(XAddPartitionDialogInput::SetPartitionSize(adjustment.value()));
@@ -93,10 +106,8 @@ impl Component for XAddPartitionDialogModel {
                           adw::SpinRow {
                             set_title: "Free Space",
                             set_subtitle: "Space following new partition",
-                            // connect_output[sender] => move |asd| {
-                            //
-                            // },
-
+                            #[watch]
+                            set_text: &format!("{} MB", (model.free_space - model.size_adjustment_value)),
                             #[wrap(Some)]
                             #[name(free_following_adjustment)]
                             set_adjustment = &gtk::Adjustment {
@@ -105,7 +116,7 @@ impl Component for XAddPartitionDialogModel {
                               set_step_increment: 1.0,
                               set_page_increment: 10.0,
                               #[watch]
-                              set_value: size_adjustment.upper() - model.size_adjustment_value,
+                              set_value: size_adjustment.upper() - size_adjustment.value(),
                               // connect_value_changed[sender] => move |adjustment| {
                               //     sender.input(XAddPartitionDialogInput::SetPartitionSize(adjustment.value()));
                               // },
@@ -128,7 +139,13 @@ impl Component for XAddPartitionDialogModel {
         sender: ComponentSender<Self>,
     ) -> ComponentParts<Self> {
         let model = Self {
-            size_adjustment_value: 10.0,
+            name: init.name,
+            creating_partition: init.creating_partition,
+            new_partition_size: init.new_partition_size,
+            free_space: init.free_space,
+            total_size: init.total_size,
+            size_type: init.size_type,
+            size_adjustment_value: init.free_space,
         };
         let widgets = view_output!();
 
