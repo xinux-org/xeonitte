@@ -16,7 +16,7 @@ use std::{
 };
 
 #[derive(Debug)]
-pub struct PartitionGroup {
+pub struct AdvancedDiskGroup {
     pub name: String,
     pub partitions: FactoryVecDeque<Partition>,
     pub creating_partition: bool,
@@ -46,8 +46,8 @@ pub enum PartitionGroupOut {
 }
 
 #[relm4::factory(pub)]
-impl FactoryComponent for PartitionGroup {
-    type Init = PartitionGroup;
+impl FactoryComponent for AdvancedDiskGroup {
+    type Init = AdvancedDiskGroup;
     type Input = PartitionGroupMsg;
     type Output = ();
     type ParentWidget = gtk::Box;
@@ -224,7 +224,7 @@ impl FactoryComponent for PartitionGroup {
         }
     }
 
-    fn init_model(parent: Self::Init, _index: &DynamicIndex, sender: FactorySender<Self>) -> Self {
+    fn init_model(disk: Self::Init, _index: &DynamicIndex, sender: FactorySender<Self>) -> Self {
         // ALL_DISKS.subscribe(sender.input_sender(), |state| PartitionMsg::XXX {
         //     system_packages: state.installed_system_packages.clone(),
         //     user_packages: state.installed_user_packages.clone(),
@@ -238,7 +238,7 @@ impl FactoryComponent for PartitionGroup {
                 PartitionOut::Delete(x) => PartitionGroupMsg::Delete(x),
             });
 
-        let _ = parent
+        let _ = disk
             .partitions
             .iter()
             .map(|x| {
@@ -254,12 +254,12 @@ impl FactoryComponent for PartitionGroup {
             .collect::<Vec<_>>();
 
         Self {
-            name: parent.name,
-            creating_partition: parent.creating_partition,
-            new_partition_size: parent.new_partition_size,
-            free_space: parent.free_space,
-            total_size: parent.total_size,
-            size_type: parent.size_type,
+            name: disk.name,
+            creating_partition: disk.creating_partition,
+            new_partition_size: disk.new_partition_size,
+            free_space: disk.free_space,
+            total_size: disk.total_size,
+            size_type: disk.size_type,
             partitions,
             add_partition_dialog: Some(add_partition_dialog),
         }

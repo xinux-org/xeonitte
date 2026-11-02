@@ -2,7 +2,7 @@ use crate::{
     config::LIBEXECDIR,
     ui::{
         partitions::{
-            advanced_partition_group::PartitionGroup,
+            advanced_partition_group::AdvancedDiskGroup,
             advanced_partition_row::{Partition, PartitionRowMsg},
             hibernation::Hibernation,
             luks_password::{LuksPasswordComponent, LuksPasswordMsg},
@@ -42,8 +42,8 @@ pub struct InputPartition {
 }
 
 pub struct PartitionModel {
-    basic_partition_factory: FactoryVecDeque<WholeDisk>,
-    advanced_partition_groups: FactoryVecDeque<PartitionGroup>,
+    basic_disk_factory: FactoryVecDeque<WholeDisk>,
+    advanced_disk_factory: FactoryVecDeque<AdvancedDiskGroup>,
     method: PartitionMethod,
     diskgroupbtn: gtk::CheckButton,
     schema: Option<PartitionSchema>,
@@ -315,15 +315,17 @@ impl SimpleComponent for PartitionModel {
             .launch(())
             .forward(sender.input_sender(), identity);
 
-        let basic_partition_factory: FactoryVecDeque<WholeDisk> =
+        let basic_disk_factory: FactoryVecDeque<WholeDisk> =
             FactoryVecDeque::builder().launch_default().detach();
+
+        let advanced_disk_factory = FactoryVecDeque::builder()
+            .launch(gtk::Box::new(gtk::Orientation::Vertical, 20))
+            .detach();
 
         let model = PartitionModel {
             disks_list: vec![],
-            basic_partition_factory,
-            advanced_partition_groups: FactoryVecDeque::builder()
-                .launch(gtk::Box::new(gtk::Orientation::Vertical, 20))
-                .detach(),
+            basic_disk_factory,
+            advanced_disk_factory,
             method: PartitionMethod::Basic,
             diskgroupbtn: gtk::CheckButton::new(),
             schema: None,
@@ -335,8 +337,8 @@ impl SimpleComponent for PartitionModel {
 
         sender.input(PartitionMsg::Refresh);
 
-        let basic_disk_box = model.basic_partition_factory.widget();
-        let partitionbox = model.advanced_partition_groups.widget();
+        let basic_disk_box = model.basic_disk_factory.widget();
+        let partitionbox = model.advanced_disk_factory.widget();
         let luksbox = model.luks_password.widget();
         let hibernationbox = model.hibernation.widget();
 
@@ -384,7 +386,7 @@ impl SimpleComponent for PartitionModel {
                 let _ = sender.output(AppMsg::SetCanGoForward(false));
             }
             PartitionMsg::RefreshBasic => {
-                let mut basic_partition_factory_guard = self.basic_partition_factory.guard();
+                let mut basic_partition_factory_guard = self.basic_disk_factory.guard();
                 basic_partition_factory_guard.clear();
 
                 for disk in &self.disks_list {
@@ -397,7 +399,7 @@ impl SimpleComponent for PartitionModel {
                 basic_partition_factory_guard.drop();
             }
             PartitionMsg::RefreshAdvanced => {
-                let mut advansed_partition_groups_guard = self.advanced_partition_groups.guard();
+                let mut advansed_partition_groups_guard = self.advanced_disk_factory.guard();
                 advansed_partition_groups_guard.clear();
 
                 for disk in &self.disks_list {
@@ -427,7 +429,7 @@ impl SimpleComponent for PartitionModel {
                     let total_size = disk.size;
                     let free_space = Size::from_bytes(total_size - used);
 
-                    advansed_partition_groups_guard.push_back(PartitionGroup {
+                    advansed_partition_groups_guard.push_back(AdvancedDiskGroup {
                         partitions: part_factoryvec,
                         creating_partition: false,
                         new_partition_size: Size::default(),
@@ -614,7 +616,7 @@ impl SimpleComponent for PartitionModel {
                         if let Some(partmount) = &part.mountpoint
                             && partmount == &mount
                         {
-                            let mut partition_group_guard = self.advanced_partition_groups.guard();
+                            let mut partition_group_guard = self.advanced_disk_factory.guard();
                             for i in 0..partition_group_guard.len() {
                                 let partition_guard = partition_group_guard[i].partitions.guard();
                                 for j in 0..partition_guard.len() {
