@@ -13,4 +13,7 @@
     <file preprocess="xml-stripblanks" alias="nsc-video.svg">../icons/nsc-video.svg</file>
     <file preprocess="xml-stripblanks" alias="nsc-web.svg">../icons/nsc-web.svg</file> -->
   </gresource>
+  <gresource prefix="/uz/xinux/Xeonitte/">
+	    <file compressed="true">style.css</file>
+	  </gresource>
 </gresources>

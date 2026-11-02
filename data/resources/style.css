@@ -1,0 +1,15 @@
+.selector-bg {
+    background-color: rgba(255,255,255,0.15);
+}
+
+.selector {
+    border-radius: 12px;
+}
+.selector-row {
+    background-color: #38383C;
+    border-radius: 0%;
+}
+
+.selector-row:focus {
+    background-color: #3584E4;
+}

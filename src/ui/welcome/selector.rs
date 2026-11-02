@@ -1,18 +1,14 @@
-use gtk::prelude::*;
 use relm4::factory::{DynamicIndex, FactoryComponent, FactorySender, FactoryVecDeque};
-use relm4::{ComponentParts, ComponentSender, SimpleComponent, gtk};
+use relm4::{ComponentParts, ComponentSender, SimpleComponent};
+use relm4::{adw, adw::prelude::*, gtk};
 
-use crate::ui::welcome::welcome_model::{WelcomeModel, WelcomeMsg};
+use crate::ui::welcome::welcome_model::WelcomeMsg;
 
 #[derive(Debug)]
 pub struct SelectorRow {
-    value: String,
+    content: String,
+    group: gtk::ToggleButton,
 }
-
-// #[derive(Debug)]
-// enum SelectorRowMsg {
-//     Select(DynamicIndex),
-// }
 
 #[derive(Debug)]
 pub enum SelectorRowOutput {
@@ -21,31 +17,35 @@ pub enum SelectorRowOutput {
 
 #[relm4::factory(pub)]
 impl FactoryComponent for SelectorRow {
-    type Init = String;
+    type Init = SelectorRow;
     type Input = ();
     type Output = SelectorRowOutput;
     type CommandOutput = ();
-    type ParentWidget = gtk::ListBox;
+    type ParentWidget = gtk::Box;
 
     view! {
         #[root]
         gtk::ToggleButton {
-            // set_orientation: gtk::Orientation::Horizontal,
-            // set_accessible_role: gtk::AccessibleRole::ToggleButton,
+            set_group: Some(&self.group),
+            set_has_frame: false,
+            add_css_class: "selector-row",
+            remove_css_class: "toggle",
+
             #[name(label)]
             gtk::Label {
                 #[watch]
-                set_label: &self.value,
+                set_label: &self.content,
                 set_width_chars: 3,
+                set_halign: gtk::Align::Start,
             },
-            connect_clicked[sender, value = self.value.clone()] => move |_| {
+            connect_clicked[sender, value = self.content.clone()] => move |_| {
                 sender.output(SelectorRowOutput::Select(value.clone()));
             }
         }
     }
 
-    fn init_model(value: Self::Init, _index: &DynamicIndex, _sender: FactorySender<Self>) -> Self {
-        Self { value }
+    fn init_model(init: Self::Init, _index: &DynamicIndex, _sender: FactorySender<Self>) -> Self {
+        init
     }
 }
 
@@ -61,10 +61,25 @@ impl SimpleComponent for Selector {
     type Output = WelcomeMsg;
 
     view! {
-        gtk::Box{
-            #[local_ref]
-            rows_box -> gtk::ListBox,
+        adw::PreferencesGroup {
+            gtk::ScrolledWindow {
+                set_height_request: 300,
+                // adw::Clamp{
+                    // set_maximum_size: 346,
+
+                    #[local_ref]
+                    rows_box -> gtk::Box {
+                        set_orientation: gtk::Orientation::Vertical,
+                        set_spacing: 1,
+                        set_hexpand: true,
+                        set_overflow: gtk::Overflow::Hidden,
+                        add_css_class: "selector",
+                        add_css_class: "selector-bg",
+                    },
+                // }
+            }
         }
+
     }
 
     fn init(
@@ -74,12 +89,17 @@ impl SimpleComponent for Selector {
     ) -> ComponentParts<Self> {
         // create elements from input
         let mut rows = FactoryVecDeque::builder()
-            .launch(gtk::ListBox::default())
+            .launch(gtk::Box::default())
             .forward(sender.output_sender(), |output| match output {
                 SelectorRowOutput::Select(row) => WelcomeMsg::SetSelected(row.into()),
             });
-        for item in init {
-            rows.guard().push_back(item);
+
+        let group = gtk::ToggleButton::default();
+        for row in init {
+            rows.guard().push_back(SelectorRow {
+                content: row,
+                group: group.clone(),
+            });
         }
 
         // initializing model
