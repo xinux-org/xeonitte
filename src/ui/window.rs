@@ -31,10 +31,7 @@ use crate::{
 use adw::prelude::*;
 use gettextrs::gettext;
 use log::{debug, error, info, trace, warn};
-use relm4::{
-    component::{AsyncComponent, AsyncComponentController, AsyncController},
-    gtk, *,
-};
+use relm4::{gtk, *};
 use size::Size;
 use std::{
     collections::{BTreeMap, HashMap},
@@ -57,7 +54,7 @@ pub struct AppModel {
     #[tracker::no_eq]
     install_mode: Controller<InstallModeModel>,
     #[tracker::no_eq]
-    partition: AsyncController<PartitionModel>,
+    partition: Controller<PartitionModel>,
     #[tracker::no_eq]
     user: Controller<UserModel>,
     #[tracker::no_eq]

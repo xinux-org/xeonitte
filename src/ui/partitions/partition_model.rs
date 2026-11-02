@@ -1,12 +1,13 @@
 use std::{collections::HashMap, convert::identity};
 
 use gettextrs::gettext;
-use log::{error, info, trace};
+use log::{info, trace};
 use relm4::{MessageBroker, adw::prelude::*, factory::*, prelude::*};
 use serde::Serialize;
 use size::Size;
 
 use crate::{
+    modules::disk::Disk,
     ui::{
         partitions::{
             hibernation::Hibernation,
@@ -18,7 +19,7 @@ use crate::{
         templates::base::BaseComponent,
         window::AppMsg,
     },
-    utils::{SizeType, disks::get_disks},
+    utils::SizeType,
 };
 
 pub struct PartitionModel {
@@ -92,8 +93,8 @@ pub struct CustomPartition {
     pub is_full: bool,
 }
 
-#[relm4::component(pub async)]
-impl SimpleAsyncComponent for PartitionModel {
+#[relm4::component(pub)]
+impl SimpleComponent for PartitionModel {
     type Input = PartitionMsg;
     type Output = AppMsg;
     type Init = ();
@@ -281,11 +282,11 @@ impl SimpleAsyncComponent for PartitionModel {
         },
     }
 
-    async fn init(
+    fn init(
         _parent_window: Self::Init,
         root: Self::Root,
-        sender: AsyncComponentSender<Self>,
-    ) -> AsyncComponentParts<Self> {
+        sender: ComponentSender<Self>,
+    ) -> ComponentParts<Self> {
         let luks_model = LuksPasswordComponent::builder()
             .launch(())
             .forward(sender.input_sender(), identity);
@@ -321,10 +322,10 @@ impl SimpleAsyncComponent for PartitionModel {
         let widgets = view_output!();
         widgets.liststack.set_vhomogeneous(false);
 
-        AsyncComponentParts { model, widgets }
+        ComponentParts { model, widgets }
     }
 
-    async fn update(&mut self, msg: Self::Input, sender: AsyncComponentSender<Self>) {
+    fn update(&mut self, msg: Self::Input, sender: ComponentSender<Self>) {
         match msg {
             PartitionMsg::Refresh => {
                 let mut disks_guard = self.disks.guard();
@@ -333,55 +334,50 @@ impl SimpleAsyncComponent for PartitionModel {
                 disks_guard.clear();
                 partition_groups_guard.clear();
 
-                match get_disks().await {
-                    Ok(disks) => {
-                        for disk in disks {
-                            disks_guard.push_back(WholeDisk {
-                                size: disk.size,
-                                name: disk.name.to_string(),
-                                group: self.diskgroupbtn.clone(),
-                            });
+                let disks = Disk::list();
 
-                            let mut part_factoryvec: FactoryVecDeque<Partition> =
-                                FactoryVecDeque::builder().launch_default().detach();
-                            let mut part_guard = part_factoryvec.guard();
+                for disk in disks {
+                    disks_guard.push_back(WholeDisk {
+                        size: disk.size,
+                        name: disk.name.to_string(),
+                        group: self.diskgroupbtn.clone(),
+                    });
 
-                            for part in disk.partitions {
-                                info!(
-                                    "Partition: {:?} length {}",
-                                    part.name,
-                                    size::Size::from_bytes(part.size)
-                                );
+                    let mut part_factoryvec: FactoryVecDeque<Partition> =
+                        FactoryVecDeque::builder().launch_default().detach();
+                    let mut part_guard = part_factoryvec.guard();
 
-                                part_guard.push_back(PartitionInit {
-                                    mountrow: adw::ComboRow::new(),
-                                    name: part.name.clone(),
-                                    size: part.size,
-                                    device: disk.name.to_string(),
-                                });
-                            }
+                    for part in disk.partitions {
+                        info!(
+                            "Partition: {:?} length {}",
+                            part.name,
+                            size::Size::from_bytes(part.size)
+                        );
 
-                            part_guard.drop();
-
-                            let name = disk.name.to_string();
-                            let used = part_factoryvec.iter().map(|x| x.size).sum::<u64>();
-                            let total_size = disk.size;
-                            let free_space = Size::from_bytes(total_size - used);
-
-                            partition_groups_guard.push_back(PartitionGroup {
-                                partitions: part_factoryvec,
-                                creating_partition: false,
-                                new_partition_size: Size::default(),
-                                name,
-                                free_space,
-                                total_size,
-                                size_type: SizeType::MB,
-                            });
-                        }
+                        part_guard.push_back(PartitionInit {
+                            mountrow: adw::ComboRow::new(),
+                            name: part.name.clone(),
+                            size: part.size,
+                            device: disk.name.to_string(),
+                        });
                     }
-                    Err(err) => {
-                        error!("Failed to get partitions: {}", err);
-                    }
+
+                    part_guard.drop();
+
+                    let name = disk.name.to_string();
+                    let used = part_factoryvec.iter().map(|x| x.size).sum::<u64>();
+                    let total_size = disk.size;
+                    let free_space = Size::from_bytes(total_size - used);
+
+                    partition_groups_guard.push_back(PartitionGroup {
+                        partitions: part_factoryvec,
+                        creating_partition: false,
+                        new_partition_size: Size::default(),
+                        name,
+                        free_space,
+                        total_size,
+                        size_type: SizeType::MB,
+                    });
                 }
 
                 self.schema = None;

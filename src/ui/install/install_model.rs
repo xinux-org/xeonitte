@@ -3,15 +3,14 @@ use crate::{
     ui::window::AppMsg,
     utils::{branding::get_slides, report::ErrorPhase},
 };
-use anyhow::Context;
 use log::{debug, error};
 use relm4::{
     ComponentParts, ComponentSender, MessageBroker, RelmWidgetExt, SimpleComponent,
     adw::{self},
     factory::*,
-    gtk::{self, gio, glib},
+    gtk::{self, gio},
 };
-use std::{fs::File, process::Command};
+use std::fs::File;
 use vte::{self, TerminalExt, TerminalExtManual};
 
 pub struct InstallModel {

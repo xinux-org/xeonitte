@@ -85,8 +85,7 @@ fn root_slot(encrypted: bool) -> PartitionDef {
         (
             "luks",
             Content::Luks(
-                LuksContent::new("crypted", Some(LUKS_PASSWORD_FILE.into()), root)
-                    .allow_discards(),
+                LuksContent::new("crypted", Some(LUKS_PASSWORD_FILE.into()), root).allow_discards(),
             ),
         )
     } else {
