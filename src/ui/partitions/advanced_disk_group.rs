@@ -2,8 +2,8 @@ use crate::{
     format_size,
     ui::partitions::{
         add_partition_dialog::{XAddPartitionDialogModel, XAddPartitionDialogOutput},
-        advanced_partition_row::{Partition, PartitionOut},
         partition_page::{ALL_DISKS, CustomPartition},
+        partition_row::{Partition, PartitionOut},
     },
     utils::{SizeType, represent},
 };

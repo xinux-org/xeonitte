@@ -2,10 +2,10 @@ use crate::{
     config::LIBEXECDIR,
     ui::{
         partitions::{
-            advanced_partition_group::AdvancedDiskGroup,
-            advanced_partition_row::{Partition, PartitionRowMsg},
+            advanced_disk_group::AdvancedDiskGroup,
             hibernation::Hibernation,
             luks_password::{LuksPasswordComponent, LuksPasswordMsg},
+            partition_row::{Partition, PartitionRowMsg},
             whole_disk::WholeDisk,
         },
         templates::base::BaseComponent,
