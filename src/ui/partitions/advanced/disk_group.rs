@@ -1,19 +1,16 @@
 use crate::{
     format_size,
     ui::partitions::{
-        add_partition_dialog::{XAddPartitionDialogModel, XAddPartitionDialogOutput},
+        advanced::add_partition_dialog::{XAddPartitionDialogModel, XAddPartitionDialogOutput},
+        advanced::partition_row::{Partition, PartitionOut},
         partition_page::{ALL_DISKS, CustomPartition},
-        partition_row::{Partition, PartitionOut},
     },
     utils::{SizeType, represent},
 };
 use gettextrs::gettext;
 use relm4::{adw::prelude::*, factory::*, *};
 use size::Size;
-use std::{
-    convert::identity,
-    ops::{AddAssign, SubAssign},
-};
+use std::{convert::identity, ops::AddAssign};
 
 #[derive(Debug)]
 pub struct AdvancedDiskGroup {
