@@ -1,5 +1,6 @@
 { inputs, config, pkgs, lib, system, ... }:
 {
+  @LOCALE@
 
   @BOOTLOADER@
 

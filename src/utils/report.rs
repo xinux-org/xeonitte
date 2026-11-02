@@ -5,6 +5,8 @@ use reqwest::blocking::multipart;
 use std::path::{Path, PathBuf};
 use utils::config::{CONFIG, Config};
 
+use crate::config::REPORT_CONFIG;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ErrorPhase {
     Setup,
@@ -31,8 +33,6 @@ impl std::fmt::Display for ErrorPhase {
         f.write_str(self.as_str())
     }
 }
-
-const REPORT_CONFIG: &str = "/etc/xeonitte/relago/report.toml";
 
 pub fn init() {
     let config = Config::get_config(REPORT_CONFIG).unwrap_or_else(|e| {

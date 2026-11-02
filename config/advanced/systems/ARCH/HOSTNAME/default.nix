@@ -13,8 +13,6 @@
 
   @NETWORK@
 
-  @LOCALE@
-
   @TIMEZONE@
 
   @KEYBOARD@

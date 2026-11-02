@@ -1,5 +1,10 @@
 # Xeonitte Configuration
 
+> [!WARNING]
+> This file is deprecated. Yaml files converted into rust struct and enum in src/utils/ flow.rs and branding.rs
+> Libreoffice theme moved into data folder. Better nix config generation logic WIP.
+> Content below will be changed till all flow of xeonitte refactored.
+
 The Xeonitte installer is configured using YAML files, with a basic configuration looking like this:
 
 ```yml

@@ -4,7 +4,7 @@ DIRECTORY="$(dirname $0)"
 mkdir -p ~/.config/libreoffice/4/user/uno_packages/cache
 
 #for icons
-cp -a "${DIRECTORY}/configcopy/uno_packages" ~/.config/libreoffice/4/user/uno_packages/cache/
+cp -a "${DIRECTORY}/libreoffice_theme/uno_packages" ~/.config/libreoffice/4/user/uno_packages/cache/
 
 #for tabbed view
 
@@ -20,5 +20,5 @@ if [ -f ~/.config/libreoffice/4/user/registrymodifications.xcu ];then
 fi
 
 rm ~/.config/libreoffice/4/user/registrymodifications.xcu
-cp -a "${DIRECTORY}/configcopy/registrymodifications.xcu" ~/.config/libreoffice/4/user/
+cp -a "${DIRECTORY}/libreoffice_theme/registrymodifications.xcu" ~/.config/libreoffice/4/user/
 echo "done"
