@@ -26,7 +26,7 @@ pub struct AdvancedDiskGroup {
 }
 
 #[derive(Debug)]
-pub enum PartitionGroupMsg {
+pub enum AdvancedDiskGroupMsg {
     AddPartitionDialog,
     ShowSizeEntry,
     CloseEntry,
@@ -37,7 +37,7 @@ pub enum PartitionGroupMsg {
     // Validate,
 }
 
-pub enum PartitionGroupOut {
+pub enum AdvancedDiskGroupOut {
     ApplyOut(String, CustomPartition),
     Delete(String),
 }
@@ -45,7 +45,7 @@ pub enum PartitionGroupOut {
 #[relm4::factory(pub)]
 impl FactoryComponent for AdvancedDiskGroup {
     type Init = AdvancedDiskGroup;
-    type Input = PartitionGroupMsg;
+    type Input = AdvancedDiskGroupMsg;
     type Output = ();
     type ParentWidget = gtk::Box;
     type CommandOutput = ();
@@ -126,7 +126,7 @@ impl FactoryComponent for AdvancedDiskGroup {
                                     set_icon_name: "value-increase",
                                     add_css_class: "circular",
                                     connect_clicked[sender] => move |_| {
-                                        sender.input(PartitionGroupMsg::AddPartitionDialog);
+                                        sender.input(AdvancedDiskGroupMsg::AddPartitionDialog);
                                     }
                                 },
                             },
@@ -232,7 +232,7 @@ impl FactoryComponent for AdvancedDiskGroup {
         let mut partitions = FactoryVecDeque::builder()
             .launch(gtk::ListBox::default())
             .forward(sender.input_sender(), |output| match output {
-                PartitionOut::Delete(x) => PartitionGroupMsg::Delete(x),
+                PartitionOut::Delete(name) => AdvancedDiskGroupMsg::Delete(name),
             });
 
         let _ = disk
@@ -281,7 +281,7 @@ impl FactoryComponent for AdvancedDiskGroup {
         sender: FactorySender<Self>,
     ) {
         match message {
-            PartitionGroupMsg::ShowSizeEntry => {
+            AdvancedDiskGroupMsg::ShowSizeEntry => {
                 self.creating_partition = true;
                 // let tip: SizeType = match self
                 //     .free_space
@@ -320,14 +320,14 @@ impl FactoryComponent for AdvancedDiskGroup {
                 // widgets.apply_button.remove_css_class("dimmed");
             }
 
-            PartitionGroupMsg::CloseEntry => {
+            AdvancedDiskGroupMsg::CloseEntry => {
                 self.creating_partition = false;
                 // widgets.size_entry.remove_css_class("focused");
                 // widgets.apply_button.set_can_target(false);
                 // widgets.apply_button.add_css_class("dimmed");
             }
 
-            PartitionGroupMsg::Input(x) => {
+            AdvancedDiskGroupMsg::Input(x) => {
                 let x = x.unwrap_or_default();
                 match x.parse::<f64>() {
                     Ok(y) => {
@@ -397,7 +397,7 @@ impl FactoryComponent for AdvancedDiskGroup {
             //                 }
             //                 sender.input(PartitionGroupMsg::Validate);
             //             }
-            PartitionGroupMsg::Delete(name) => {
+            AdvancedDiskGroupMsg::Delete(name) => {
                 let (index, x) = self
                     .partitions
                     .iter()
@@ -440,7 +440,7 @@ impl FactoryComponent for AdvancedDiskGroup {
             //                 //     widgets.apply_button.add_css_class("dimmed");
             //                 // }
             //             }
-            PartitionGroupMsg::AddPartitionDialog => {
+            AdvancedDiskGroupMsg::AddPartitionDialog => {
                 if let Some(dialog) = &self.add_partition_dialog {
                     dialog
                         .widget()
