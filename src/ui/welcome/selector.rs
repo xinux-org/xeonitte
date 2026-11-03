@@ -69,19 +69,15 @@ impl SimpleComponent for Selector {
                 set_height_request: 300,
                 add_css_class: "rounded-scroll",
 
-                // adw::Clamp{
-                    // set_maximum_size: 346,
-
-                    #[local_ref]
-                    rows_box -> gtk::Box {
-                        set_orientation: gtk::Orientation::Vertical,
-                        set_spacing: 1,
-                        set_hexpand: true,
-                        set_overflow: gtk::Overflow::Hidden,
-                        add_css_class: "selector",
-                        add_css_class: "selector-bg",
-                    },
-                // }
+                #[local_ref]
+                rows_box -> gtk::Box {
+                    set_orientation: gtk::Orientation::Vertical,
+                    set_spacing: 1,
+                    set_hexpand: true,
+                    set_overflow: gtk::Overflow::Hidden,
+                    add_css_class: "selector",
+                    add_css_class: "selector-bg",
+                },
             }
         }
 

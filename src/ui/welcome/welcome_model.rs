@@ -6,12 +6,14 @@ use gettextrs::gettext;
 use log::{info, trace};
 use relm4::*;
 
+#[tracker::track]
 pub struct WelcomeModel {
     showall: bool,
     default_language: String,
     selected: Option<String>,
     selectiongroup: gtk::CheckButton,
     expanders: Vec<adw::ExpanderRow>,
+    #[tracker::no_eq]
     languages_component: Controller<Selector>,
 }
 
@@ -48,43 +50,6 @@ impl SimpleComponent for WelcomeModel {
                     },
 
                     model.languages_component.widget(),
-
-                    // #[name(langstack)]
-                    // if model.showall {
-                    //     gtk::ListBox {
-                    //         add_css_class: "boxed-list",
-                    //         set_selection_mode: gtk::SelectionMode::None,
-                    //         connect_row_activated[sender] => move |_, row| {
-                    //             row
-                    //                 .child()
-                    //                 .and_then(|w| w.downcast::<gtk::Box>().ok())
-                    //                 .and_then(|b| b.last_child())
-                    //                 .and_then(|w| w.downcast::<gtk::CheckButton>().ok())
-                    //                 .map_or_else(
-                    //                     || {
-                    //                         sender.output(AppMsg::error(
-                    //                             ErrorPhase::Setup,
-                    //                             "Language check button widget not found",
-                    //                         ));
-                    //                     },
-                    //                     |checkbutton| checkbutton.set_active(true)
-                    //                 );
-                    //         },
-                    //     }
-                    // } else {
-                    //     model.languages_component.widget()
-                    // },
-                    //
-                    // gtk::Button {
-                    //     add_css_class: "pill",
-                    //     set_halign: gtk::Align::Center,
-                    //     #[watch]
-                    //     set_label: &if model.showall { gettext("Show less") } else { gettext("Show all") },
-                    //     connect_clicked[sender] => move |_| {
-                    //         sender.input(WelcomeMsg::ToggleShowall);
-                    //         sender.input(WelcomeMsg::SetSelected(None));
-                    //     }
-                    // }
                 }
             }
         }
@@ -115,137 +80,17 @@ impl SimpleComponent for WelcomeModel {
             selectiongroup: gtk::CheckButton::new(),
             expanders: vec![],
             languages_component,
+            tracker: 0,
         };
 
-        // let langbox = gtk::ListBox::new();
-        // let shortlangbox = Selector::init(languages, root, sender);
-        // let shortlangbox = Self::create_shortlang_boxes(&model, &sender, languages.clone());
-
-        // for (title, languages) in languages {
-        //     if languages.len() > 1 {
-        //         view! {
-        //             expander = adw::ExpanderRow {
-        //                 set_title: &title,
-        //             }
-        //         };
-        //         langbox.append(&expander);
-
-        //         let mut langvec = languages.into_iter().collect::<Vec<_>>();
-        //         langvec.sort_by(|a, b| a.1.cmp(&b.1));
-        //         for (locale, title) in &langvec {
-        //             view! {
-        //                 row = adw::PreferencesRow {
-        //                     set_title: locale,
-        //                     set_activatable: true,
-        //                     #[wrap(Some)]
-        //                     set_child = &gtk::Box {
-        //                         set_orientation: gtk::Orientation::Horizontal,
-        //                         set_spacing: 6,
-        //                         set_margin_start: 15,
-        //                         set_margin_end: 7,
-        //                         set_margin_top: 15,
-        //                         set_margin_bottom: 15,
-        //                         gtk::Label {
-        //                             set_label: title,
-        //                         },
-        //                         #[template]
-        //                         BaseSeparator,
-        //                         gtk::CheckButton {
-        //                             set_halign: gtk::Align::End,
-        //                             set_group: Some(&model.selectiongroup),
-        //                             connect_toggled[sender, locale] => move |x| {
-        //                                 if x.is_active() {
-        //                                     sender.input(WelcomeMsg::SetSelected(Some(locale.to_string())))
-        //                                 }
-        //                             }
-        //                         }
-        //                     }
-        //                 }
-        //             };
-        //             expander
-        //                 .first_child()
-        //                 .and_then(|w| w.last_child())
-        //                 .and_then(|w| w.first_child())
-        //                 .and_then(|w| w.downcast::<gtk::ListBox>().ok())
-        //                 .map_or_else(
-        //                     || {
-        //                         sender.output(AppMsg::error(
-        //                             ErrorPhase::Setup,
-        //                             "Language expander row widget not found",
-        //                         ));
-        //                     },
-        //                     |lb| {
-        //                         let sender = sender.clone();
-        //                         lb.connect_row_activated(move |_, x| {
-        //                             x.child()
-        //                                 .and_then(|w| w.downcast::<gtk::Box>().ok())
-        //                                 .and_then(|b| b.last_child())
-        //                                 .and_then(|w| w.downcast::<gtk::CheckButton>().ok())
-        //                                 .map_or_else(
-        //                                     || {
-        //                                         sender.output(AppMsg::error(
-        //                                             ErrorPhase::Setup,
-        //                                             "Language check button widget not found",
-        //                                         ));
-        //                                     },
-        //                                     |checkbutton| checkbutton.set_active(true),
-        //                                 );
-        //                         });
-        //                     },
-        //                 );
-        //             expander.add_row(&row);
-        //         }
-        //         model.expanders.push(expander);
-        //     } else if let Some((locale, title)) = languages.into_iter().next() {
-        //         view! {
-        //             row = adw::PreferencesRow {
-        //                 set_title: &locale,
-        //                 set_activatable: true,
-        //                 #[wrap(Some)]
-        //                 set_child = &gtk::Box {
-        //                     set_orientation: gtk::Orientation::Horizontal,
-        //                     set_spacing: 6,
-        //                     set_margin_start: 15,
-        //                     set_margin_end: 7,
-        //                     set_margin_top: 15,
-        //                     set_margin_bottom: 15,
-        //                     gtk::Label {
-        //                         set_label: &title,
-        //                     },
-        //                     #[template]
-        //                     BaseSeparator,
-        //                     gtk::CheckButton {
-        //                         set_halign: gtk::Align::End,
-        //                         set_group: Some(&model.selectiongroup),
-        //                         connect_toggled[sender, locale] => move |x| {
-        //                             if x.is_active() {
-        //                                 sender.input(WelcomeMsg::SetSelected(Some(locale.to_string())))
-        //                             }
-        //                         }
-        //                     }
-        //                 }
-        //             }
-        //         };
-        //         langbox.append(&row);
-        //     }
-        // }
         let widgets = view_output!();
-        // widgets.langstack.set_vhomogeneous(false);
 
         ComponentParts { model, widgets }
     }
 
     fn update(&mut self, msg: Self::Input, sender: ComponentSender<Self>) {
-        // self.reset();
+        self.reset();
         match msg {
-            // WelcomeMsg::ToggleShowall => {
-            //     if !self.showall {
-            //         self.expanders
-            //             .iter()
-            //             .for_each(|expander| expander.set_expand(false));
-            //     }
-            //     self.set_showall(!self.showall);
-            // }
             WelcomeMsg::SetSelected(lang) => {
                 info!("Selected language: {:?}", lang);
                 // TODO: Change output and input signal values with SharedState
@@ -277,8 +122,6 @@ impl WelcomeModel {
         // List of 6 popular languages
         let default_langs_codes = ["uz_UZ.UTF-8", "en_US.UTF-8", "ru_RU.UTF-8"].map(String::from);
 
-        // let axa = languages.iter().filter_map(|(locale, x)| default_langs);
-
         // let short_lang_box = gtk::ListBox::new();
 
         // get matching utf language and create pair from itʻs headless title
@@ -290,8 +133,7 @@ impl WelcomeModel {
         //      "de_DE.UTF-8": "Deutsch (Deutschland)",
         //    },
         // Result: ("de_DE.UTF-8", "Deutsch")
-        let immutable_languages = languages.clone();
-        immutable_languages
+        languages
             .iter()
             .filter(|locale| {
                 // check if the locale contains the default utf codes defined above
