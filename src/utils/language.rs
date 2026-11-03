@@ -36,14 +36,14 @@ pub fn get_languages() -> Vec<Locale> {
                 Some(locale),
             )?;
 
-            let y = Locale {
+            Locale {
                 name: language_from_code.into(),
                 variants: vec![LocaleUtf {
                     code: locale.into(),
                     title: language_from_locale.into(),
                 }],
-            };
-            Some(y)
+            }
+            .into()
         })
         .collect();
     dbg!(&languages);
