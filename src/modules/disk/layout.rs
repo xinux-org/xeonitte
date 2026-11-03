@@ -192,6 +192,7 @@ impl DiskLayout {
         ]));
 
         let disk_name = self.device.rsplit('/').next().unwrap_or("main").to_string();
+        println!("asssssssssssssssssssssssssssssssssssssssss {:?}", disk_name);
 
         NixExpr::Attrs(BTreeMap::from([(
             "disk".into(),

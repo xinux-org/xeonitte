@@ -23,9 +23,11 @@ impl Disk {
     pub fn list() -> Vec<Disk> {
         let all = BlockDevice::list().unwrap_or_default();
 
+        // ignore previous cache/laftover dm-name-crypted which has dm-x label.
+        // see for more: `ls -la /dev/disk/by-id/`
         let mut disks: Vec<Disk> = all
             .iter()
-            .filter(|d| d.is_disk() && d.id.is_some())
+            .filter(|d| d.is_disk() && d.id.is_some() && !d.name.contains("dm-"))
             .map(|d| Disk {
                 name: d.name.clone(),
                 id: d.id.clone(),
@@ -57,6 +59,8 @@ impl Disk {
     /// Full by-id path, e.g. `/dev/disk/by-id/ata-Samsung_860_EVO_xxx`.
     /// Falls back to `/dev/{name}` if no by-id entry exists.
     pub fn id_path(&self) -> String {
+        let xorak = self.id.as_deref().map(|id: &str| id.contains(":"));
+        println!("xxxxxxxxxxxxxxxxxxxx {:?}", self.id.as_deref().unwrap());
         self.id
             .as_deref()
             .map(|id| format!("{BY_ID}/{id}"))

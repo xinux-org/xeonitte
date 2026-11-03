@@ -1,9 +1,11 @@
 use crate::{
-    config::LIBEXECDIR,
+    modules::disk::Disk,
     ui::{
         partitions::{
-            advanced::disk_group::AdvancedDiskGroup,
-            advanced::partition_row::{Partition, PartitionRowMsg},
+            advanced::{
+                disk_group::AdvancedDiskGroup,
+                partition_row::{Partition, PartitionRowMsg},
+            },
             basic::whole_disk::WholeDisk,
             hibernation::Hibernation,
             luks_password::{LuksPasswordComponent, LuksPasswordMsg},
@@ -19,27 +21,27 @@ use log::{debug, error, info, trace};
 use relm4::{adw::prelude::*, factory::*, *};
 use serde::{Deserialize, Serialize};
 use size::Size;
-use std::{collections::HashMap, convert::identity, process::Command};
+use std::{collections::HashMap, convert::identity};
 
 pub static PARTITION_BROKER: MessageBroker<PartitionMsg> = MessageBroker::new();
 
-pub static ALL_DISKS: SharedState<Vec<InputDisk>> = SharedState::new();
+// pub static ALL_DISKS: SharedState<Vec<InputDisk>> = SharedState::new();
 
 // this InputDisk & InputPartition are duplicated on xeonitte-helper/src/main.rs
-#[derive(Deserialize, Debug, Clone)]
-pub struct InputDisk {
-    name: String,
-    size: u64,
-    partitions: Vec<InputPartition>,
-}
-
-#[derive(Deserialize, Debug, Clone)]
-pub struct InputPartition {
-    name: String,
-    #[serde(rename = "format")]
-    _format: String,
-    size: u64,
-}
+// #[derive(Deserialize, Debug, Clone)]
+// pub struct InputDisk {
+//     name: String,
+//     size: u64,
+//     partitions: Vec<InputPartition>,
+// }
+//
+// #[derive(Deserialize, Debug, Clone)]
+// pub struct InputPartition {
+//     name: String,
+//     #[serde(rename = "format")]
+//     _format: String,
+//     size: u64,
+// }
 
 pub struct PartitionModel {
     basic_disk_factory: FactoryVecDeque<WholeDisk>,
@@ -51,7 +53,7 @@ pub struct PartitionModel {
     encryption_enabled: bool,
     luks_password: Controller<LuksPasswordComponent>,
     hibernation: Controller<Hibernation>,
-    disks_list: Vec<InputDisk>,
+    disks_list: Vec<Disk>,
 }
 
 #[derive(Debug)]
@@ -351,36 +353,15 @@ impl SimpleComponent for PartitionModel {
     fn update(&mut self, msg: Self::Input, sender: ComponentSender<Self>) {
         match msg {
             PartitionMsg::Refresh => {
-                let out = Command::new("pkexec")
-                    .arg(format!("{}/xeonitte-helper", LIBEXECDIR))
-                    .arg("get-partitions")
-                    .output();
+                let disks: Vec<Disk> = Disk::list();
+                debug!("Got disks: {:#?}", disks);
+                self.disks_list = disks;
 
-                match out {
-                    Ok(out) => {
-                        let output = String::from_utf8_lossy(&out.stdout).to_string();
-                        let stderr = String::from_utf8_lossy(&out.stderr).to_string();
-
-                        let disks: serde_json::Result<Vec<InputDisk>> =
-                            serde_json::from_str(&output);
-                        if let Ok(disks) = disks {
-                            debug!("Got disks: {:#?}", disks);
-                            self.disks_list = disks;
-
-                            match self.method {
-                                PartitionMethod::Basic => sender.input(PartitionMsg::RefreshBasic),
-                                PartitionMethod::Advanced => {
-                                    sender.input(PartitionMsg::RefreshAdvanced)
-                                }
-                            }
-                        } else {
-                            error!("Failed to parse partitions: {} : {}", output, stderr);
-                        }
-                    }
-                    Err(e) => {
-                        error!("Failed to get partitions: {}", e);
-                    }
+                match self.method {
+                    PartitionMethod::Basic => sender.input(PartitionMsg::RefreshBasic),
+                    PartitionMethod::Advanced => sender.input(PartitionMsg::RefreshAdvanced),
                 }
+
                 self.schema = None;
                 self.encryption_enabled = self.method == PartitionMethod::Basic;
                 let _ = sender.output(AppMsg::SetCanGoForward(false));
@@ -392,6 +373,7 @@ impl SimpleComponent for PartitionModel {
                 for disk in &self.disks_list {
                     basic_partition_factory_guard.push_back(WholeDisk {
                         name: disk.name.to_string(),
+                        id_path: disk.id_path(),
                         size: disk.size,
                         group: self.diskgroupbtn.clone(),
                     });
