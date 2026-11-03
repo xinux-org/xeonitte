@@ -128,6 +128,8 @@ impl Component for XAddPartitionDialogModel {
             }
         },
         scaler = gtk::Scale::builder()
+            .digits(0)
+            .round_digits(2)
             .adjustment(&size_adjustment)
             .name("Partition size")
             .build(),
