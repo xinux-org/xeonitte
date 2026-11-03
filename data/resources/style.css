@@ -13,7 +13,7 @@
 }
 
 .selector-row:checked {
-    background-color: #3584E4;
+    background-color: var(--accent-bg-color);
 }
 
 .rounded-scroll > viewport {
