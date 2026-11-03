@@ -1,16 +1,32 @@
 use anyhow::{Context, Result};
-use std::collections::HashMap;
 
-pub fn get_languages() -> HashMap<String, HashMap<String, String>> {
+#[derive(Debug, Clone)]
+pub struct LocaleUtf {
+    pub code: String,
+    pub title: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct Locale {
+    pub name: String,
+    pub variants: Vec<LocaleUtf>,
+}
+
+pub fn get_languages() -> Vec<Locale> {
     let locale_codes = include_str!("../assets/locale_codes.txt")
         .trim()
         .split('\n');
 
-    let all = gnome_desktop::functions::all_locales();
+    // get all utf codes of locales available in gnome
+    let gnome_utf_codes = gnome_desktop::functions::all_locales();
 
-    let languages: HashMap<String, HashMap<String, String>> = locale_codes
+    let languages = locale_codes
         .filter_map(|locale| locale.split('/').next())
-        .filter(|locale| all.iter().any(|all_locale| all_locale.eq(locale)))
+        .filter(|locale| {
+            gnome_utf_codes
+                .iter()
+                .any(|all_locale| all_locale.eq(locale))
+        })
         .filter_map(|locale| {
             let language_from_locale =
                 gnome_desktop::functions::language_from_locale(locale, Some(locale))?;
@@ -20,22 +36,17 @@ pub fn get_languages() -> HashMap<String, HashMap<String, String>> {
                 Some(locale),
             )?;
 
-            Some((
-                language_from_code.to_string(),
-                locale.to_string(),
-                language_from_locale.to_string(),
-            ))
+            let y = Locale {
+                name: language_from_code.into(),
+                variants: vec![LocaleUtf {
+                    code: locale.into(),
+                    title: language_from_locale.into(),
+                }],
+            };
+            Some(y)
         })
-        .fold(
-            HashMap::new(),
-            |mut hm, (language_from_code, locale, language_from_locale)| {
-                hm.entry(language_from_code)
-                    .or_default()
-                    .insert(locale, language_from_locale);
-
-                hm
-            },
-        );
+        .collect();
+    dbg!(&languages);
 
     languages
 }

@@ -1,9 +1,5 @@
-use std::collections::HashMap;
-use std::convert::identity;
-
-use crate::ui::templates::base::BaseSeparator;
-use crate::ui::welcome::selector::Selector;
-use crate::utils::report::ErrorPhase;
+use crate::ui::welcome::selector::{Selector, SelectorRowOutput};
+use crate::utils::language::{Locale, LocaleUtf};
 use crate::{ui::window::AppMsg, utils::language::get_languages};
 use adw::prelude::*;
 use gettextrs::gettext;
@@ -47,13 +43,8 @@ impl SimpleComponent for WelcomeModel {
                     set_margin_all: 20,
                     gtk::Label {
                         #[watch]
-                        set_label: &gettext("Welcome!"),
-                        add_css_class: "title-1",
-                    },
-                    gtk::Label {
-                        #[watch]
-                        set_label: &gettext("Choose a language"),
-                        add_css_class: "title-3"
+                        set_label: &gettext("Select a language"),
+                        add_css_class: "title-1"
                     },
 
                     model.languages_component.widget(),
@@ -105,11 +96,17 @@ impl SimpleComponent for WelcomeModel {
         sender: ComponentSender<Self>,
     ) -> ComponentParts<Self> {
         let mut languages = get_languages().into_iter().collect::<Vec<_>>();
-        languages.sort_by(|a, b| a.0.cmp(&b.0));
+        languages.sort_by(|a, b| a.name.cmp(&b.name));
 
         let languages_component = Selector::builder()
             .launch(WelcomeModel::format_languages(languages.clone()))
-            .forward(sender.input_sender(), identity);
+            .forward(sender.input_sender(), move |msg| match msg {
+                SelectorRowOutput::Select(index) => {
+                    let selected = languages.iter().nth(index.current_index());
+                    dbg!(&selected);
+                    WelcomeMsg::SetSelected(selected.map(|locale| locale.name.clone()))
+                }
+            });
 
         let model = WelcomeModel {
             showall: false,
@@ -276,13 +273,11 @@ impl SimpleComponent for WelcomeModel {
 }
 
 impl WelcomeModel {
-    pub fn format_languages(languages: Vec<(String, HashMap<String, String>)>) -> Vec<String> {
+    pub fn format_languages(languages: Vec<Locale>) -> Vec<String> {
         // List of 6 popular languages
-        let default_langs: Vec<String> = vec![
-            "uz_UZ.UTF-8".into(),
-            "en_US.UTF-8".into(),
-            "ru_RU.UTF-8".into(),
-        ];
+        let default_langs_codes = ["uz_UZ.UTF-8", "en_US.UTF-8", "ru_RU.UTF-8"].map(String::from);
+
+        // let axa = languages.iter().filter_map(|(locale, x)| default_langs);
 
         // let short_lang_box = gtk::ListBox::new();
 
@@ -296,23 +291,21 @@ impl WelcomeModel {
         //    },
         // Result: ("de_DE.UTF-8", "Deutsch")
         let immutable_languages = languages.clone();
-        let shortlangs: Vec<(String, String)> = default_langs
+        immutable_languages
             .iter()
-            .flat_map(|default_lang_utf| {
-                immutable_languages
+            .filter(|locale| {
+                // check if the locale contains the default utf codes defined above
+                locale
+                    .variants
                     .iter()
-                    .filter_map(|(group_title, langs)| {
-                        langs.get(default_lang_utf).map(|_language_varient| {
-                            (default_lang_utf.clone(), group_title.clone())
-                        })
-                    })
+                    .filter(|LocaleUtf { code, .. }| default_langs_codes.contains(&code))
+                    .collect::<Vec<_>>()
+                    .is_empty()
             })
-            .collect();
-
-        shortlangs
-            .iter()
-            .map(|(utf_locale, locale)| format!("{locale} ({utf_locale})"))
-            .collect()
+            .map(|locale| locale.variants.clone())
+            .flatten()
+            .map(|utf| utf.title)
+            .collect::<Vec<_>>()
     }
     // pub fn create_shortlang_boxes(
     //     model: &WelcomeModel,

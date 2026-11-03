@@ -1,8 +1,7 @@
 use relm4::factory::{DynamicIndex, FactoryComponent, FactorySender, FactoryVecDeque};
 use relm4::{ComponentParts, ComponentSender, SimpleComponent};
 use relm4::{adw, adw::prelude::*, gtk};
-
-use crate::ui::welcome::welcome_model::WelcomeMsg;
+use std::convert::identity;
 
 #[derive(Debug)]
 pub struct SelectorRow {
@@ -12,7 +11,7 @@ pub struct SelectorRow {
 
 #[derive(Debug)]
 pub enum SelectorRowOutput {
-    Select(String),
+    Select(DynamicIndex),
 }
 
 #[relm4::factory(pub)]
@@ -31,6 +30,12 @@ impl FactoryComponent for SelectorRow {
             add_css_class: "selector-row",
             remove_css_class: "toggle",
 
+            connect_toggled[sender, index] => move |button| {
+                if button.is_active() {
+                    sender.output(SelectorRowOutput::Select(index.clone()));
+                }
+            },
+
             #[name(label)]
             gtk::Label {
                 #[watch]
@@ -38,9 +43,7 @@ impl FactoryComponent for SelectorRow {
                 set_width_chars: 3,
                 set_halign: gtk::Align::Start,
             },
-            connect_clicked[sender, value = self.content.clone()] => move |_| {
-                sender.output(SelectorRowOutput::Select(value.clone()));
-            }
+
         }
     }
 
@@ -58,12 +61,14 @@ pub struct Selector {
 impl SimpleComponent for Selector {
     type Init = Vec<String>;
     type Input = ();
-    type Output = WelcomeMsg;
+    type Output = SelectorRowOutput;
 
     view! {
         adw::PreferencesGroup {
             gtk::ScrolledWindow {
                 set_height_request: 300,
+                add_css_class: "rounded-scroll",
+
                 // adw::Clamp{
                     // set_maximum_size: 346,
 
@@ -90,9 +95,7 @@ impl SimpleComponent for Selector {
         // create elements from input
         let mut rows = FactoryVecDeque::builder()
             .launch(gtk::Box::default())
-            .forward(sender.output_sender(), |output| match output {
-                SelectorRowOutput::Select(row) => WelcomeMsg::SetSelected(row.into()),
-            });
+            .forward(sender.output_sender(), identity);
 
         let group = gtk::ToggleButton::default();
         for row in init {

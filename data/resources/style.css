@@ -8,8 +8,14 @@
 .selector-row {
     background-color: #38383C;
     border-radius: 0%;
+    font-weight: 590;
+    padding: 10px 8px;
 }
 
-.selector-row:focus {
+.selector-row:checked {
     background-color: #3584E4;
+}
+
+.rounded-scroll > viewport {
+    border-radius: 12px;
 }
