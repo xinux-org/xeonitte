@@ -1,7 +1,7 @@
 use std::{collections::HashMap, convert::identity};
 
 use gettextrs::gettext;
-use log::{info, trace};
+use log::{debug, info, trace};
 use relm4::{MessageBroker, adw::prelude::*, factory::*, prelude::*};
 use serde::Serialize;
 use size::Size;
@@ -10,11 +10,13 @@ use crate::{
     modules::disk::Disk,
     ui::{
         partitions::{
+            advanced::{
+                disk_group::AdvancedDiskGroup,
+                partition_row::{Partition, PartitionRowMsg},
+            },
+            basic::whole_disk::WholeDisk,
             hibernation::Hibernation,
             luks_password::{LuksPasswordComponent, LuksPasswordMsg},
-            partition::{Partition, PartitionInit, PartitionRowMsg},
-            partition_group::PartitionGroup,
-            whole_disk::WholeDisk,
         },
         templates::base::BaseComponent,
         window::AppMsg,
@@ -22,16 +24,37 @@ use crate::{
     utils::SizeType,
 };
 
+pub static PARTITION_BROKER: MessageBroker<PartitionMsg> = MessageBroker::new();
+
+// pub static ALL_DISKS: SharedState<Vec<InputDisk>> = SharedState::new();
+
+// this InputDisk & InputPartition are duplicated on xeonitte-helper/src/main.rs
+// #[derive(Deserialize, Debug, Clone)]
+// pub struct InputDisk {
+//     name: String,
+//     size: u64,
+//     partitions: Vec<InputPartition>,
+// }
+//
+// #[derive(Deserialize, Debug, Clone)]
+// pub struct InputPartition {
+//     name: String,
+//     #[serde(rename = "format")]
+//     _format: String,
+//     size: u64,
+// }
+
 pub struct PartitionModel {
-    disks: FactoryVecDeque<WholeDisk>,
+    basic_disk_factory: FactoryVecDeque<WholeDisk>,
+    advanced_disk_factory: FactoryVecDeque<AdvancedDiskGroup>,
     method: PartitionMethod,
-    partition_groups: FactoryVecDeque<PartitionGroup>,
     diskgroupbtn: gtk::CheckButton,
     schema: Option<PartitionSchema>,
     efi: bool,
     encryption_enabled: bool,
     luks_password: Controller<LuksPasswordComponent>,
     hibernation: Controller<Hibernation>,
+    disks_list: Vec<Disk>,
 }
 
 #[derive(Debug)]
@@ -50,9 +73,9 @@ pub enum PartitionMsg {
     SetPassphraseConfirm,
     CheckSelected,
     Refresh,
+    RefreshBasic,
+    RefreshAdvanced,
 }
-
-pub static PARTITION_BROKER: MessageBroker<PartitionMsg> = MessageBroker::new();
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum PartitionMethod {
@@ -126,7 +149,7 @@ impl SimpleComponent for PartitionModel {
                                 add_css_class: "title-3"
                             },
                             #[local_ref]
-                            diskbox -> gtk::ListBox {
+                            basic_disk_box -> gtk::ListBox {
                                 add_css_class: "boxed-list",
                                 set_hexpand: true,
                                 set_selection_mode: gtk::SelectionMode::None,
@@ -295,27 +318,30 @@ impl SimpleComponent for PartitionModel {
             .launch(())
             .forward(sender.input_sender(), identity);
 
-        let disks: FactoryVecDeque<WholeDisk> =
+        let basic_disk_factory: FactoryVecDeque<WholeDisk> =
             FactoryVecDeque::builder().launch_default().detach();
 
+        let advanced_disk_factory = FactoryVecDeque::builder()
+            .launch(gtk::Box::new(gtk::Orientation::Vertical, 20))
+            .detach();
+
         let model = PartitionModel {
+            disks_list: vec![],
+            basic_disk_factory,
+            advanced_disk_factory,
             method: PartitionMethod::Basic,
-            partition_groups: FactoryVecDeque::builder()
-                .launch(gtk::Box::new(gtk::Orientation::Vertical, 20))
-                .detach(),
             diskgroupbtn: gtk::CheckButton::new(),
             schema: None,
             efi: distinst_disks::Bootloader::detect() == distinst_disks::Bootloader::Efi,
             luks_password: luks_model,
             hibernation: hibernation_model,
             encryption_enabled: true,
-            disks,
         };
 
         sender.input(PartitionMsg::Refresh);
 
-        let diskbox = model.disks.widget();
-        let partitionbox = model.partition_groups.widget();
+        let basic_disk_box = model.basic_disk_factory.widget();
+        let partitionbox = model.advanced_disk_factory.widget();
         let luksbox = model.luks_password.widget();
         let hibernationbox = model.hibernation.widget();
 
@@ -328,37 +354,55 @@ impl SimpleComponent for PartitionModel {
     fn update(&mut self, msg: Self::Input, sender: ComponentSender<Self>) {
         match msg {
             PartitionMsg::Refresh => {
-                let mut disks_guard = self.disks.guard();
-                let mut partition_groups_guard = self.partition_groups.guard();
+                let disks: Vec<Disk> = Disk::list();
+                debug!("Got disks: {:#?}", disks);
+                self.disks_list = disks;
 
-                disks_guard.clear();
-                partition_groups_guard.clear();
+                match self.method {
+                    PartitionMethod::Basic => sender.input(PartitionMsg::RefreshBasic),
+                    PartitionMethod::Advanced => sender.input(PartitionMsg::RefreshAdvanced),
+                }
 
-                let disks = Disk::list();
+                self.schema = None;
+                self.encryption_enabled = self.method == PartitionMethod::Basic;
 
-                for disk in disks {
-                    disks_guard.push_back(WholeDisk {
-                        size: disk.size,
+                sender.output_sender().emit(AppMsg::SetCanGoForward(false));
+            }
+            PartitionMsg::RefreshBasic => {
+                let mut basic_partition_factory_guard = self.basic_disk_factory.guard();
+                basic_partition_factory_guard.clear();
+
+                for disk in &self.disks_list {
+                    basic_partition_factory_guard.push_back(WholeDisk {
                         name: disk.name.to_string(),
+                        id_path: disk.id_path(),
+                        size: disk.size,
                         group: self.diskgroupbtn.clone(),
                     });
+                }
+                basic_partition_factory_guard.drop();
+            }
+            PartitionMsg::RefreshAdvanced => {
+                let mut advansed_partition_groups_guard = self.advanced_disk_factory.guard();
+                advansed_partition_groups_guard.clear();
 
+                for disk in &self.disks_list {
                     let mut part_factoryvec: FactoryVecDeque<Partition> =
                         FactoryVecDeque::builder().launch_default().detach();
                     let mut part_guard = part_factoryvec.guard();
 
-                    for part in disk.partitions {
+                    for part in &disk.partitions {
                         info!(
                             "Partition: {:?} length {}",
                             part.name,
                             size::Size::from_bytes(part.size)
                         );
-
-                        part_guard.push_back(PartitionInit {
-                            mountrow: adw::ComboRow::new(),
+                        part_guard.push_back(Partition {
                             name: part.name.clone(),
                             size: part.size,
+                            mountrow: adw::ComboRow::new(),
                             device: disk.name.to_string(),
+                            ..Default::default()
                         });
                     }
 
@@ -367,9 +411,9 @@ impl SimpleComponent for PartitionModel {
                     let name = disk.name.to_string();
                     let used = part_factoryvec.iter().map(|x| x.size).sum::<u64>();
                     let total_size = disk.size;
-                    let free_space = Size::from_bytes(total_size - used);
+                    let free_space = total_size - used;
 
-                    partition_groups_guard.push_back(PartitionGroup {
+                    advansed_partition_groups_guard.push_back(AdvancedDiskGroup {
                         partitions: part_factoryvec,
                         creating_partition: false,
                         new_partition_size: Size::default(),
@@ -377,13 +421,10 @@ impl SimpleComponent for PartitionModel {
                         free_space,
                         total_size,
                         size_type: SizeType::MB,
+                        add_partition_dialog: None,
                     });
                 }
-
-                self.schema = None;
-                self.encryption_enabled = self.method == PartitionMethod::Basic;
-
-                sender.output_sender().emit(AppMsg::SetCanGoForward(false));
+                advansed_partition_groups_guard.drop();
             }
             PartitionMsg::SetMethod(method) => {
                 self.method = method;
@@ -559,7 +600,7 @@ impl SimpleComponent for PartitionModel {
                         if let Some(partmount) = &part.mountpoint
                             && partmount == &mount
                         {
-                            let mut partition_group_guard = self.partition_groups.guard();
+                            let mut partition_group_guard = self.advanced_disk_factory.guard();
                             for i in 0..partition_group_guard.len() {
                                 let partition_guard = partition_group_guard[i].partitions.guard();
                                 for j in 0..partition_guard.len() {

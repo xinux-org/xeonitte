@@ -1,5 +1,5 @@
 use crate::{
-    ui::partitions::partition_model::{PARTITION_BROKER, PartitionMsg},
+    ui::partitions::partition_page::{PARTITION_BROKER, PartitionMsg},
     utils::i18n::i18n_f,
 };
 use relm4::{adw::prelude::*, factory::*, *};
@@ -7,6 +7,7 @@ use relm4::{adw::prelude::*, factory::*, *};
 #[derive(Default, Debug, PartialEq, Eq, Clone)]
 pub struct WholeDisk {
     pub name: String,
+    pub id_path: String,
     pub size: u64,
     pub group: gtk::CheckButton,
 }
@@ -32,15 +33,15 @@ impl FactoryComponent for WholeDisk {
             #[name(checkbtn)]
             add_suffix = &gtk::CheckButton {
                 set_group: Some(&self.group),
-                connect_toggled[name = self.name.to_string(), size = self.size] => move |btn| {
+                connect_toggled[id_path = self.id_path.to_string(), size = self.size] => move |btn| {
                     if btn.is_active() {
-                        PARTITION_BROKER.send(PartitionMsg::SetFullDisk(name.to_string(), size));
+                        PARTITION_BROKER.send(PartitionMsg::SetFullDisk(id_path.to_string(), size));
                     }
                 }
             },
-            connect_activated[checkbtn, name = self.name.to_string(), size = self.size] => move |_| {
+            connect_activated[checkbtn, id_path = self.id_path.to_string(), size = self.size] => move |_| {
                 checkbtn.set_active(true);
-                PARTITION_BROKER.send(PartitionMsg::SetFullDisk(name.to_string(), size));
+                PARTITION_BROKER.send(PartitionMsg::SetFullDisk(id_path.to_string(), size));
             }
         }
     }

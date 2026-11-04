@@ -1,16 +1,17 @@
 use super::parse::ConfigType;
 use super::report::ErrorPhase;
 use crate::modules::disk::ops::write_luks_key;
+use crate::modules::nix::NixModule;
 use crate::utils::flow::Choice;
 use crate::utils::make_config::{MakeConfig, makeconfig};
 use crate::{
     config::{SYSCONFDIR, TMPDIR},
     ui::{
         install::install_model::{INSTALL_BROKER, InstallMsg},
-        partitions::partition_model::PartitionSchema,
+        partitions::partition_page::PartitionSchema,
         window::{AppMsg, UserConfig},
     },
-    utils::disko::{Devices, LUKS_PASSWORD_FILE},
+    utils::disko::LUKS_PASSWORD_FILE,
 };
 use anyhow::{Context, Result};
 use log::{error, info};
@@ -37,10 +38,12 @@ pub enum InstallAsyncMsg {
         Option<String>,
         Box<Option<PartitionSchema>>,
         Box<Option<UserConfig>>,
-        HashMap<String, HashMap<String, Choice>>, // Listconfig
+        // Listconfig
+        HashMap<String, HashMap<String, Choice>>,
         ConfigType,
         bool,
-        Devices,
+        // disko file
+        NixModule,
     ),
     FinishInstall(
         Option<String>, //timezone,
@@ -226,7 +229,7 @@ impl Worker for InstallAsyncModel {
                     list: listconfig,
                     bootdisk: mbrdisk,
                     imperative_timezone,
-                    disko: disko_config.to_nix_module(),
+                    disko: disko_config.render(),
                 }) {
                     sender.output(AppMsg::error(
                         ErrorPhase::Configuration,

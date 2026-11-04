@@ -1,4 +1,4 @@
-use crate::ui::partitions::partition_model::PartitionSchema;
+use crate::ui::partitions::partition_page::PartitionSchema;
 use crate::ui::summary::summary_factory::Partition;
 use crate::ui::window::{AppMsg, UserConfig};
 use adw::prelude::*;

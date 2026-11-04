@@ -1,4 +1,4 @@
-use crate::ui::partitions::partition_model::PartitionMsg;
+use crate::ui::partitions::partition_page::PartitionMsg;
 use gettextrs::gettext;
 use relm4::{adw::prelude::*, *};
 

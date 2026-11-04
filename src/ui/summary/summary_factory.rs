@@ -1,4 +1,4 @@
-use crate::ui::partitions::partition_model::CustomPartition;
+use crate::ui::partitions::partition_page::CustomPartition;
 use adw::prelude::*;
 use gettextrs::gettext;
 use relm4::{factory::*, *};

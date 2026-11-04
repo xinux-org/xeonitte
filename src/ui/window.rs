@@ -1,14 +1,13 @@
 use crate::{
-    get_storage_size_for_disko,
+    modules::{disk::disko_from_schema, nix::NixModule},
     ui::{
         error::error_model::{ErrorModel, ErrorMsg},
         install::install_model::{INSTALL_BROKER, InstallModel, InstallMsg},
         install_mode::install_mode_model::{InstallModeModel, InstallModeMsg},
         keyboard::keyboard_model::{KeyboardModel, KeyboardMsg},
         list::list_model::{ListInit, ListModel, ListMsg},
-        partitions::partition_model::{
-            CustomOptions, FullDiskOptions, PARTITION_BROKER, PartitionModel, PartitionMsg,
-            PartitionSchema,
+        partitions::partition_page::{
+            PARTITION_BROKER, PartitionModel, PartitionMsg, PartitionSchema,
         },
         quitdialog::QuitDialogModel,
         summary::summary_model::{SummaryModel, SummaryMsg},
@@ -17,10 +16,6 @@ use crate::{
         welcome::welcome_model::{WelcomeModel, WelcomeMsg},
     },
     utils::{
-        disko::{
-            Attrs, DeviceContent, Devices, Disk, Filesystem, Gpt, LUKS_PASSWORD_FILE, Luks,
-            NixValue, Partition, PartitionContent, Swap, canonical, luks_encrypted,
-        },
         flow::{BRANDING, Choice, DISTRO_NAME, Flow, INTERNET_CHECK_URL, Step},
         i18n::i18n_f,
         install::{InstallAsyncModel, InstallAsyncMsg},
@@ -32,13 +27,7 @@ use adw::prelude::*;
 use gettextrs::gettext;
 use log::{debug, error, info, trace, warn};
 use relm4::{gtk, *};
-use size::Size;
-use std::{
-    collections::{BTreeMap, HashMap},
-    convert::identity,
-    process::Command,
-    thread, time,
-};
+use std::{collections::HashMap, convert::identity, process::Command, thread, time};
 
 #[tracker::track]
 pub struct AppModel {
@@ -83,7 +72,7 @@ pub struct AppModel {
     #[tracker::no_eq]
     partitionconfig: Option<PartitionSchema>,
     #[tracker::no_eq]
-    diskoconfig: Devices,
+    disko_config: NixModule,
     userconfig: Option<UserConfig>,
 
     #[tracker::no_eq]
@@ -450,7 +439,7 @@ impl Component for AppModel {
             timezoneconfig: None,
             partitionconfig: None,
             userconfig: None,
-            diskoconfig: Devices::default(),
+            disko_config: NixModule::new(),
             tracker: 0,
         };
 
@@ -707,7 +696,7 @@ impl Component for AppModel {
                         self.listconfig.clone(),
                         config.config_type(),
                         config.imperative_timezone(),
-                        self.diskoconfig.clone(),
+                        self.disko_config.clone(),
                     ));
                 }
             }
@@ -752,137 +741,139 @@ impl Component for AppModel {
 }
 
 impl AppModel {
-    fn set_partition_config(&mut self, partition: &Option<PartitionSchema>) {
-        if let Some(partition_schema) = partition.clone() {
-            match partition_schema {
-                PartitionSchema::FullDisk(FullDiskOptions {
-                    device, encryption, ..
-                }) => {
-                    let devices = if encryption {
-                        luks_encrypted(device, LUKS_PASSWORD_FILE)
-                    } else {
-                        canonical(device)
-                    };
-                    self.diskoconfig = devices.clone();
-                }
-                PartitionSchema::Custom(CustomOptions {
-                    partitions,
-                    encryption: _,
-                    passphrase: _,
-                    disk_size: _,
-                }) => {
-                    let mut luks_settings = Attrs::new();
-                    luks_settings.insert("allowDiscards".into(), NixValue::Bool(true));
+    fn set_partition_config(&mut self, schema: &Option<PartitionSchema>) {
+        if let Some(partition_schema) = schema.clone() {
+            self.disko_config = disko_from_schema(&partition_schema);
 
-                    let any_encrypted = partitions.values().any(|p| p.encrypt);
-
-                    let make_fs_content = |fs: Filesystem, encrypt: bool, luks_name: String| {
-                        if encrypt {
-                            PartitionContent::Luks(Luks {
-                                name: luks_name,
-                                password_file: Some(LUKS_PASSWORD_FILE.into()),
-                                settings: luks_settings.clone(),
-                                content: Some(Box::new(DeviceContent::Filesystem(fs))),
-                                ..Default::default()
-                            })
-                        } else {
-                            PartitionContent::Filesystem(fs)
-                        }
-                    };
-
-                    let mut disk_disko: BTreeMap<String, Disk> = Attrs::new();
-
-                    // TODO: improve pattern match with custom names and write it simpler
-                    for (name, part) in partitions.iter() {
-                        let part_key = name.rsplit('/').next().unwrap_or(name.as_str()).to_string();
-                        let encrypt = part.encrypt;
-
-                        let (type_code, content) =
-                            match (part.mountpoint.as_deref(), part.format.as_deref()) {
-                                (Some("/boot"), fmt) => (
-                                    Some("EF00".to_string()),
-                                    PartitionContent::Filesystem(Filesystem {
-                                        format: fmt.unwrap_or("vfat").into(),
-                                        mountpoint: Some("/boot".into()),
-                                        mount_options: vec!["umask=0077".into()],
-                                        ..Default::default()
-                                    }),
-                                ),
-                                (None, Some("swap")) => {
-                                    let swap = Swap {
-                                        resume_device: Some(true),
-                                        ..Default::default()
-                                    };
-                                    // if luks on swap also take it
-                                    let content = if any_encrypted {
-                                        PartitionContent::Luks(Luks {
-                                            name: format!("crypted-{}", part_key),
-                                            password_file: Some(LUKS_PASSWORD_FILE.into()),
-                                            settings: luks_settings.clone(),
-                                            content: Some(Box::new(DeviceContent::Swap(swap))),
-                                            ..Default::default()
-                                        })
-                                    } else {
-                                        PartitionContent::Swap(swap)
-                                    };
-                                    (None, content)
-                                }
-                                (Some(mount), fmt) => (
-                                    None,
-                                    make_fs_content(
-                                        Filesystem {
-                                            format: fmt.unwrap_or("ext4").into(),
-                                            mountpoint: Some(mount.to_string()),
-                                            ..Default::default()
-                                        },
-                                        encrypt,
-                                        format!("crypted-{}", part_key),
-                                    ),
-                                ),
-                                (None, Some(fmt)) => (
-                                    None,
-                                    make_fs_content(
-                                        Filesystem {
-                                            format: fmt.into(),
-                                            ..Default::default()
-                                        },
-                                        encrypt,
-                                        format!("crypted-{}", part_key),
-                                    ),
-                                ),
-                                (None, None) => continue,
-                            };
-
-                        let disko_partition = Partition {
-                            type_code,
-                            size: if part.is_full {
-                                Some("100%".into())
-                            } else {
-                                Some(get_storage_size_for_disko(Size::from_bytes(part.size)))
-                            },
-                            content: Some(content),
-                            ..Default::default()
-                        };
-
-                        let disk_key = part
-                            .device
-                            .rsplit('/')
-                            .next()
-                            .unwrap_or(part.device.as_str())
-                            .to_string();
-                        let disk = disk_disko.entry(disk_key).or_insert_with(|| Disk {
-                            device: part.device.clone(),
-                            content: Some(DeviceContent::Gpt(Gpt::default())),
-                            ..Default::default()
-                        });
-                        if let Some(DeviceContent::Gpt(gpt)) = disk.content.as_mut() {
-                            gpt.partitions.insert(part_key, disko_partition);
-                        }
-                    }
-                    let devices = Devices { disk: disk_disko };
-                    self.diskoconfig = devices;
-                }
-            };
+            //             match partition_schema {
+            //                 PartitionSchema::FullDisk(FullDiskOptions {
+            //                     device, encryption, ..
+            //                 }) => {
+            //                     let devices = if encryption {
+            //                         luks_encrypted(device, LUKS_PASSWORD_FILE)
+            //                     } else {
+            //                         canonical(device)
+            //                     };
+            //                     self.disko_config = devices.clone();
+            //                 }
+            //                 PartitionSchema::Custom(CustomOptions {
+            //                     partitions,
+            //                     encryption: _,
+            //                     passphrase: _,
+            //                     disk_size: _,
+            //                 }) => {
+            //                     let mut luks_settings = Attrs::new();
+            //                     luks_settings.insert("allowDiscards".into(), NixValue::Bool(true));
+            //
+            //                     let any_encrypted = partitions.values().any(|p| p.encrypt);
+            //
+            //                     let make_fs_content = |fs: Filesystem, encrypt: bool, luks_name: String| {
+            //                         if encrypt {
+            //                             PartitionContent::Luks(Luks {
+            //                                 name: luks_name,
+            //                                 password_file: Some(LUKS_PASSWORD_FILE.into()),
+            //                                 settings: luks_settings.clone(),
+            //                                 content: Some(Box::new(DeviceContent::Filesystem(fs))),
+            //                                 ..Default::default()
+            //                             })
+            //                         } else {
+            //                             PartitionContent::Filesystem(fs)
+            //                         }
+            //                     };
+            //
+            //                     let mut disk_disko: BTreeMap<String, Disk> = Attrs::new();
+            //
+            //                     // TODO: improve pattern match with custom names and write it simpler
+            //                     for (name, part) in partitions.iter() {
+            //                         let part_key = name.rsplit('/').next().unwrap_or(name.as_str()).to_string();
+            //                         let encrypt = part.encrypt;
+            //
+            //                         let (type_code, content) =
+            //                             match (part.mountpoint.as_deref(), part.format.as_deref()) {
+            //                                 (Some("/boot"), fmt) => (
+            //                                     Some("EF00".to_string()),
+            //                                     PartitionContent::Filesystem(Filesystem {
+            //                                         format: fmt.unwrap_or("vfat").into(),
+            //                                         mountpoint: Some("/boot".into()),
+            //                                         mount_options: vec!["umask=0077".into()],
+            //                                         ..Default::default()
+            //                                     }),
+            //                                 ),
+            //                                 (None, Some("swap")) => {
+            //                                     let swap = Swap {
+            //                                         resume_device: Some(true),
+            //                                         ..Default::default()
+            //                                     };
+            //                                     // if luks on swap also take it
+            //                                     let content = if any_encrypted {
+            //                                         PartitionContent::Luks(Luks {
+            //                                             name: format!("crypted-{}", part_key),
+            //                                             password_file: Some(LUKS_PASSWORD_FILE.into()),
+            //                                             settings: luks_settings.clone(),
+            //                                             content: Some(Box::new(DeviceContent::Swap(swap))),
+            //                                             ..Default::default()
+            //                                         })
+            //                                     } else {
+            //                                         PartitionContent::Swap(swap)
+            //                                     };
+            //                                     (None, content)
+            //                                 }
+            //                                 (Some(mount), fmt) => (
+            //                                     None,
+            //                                     make_fs_content(
+            //                                         Filesystem {
+            //                                             format: fmt.unwrap_or("ext4").into(),
+            //                                             mountpoint: Some(mount.to_string()),
+            //                                             ..Default::default()
+            //                                         },
+            //                                         encrypt,
+            //                                         format!("crypted-{}", part_key),
+            //                                     ),
+            //                                 ),
+            //                                 (None, Some(fmt)) => (
+            //                                     None,
+            //                                     make_fs_content(
+            //                                         Filesystem {
+            //                                             format: fmt.into(),
+            //                                             ..Default::default()
+            //                                         },
+            //                                         encrypt,
+            //                                         format!("crypted-{}", part_key),
+            //                                     ),
+            //                                 ),
+            //                                 (None, None) => continue,
+            //                             };
+            //
+            //                         let disko_partition = Partition {
+            //                             type_code,
+            //                             size: if part.is_full {
+            //                                 Some("100%".into())
+            //                             } else {
+            //                                 Some(get_storage_size_for_disko(Size::from_bytes(part.size)))
+            //                             },
+            //                             content: Some(content),
+            //                             ..Default::default()
+            //                         };
+            //
+            //                         let disk_key = part
+            //                             .device
+            //                             .rsplit('/')
+            //                             .next()
+            //                             .unwrap_or(part.device.as_str())
+            //                             .to_string();
+            //                         let disk = disk_disko.entry(disk_key).or_insert_with(|| Disk {
+            //                             device: part.device.clone(),
+            //                             content: Some(DeviceContent::Gpt(Gpt::default())),
+            //                             ..Default::default()
+            //                         });
+            //                         if let Some(DeviceContent::Gpt(gpt)) = disk.content.as_mut() {
+            //                             gpt.partitions.insert(part_key, disko_partition);
+            //                         }
+            //                     }
+            //                     let devices = Devices { disk: disk_disko };
+            //                     self.diskoconfig = devices;
+            //                 }
+            //             };
         }
     }
 }

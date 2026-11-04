@@ -5,7 +5,7 @@ use super::size::{GiB, PartitionSize, Size as DiskSize};
 use crate::modules::nix::NixModule;
 use crate::{
     get_memory_size, get_storage_size, get_storage_size_for_disko,
-    ui::partitions::partition_model::{
+    ui::partitions::partition_page::{
         CustomOptions, CustomPartition, FullDiskOptions, PartitionSchema,
     },
 };
