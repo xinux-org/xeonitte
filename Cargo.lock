@@ -4953,11 +4953,7 @@ name = "test-config"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "libparted",
  "log",
- "rand 0.10.2",
- "serde",
- "serde_json",
  "xeonitte",
 ]
 
