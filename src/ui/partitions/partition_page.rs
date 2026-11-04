@@ -2,11 +2,12 @@ use std::{collections::HashMap, convert::identity};
 
 use gettextrs::gettext;
 use log::{debug, info, trace};
-use relm4::{MessageBroker, adw::prelude::*, factory::*, prelude::*};
+use relm4::{MessageBroker, SharedState, adw::prelude::*, factory::*, prelude::*};
 use serde::Serialize;
 use size::Size;
 
 use crate::{
+    get_disk_brand_name,
     modules::disk::{Disk, DiskLayout},
     ui::{
         partitions::{
@@ -23,6 +24,9 @@ use crate::{
     },
     utils::SizeType,
 };
+
+// Global value that holds all disks -> partitions -> Content inside
+pub static DISK_LAYOUT_LIST: SharedState<Vec<DiskLayout>> = SharedState::new();
 
 pub static PARTITION_BROKER: MessageBroker<PartitionMsg> = MessageBroker::new();
 
@@ -341,6 +345,15 @@ impl SimpleComponent for PartitionModel {
             PartitionMsg::Refresh => {
                 let disks: Vec<Disk> = Disk::list();
                 debug!("Got disks: {:#?}", disks);
+
+                // This for read & write
+                *DISK_LAYOUT_LIST.write() = disks
+                    .clone()
+                    .iter()
+                    .map(|disk| DiskLayout::new(disk.id_path(), disk.size))
+                    .collect();
+
+                // This needed for only initial UI layout.
                 self.disks_list = disks;
 
                 match self.method {
@@ -361,6 +374,7 @@ impl SimpleComponent for PartitionModel {
                     basic_partition_factory_guard.push_back(WholeDisk {
                         name: disk.name.to_string(),
                         id_path: disk.id_path(),
+                        brand_name: get_disk_brand_name(&disk.name),
                         size: disk.size,
                         group: self.diskgroupbtn.clone(),
                     });

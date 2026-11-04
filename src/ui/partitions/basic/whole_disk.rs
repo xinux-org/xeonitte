@@ -8,6 +8,7 @@ use relm4::{adw::prelude::*, factory::*, *};
 pub struct WholeDisk {
     pub name: String,
     pub id_path: String,
+    pub brand_name: Option<String>,
     pub size: u64,
     pub group: gtk::CheckButton,
 }
@@ -23,7 +24,7 @@ impl FactoryComponent for WholeDisk {
     view! {
         adw::ActionRow {
             set_visible: !self.name.contains("zram"),
-            set_title: &self.name,
+            set_title: &self.brand_name.as_ref().map_or_else(|| self.name.clone(), |brand_name| { brand_name.to_owned() }) ,
             #[watch]
             // Translators: Do NOT translate the '{}'
             // The string reads "{/dev/sdX} (20 GB minimum needed)" indicating that the given disk is not large enough

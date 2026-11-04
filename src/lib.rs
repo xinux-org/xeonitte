@@ -69,6 +69,17 @@ pub fn get_storage_size(device: &str, logical_block_size: u64) -> Option<u64> {
         .map(|x| x * logical_block_size / 1_000_000)
 }
 
+// device format: sda, nvme0n1
+pub fn get_disk_brand_name(device: &str) -> Option<String> {
+    let contents = std::fs::read_to_string(format!("/sys/class/block/{device}/device/model"))
+        .map(|text| text.trim().to_string());
+    if let Err(why) = &contents {
+        eprintln!("Couldnʻt read the /sys/class/block/{device}/device/model file: {why}");
+    }
+
+    contents.ok()
+}
+
 pub fn get_storage_size_for_disko(size: Size) -> String {
     let size = format_size(size);
 

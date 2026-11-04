@@ -13,7 +13,6 @@ pub struct XAddPartitionDialogModel {
     pub free_space: f64,
     pub total_size: u64,
     pub size_type: SizeType,
-
     pub size_adjustment_value: f64,
 }
 
