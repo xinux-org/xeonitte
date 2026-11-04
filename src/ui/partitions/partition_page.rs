@@ -1,3 +1,11 @@
+use std::{collections::HashMap, convert::identity};
+
+use gettextrs::gettext;
+use log::{debug, info, trace};
+use relm4::{MessageBroker, adw::prelude::*, factory::*, prelude::*};
+use serde::Serialize;
+use size::Size;
+
 use crate::{
     modules::disk::Disk,
     ui::{
@@ -15,13 +23,6 @@ use crate::{
     },
     utils::SizeType,
 };
-
-use gettextrs::gettext;
-use log::{debug, error, info, trace};
-use relm4::{adw::prelude::*, factory::*, *};
-use serde::{Deserialize, Serialize};
-use size::Size;
-use std::{collections::HashMap, convert::identity};
 
 pub static PARTITION_BROKER: MessageBroker<PartitionMsg> = MessageBroker::new();
 
@@ -364,7 +365,8 @@ impl SimpleComponent for PartitionModel {
 
                 self.schema = None;
                 self.encryption_enabled = self.method == PartitionMethod::Basic;
-                let _ = sender.output(AppMsg::SetCanGoForward(false));
+
+                sender.output_sender().emit(AppMsg::SetCanGoForward(false));
             }
             PartitionMsg::RefreshBasic => {
                 let mut basic_partition_factory_guard = self.basic_disk_factory.guard();

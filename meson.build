@@ -63,7 +63,6 @@ meson.add_dist_script(
 subdir('data')
 subdir('po')
 subdir('src')
-subdir('xeonitte-helper/src')
 subdir('config')
 
 gnome.post_install(

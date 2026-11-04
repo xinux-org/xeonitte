@@ -1,5 +1,4 @@
 use gettextrs::gettext;
-use libgweather::glib;
 use relm4::{adw::prelude::*, *};
 
 use relm4::{Component, ComponentParts, ComponentSender, gtk};
@@ -154,7 +153,7 @@ impl Component for XAddPartitionDialogModel {
         ComponentParts { model, widgets }
     }
 
-    fn update(&mut self, message: Self::Input, sender: ComponentSender<Self>, root: &Self::Root) {
+    fn update(&mut self, message: Self::Input, _sender: ComponentSender<Self>, _root: &Self::Root) {
         match message {
             XAddPartitionDialogInput::SetPartitionSize(size) => self.size_adjustment_value = size,
         }

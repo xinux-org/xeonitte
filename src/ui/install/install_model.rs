@@ -3,15 +3,14 @@ use crate::{
     ui::window::AppMsg,
     utils::{branding::get_slides, report::ErrorPhase},
 };
-use anyhow::Context;
 use log::{debug, error};
 use relm4::{
     ComponentParts, ComponentSender, MessageBroker, RelmWidgetExt, SimpleComponent,
     adw::{self},
     factory::*,
-    gtk::{self, gio, glib},
+    gtk::{self, gio},
 };
-use std::{fs::File, process::Command};
+use std::fs::File;
 use vte::{self, TerminalExt, TerminalExtManual};
 
 pub struct InstallModel {
@@ -262,18 +261,6 @@ impl SimpleComponent for InstallModel {
             InstallMsg::VTEOutput(status) => {
                 debug!("VTE command exited with status: {}", status);
 
-                let Ok(_) = Command::new("touch")
-                    .arg("/tmp/xeonitte-term.log")
-                    .output()
-                    .context("Cannot create /tmp/xeonitte-term.log")
-                else {
-                    sender.output(AppMsg::error(
-                        ErrorPhase::Installation,
-                        "Failed to create /tmp/xeonitte-term.log",
-                    ));
-                    return;
-                };
-
                 if let Ok(file) = File::create("/tmp/xeonitte-term.log") {
                     let output = gio::WriteOutputStream::new(file);
                     if let Err(e) = self.terminal.write_contents_sync(
@@ -284,6 +271,12 @@ impl SimpleComponent for InstallModel {
                         error!("InstallMsg::VTEOutput_+| {:?}", e);
                     }
                     let _ = output.flush(gio::Cancellable::NONE);
+                } else {
+                    sender.output_sender().emit(AppMsg::error(
+                        ErrorPhase::Installation,
+                        "Failed to create /tmp/xeonitte-term.log",
+                    ));
+                    return;
                 }
                 if self.installing {
                     if status == 0 {
