@@ -17,6 +17,7 @@ use std::ops::AddAssign;
 #[derive(Debug)]
 pub struct AdvancedDiskGroup {
     pub name: String,
+    pub brand_name: Option<String>,
     pub partitions: FactoryVecDeque<Partition>,
     pub creating_partition: bool,
     pub new_partition_size: Size,
@@ -264,6 +265,7 @@ impl FactoryComponent for AdvancedDiskGroup {
 
         Self {
             name: disk.name,
+            brand_name: disk.brand_name,
             creating_partition: disk.creating_partition,
             new_partition_size: disk.new_partition_size,
             free_space: disk.free_space,

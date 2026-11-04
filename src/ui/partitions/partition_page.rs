@@ -413,6 +413,7 @@ impl SimpleComponent for PartitionModel {
                         .sum::<u64>();
                     advansed_partition_groups_guard.push_back(AdvancedDiskGroup {
                         name: disk.name.to_string(),
+                        brand_name: get_disk_brand_name(&disk.name),
                         partitions: part_factoryvec,
                         creating_partition: false,
                         new_partition_size: Size::default(),
