@@ -71,7 +71,7 @@ impl FactoryComponent for AdvancedDiskGroup {
                         set_spacing: 6,
                         set_margin_bottom: 6,
                         gtk::Label {
-                            set_text: &self.name,
+                            set_text: &self.brand_name.as_ref().map_or_else(|| self.name.clone(), |brand_name| { brand_name.to_owned() }) ,
                             set_margin_all: 6,
                             add_css_class: "heading"
                         },
