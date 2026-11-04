@@ -1,6 +1,5 @@
 use super::parse::ConfigType;
 use super::report::ErrorPhase;
-use crate::modules::disk::ops::write_luks_key;
 use crate::modules::nix::NixModule;
 use crate::utils::flow::Choice;
 use crate::utils::make_config::{MakeConfig, makeconfig};
@@ -11,7 +10,6 @@ use crate::{
         partitions::partition_page::PartitionSchema,
         window::{AppMsg, UserConfig},
     },
-    utils::disko::LUKS_PASSWORD_FILE,
 };
 use anyhow::{Context, Result};
 use log::{error, info};
@@ -264,49 +262,16 @@ impl Worker for InstallAsyncModel {
                         TMPDIR, arch, hostname
                     );
 
-                    let luks_passphrase =
-                        partitions
-                            .as_ref()
-                            .as_ref()
-                            .and_then(|schema| match schema {
-                                PartitionSchema::FullDisk(opts) => opts.passphrase.clone(),
-                                PartitionSchema::Custom(opts) => opts.passphrase.clone(),
-                            });
-
-                    if let Some(passphrase) = &luks_passphrase {
-                        info!("Step 4.1: Write LUKS key file");
-
-                        if let Err(e) = write_luks_key(LUKS_PASSWORD_FILE, passphrase) {
-                            sender.output(AppMsg::error(
-                                ErrorPhase::Installation,
-                                format!("Failed to write LUKS key file: {e}"),
-                            ));
-                            return;
-                        }
-                    }
-
                     // TODO: make better way to write this shell command
-                    let cmd = if luks_passphrase.is_some() {
-                        format!(
-                            "swapoff -a || true; \
-                            disko --mode destroy,format,mount {disko_path} --yes-wipe-all-disks; \
-                            disko_rc=$?; shred -u -z -n 0 {key}; \
-                            [ \"$disko_rc\" -eq 0 ] && nix flake lock {flake_url} && \
-                            mkdir -p /mnt/etc/nixos && \
-                            cp -rT {flake_url} /mnt/etc/nixos && \
-                            nixos-install --no-root-passwd --no-channel-copy --root /mnt --option build-dir /nix/var/nix/builds/xeonitte --flake {flake_attr}",
-                            key = LUKS_PASSWORD_FILE,
-                        )
-                    } else {
-                        format!(
-                            "swapoff -a || true; \
+                    let cmd = format!(
+                        "swapoff -a || true; \
                             disko --mode destroy,format,mount {disko_path} --yes-wipe-all-disks --debug && \
                             nix flake lock {flake_url} && \
                             mkdir -p /mnt/etc/nixos && \
                             cp -rT {flake_url} /mnt/etc/nixos && \
                             nixos-install --no-root-passwd --no-channel-copy --root /mnt --option build-dir /nix/var/nix/builds/xeonitte --flake {flake_attr}",
-                        )
-                    };
+                    );
+
                     INSTALL_BROKER.send(InstallMsg::Install(vec![
                         "/usr/bin/env".to_string(),
                         "pkexec".to_string(),
