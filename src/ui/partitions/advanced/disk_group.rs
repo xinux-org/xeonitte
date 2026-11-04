@@ -1,7 +1,10 @@
 use crate::{
+    modules::disk::DiskLayout,
     ui::partitions::{
-        advanced::add_partition_dialog::XAddPartitionDialogModel,
-        advanced::partition_row::{Partition, PartitionOut},
+        advanced::{
+            add_partition_dialog::XAddPartitionDialogModel,
+            partition_row::{Partition, PartitionOut},
+        },
         partition_page::CustomPartition,
     },
     utils::{SizeType, represent},
@@ -20,6 +23,7 @@ pub struct AdvancedDiskGroup {
     pub free_space: u64,
     pub total_size: u64,
     pub size_type: SizeType,
+    pub disk_layout: DiskLayout,
     // We create dialog model for each disk.
     pub add_partition_dialog: Option<Controller<XAddPartitionDialogModel>>,
 }
@@ -266,6 +270,7 @@ impl FactoryComponent for AdvancedDiskGroup {
             total_size: disk.total_size,
             size_type: disk.size_type,
             partitions,
+            disk_layout: disk.disk_layout,
             add_partition_dialog: Some(add_partition_dialog),
         }
     }

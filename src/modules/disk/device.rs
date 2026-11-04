@@ -60,7 +60,6 @@ impl Disk {
     /// Falls back to `/dev/{name}` if no by-id entry exists.
     pub fn id_path(&self) -> String {
         let xorak = self.id.as_deref().map(|id: &str| id.contains(":"));
-        println!("xxxxxxxxxxxxxxxxxxxx {:?}", self.id.as_deref().unwrap());
         self.id
             .as_deref()
             .map(|id| format!("{BY_ID}/{id}"))

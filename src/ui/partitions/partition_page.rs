@@ -7,7 +7,7 @@ use serde::Serialize;
 use size::Size;
 
 use crate::{
-    modules::disk::Disk,
+    modules::disk::{Disk, DiskLayout},
     ui::{
         partitions::{
             advanced::{
@@ -393,19 +393,19 @@ impl SimpleComponent for PartitionModel {
 
                     part_guard.drop();
 
-                    let name = disk.name.to_string();
-                    let used = part_factoryvec.iter().map(|x| x.size).sum::<u64>();
-                    let total_size = disk.size;
-                    let free_space = total_size - used;
-
+                    let used = part_factoryvec
+                        .iter()
+                        .map(|partition| partition.size)
+                        .sum::<u64>();
                     advansed_partition_groups_guard.push_back(AdvancedDiskGroup {
+                        name: disk.name.to_string(),
                         partitions: part_factoryvec,
                         creating_partition: false,
                         new_partition_size: Size::default(),
-                        name,
-                        free_space,
-                        total_size,
+                        free_space: disk.size - used,
+                        total_size: disk.size,
                         size_type: SizeType::MB,
+                        disk_layout: DiskLayout::new(disk.id_path(), disk.size),
                         add_partition_dialog: None,
                     });
                 }
