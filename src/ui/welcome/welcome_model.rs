@@ -120,8 +120,6 @@ impl WelcomeModel {
         // List of 6 popular languages
         let default_langs_codes = ["uz_UZ.UTF-8", "en_US.UTF-8", "ru_RU.UTF-8"].map(String::from);
 
-        // let short_lang_box = gtk::ListBox::new();
-
         // get matching utf language and create pair from itʻs headless title
         // Example:
         //  "Deutsch",
