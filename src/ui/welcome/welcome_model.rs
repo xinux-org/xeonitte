@@ -19,7 +19,6 @@ pub struct WelcomeModel {
 
 #[derive(Debug)]
 pub enum WelcomeMsg {
-    // ToggleShowall,
     SetSelected(Option<String>),
     CheckSelected,
 }
@@ -68,7 +67,6 @@ impl SimpleComponent for WelcomeModel {
             .forward(sender.input_sender(), move |msg| match msg {
                 SelectorRowOutput::Select(index) => {
                     let selected = languages.iter().nth(index.current_index());
-                    dbg!(&selected);
                     WelcomeMsg::SetSelected(selected.map(|locale| locale.name.clone()))
                 }
             });
@@ -133,9 +131,12 @@ impl WelcomeModel {
         //      "de_DE.UTF-8": "Deutsch (Deutschland)",
         //    },
         // Result: ("de_DE.UTF-8", "Deutsch")
-        languages
-            .iter()
-            .filter(|locale| {
+        let mut mutable_languages = languages.clone();
+
+        // we extract the default languages locales to `mutable_languages`,
+        // and vector without them to the `without_default_langs` variables.
+        let mut without_default_langs: Vec<Locale> = mutable_languages
+            .extract_if(.., |locale| {
                 // check if the locale contains the default utf codes defined above
                 locale
                     .variants
@@ -144,82 +145,15 @@ impl WelcomeModel {
                     .collect::<Vec<_>>()
                     .is_empty()
             })
+            .collect();
+
+        mutable_languages.append(&mut without_default_langs);
+
+        mutable_languages
+            .iter()
             .map(|locale| locale.variants.clone())
             .flatten()
             .map(|utf| utf.title)
             .collect::<Vec<_>>()
     }
-    // pub fn create_shortlang_boxes(
-    //     model: &WelcomeModel,
-    //     sender: &ComponentSender<WelcomeModel>,
-    //     languages: Vec<(String, HashMap<String, String>)>,
-    // ) -> gtk::ListBox {
-    //     // List of 6 popular languages
-    //     let default_langs: Vec<String> = vec![
-    //         "uz_UZ.UTF-8".into(),
-    //         "en_US.UTF-8".into(),
-    //         "ru_RU.UTF-8".into(),
-    //     ];
-
-    //     // let short_lang_box = gtk::ListBox::new();
-
-    //     // get matching utf language and create pair from itʻs headless title
-    //     // Example:
-    //     //  "Deutsch",
-    //     //    {
-    //     //      "de_IT.UTF-8": "Deutsch (Italien)",
-    //     //      "de_LI.UTF-8": "Deutsch (Liechtenstein)",
-    //     //      "de_DE.UTF-8": "Deutsch (Deutschland)",
-    //     //    },
-    //     // Result: ("de_DE.UTF-8", "Deutsch")
-    //     let immutable_languages = languages.clone();
-    //     let shortlangs: Vec<(String, String)> = default_langs
-    //         .iter()
-    //         .flat_map(|default_lang_utf| {
-    //             immutable_languages
-    //                 .iter()
-    //                 .filter_map(|(group_title, langs)| {
-    //                     langs.get(default_lang_utf).map(|_language_varient| {
-    //                         (default_lang_utf.clone(), group_title.clone())
-    //                     })
-    //                 })
-    //         })
-    //         .collect();
-
-    //     let langs = shortlangs
-    //         .iter()
-    //         .map(|(utf_locale, locale)| format!("{locale} ({utf_locale})"));
-
-    //     let short_lang_box = Selector::init(langs, root, sender);
-
-    //     // for (utf_locale, locale) in shortlangs {
-    //     //     view! {
-    //     //         row = gtk::Box {
-    //     //             // set_accessible_role: gtk::AccessibleRole::ToggleButton,
-    //     //             gtk::Box {
-    //     //                 gtk::Label {
-    //     //                     set_label: &locale,
-    //     //                 },
-    //     //                 #[template]
-    //     //                 BaseSeparator,
-    //     //                 #[name(rowbtn)]
-    //     //                 gtk::CheckButton {
-    //     //                     set_halign: gtk::Align::End,
-    //     //                     set_group: Some(&model.selectiongroup),
-    //     //                     connect_activate[sender, utf_locale] => move |x| {
-    //     //                         if x.is_active() {
-    //     //                             sender.input(WelcomeMsg::SetSelected(Some(utf_locale.to_owned())))
-    //     //                         }
-    //     //                     }
-    //     //                 }
-    //     //             }
-    //     //         }
-    //     //     };
-    //     //     short_lang_box.append(&row);
-    //     //     // set selected at start for default language
-    //     //     rowbtn.set_active(utf_locale == model.default_language);
-    //     // }
-
-    //     short_lang_box
-    // }
 }

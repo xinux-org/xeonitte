@@ -20,7 +20,7 @@ pub fn get_languages() -> Vec<Locale> {
     // get all utf codes of locales available in gnome
     let gnome_utf_codes = gnome_desktop::functions::all_locales();
 
-    let languages = locale_codes
+    locale_codes
         .filter_map(|locale| locale.split('/').next())
         .filter(|locale| {
             gnome_utf_codes
@@ -45,10 +45,7 @@ pub fn get_languages() -> Vec<Locale> {
             }
             .into()
         })
-        .collect();
-    dbg!(&languages);
-
-    languages
+        .collect()
 }
 
 pub fn get_lang(code: String) -> Result<String> {
