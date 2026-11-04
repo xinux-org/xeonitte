@@ -100,9 +100,9 @@ fn root_slot(encrypted: bool) -> PartitionDef {
 }
 
 fn disko_from_full_disk(opts: &FullDiskOptions) -> NixModule {
-    let swap = compute_swap(&opts.device);
-    build_full_disk_layout(&opts.device, opts.disk_size, swap, opts.encryption)
-        .unwrap_or_else(|_| DiskLayout::new(&opts.device, opts.disk_size))
+    let swap = compute_swap(&opts.disk_name);
+    build_full_disk_layout(&opts.disk_id, opts.disk_size, swap, opts.encryption)
+        .unwrap_or_else(|_| DiskLayout::new(&opts.disk_id, opts.disk_size))
         .to_nix_module()
 }
 

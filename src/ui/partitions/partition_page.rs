@@ -26,24 +26,6 @@ use crate::{
 
 pub static PARTITION_BROKER: MessageBroker<PartitionMsg> = MessageBroker::new();
 
-// pub static ALL_DISKS: SharedState<Vec<InputDisk>> = SharedState::new();
-
-// this InputDisk & InputPartition are duplicated on xeonitte-helper/src/main.rs
-// #[derive(Deserialize, Debug, Clone)]
-// pub struct InputDisk {
-//     name: String,
-//     size: u64,
-//     partitions: Vec<InputPartition>,
-// }
-//
-// #[derive(Deserialize, Debug, Clone)]
-// pub struct InputPartition {
-//     name: String,
-//     #[serde(rename = "format")]
-//     _format: String,
-//     size: u64,
-// }
-
 pub struct PartitionModel {
     basic_disk_factory: FactoryVecDeque<WholeDisk>,
     advanced_disk_factory: FactoryVecDeque<AdvancedDiskGroup>,
@@ -60,7 +42,7 @@ pub struct PartitionModel {
 #[derive(Debug)]
 pub enum PartitionMsg {
     SetMethod(PartitionMethod),
-    SetFullDisk(String, u64),
+    SetFullDisk(String, String, u64),
     AddFormatPartition(String, String, String, u64, bool),
     AddMountPartition(String, String, String, u64, bool),
     RemoveFormatPartition(String),
@@ -85,7 +67,10 @@ pub enum PartitionMethod {
 
 #[derive(Serialize, Debug, Clone)]
 pub struct FullDiskOptions {
-    pub device: String,
+    // usb-JMicron_XXXXXX
+    pub disk_id: String,
+    // nvme0n1
+    pub disk_name: String,
     pub encryption: bool,
     pub hibernation: bool,
     pub passphrase: Option<String>,
@@ -437,10 +422,11 @@ impl SimpleComponent for PartitionModel {
                 let _ = sender.output(AppMsg::SetCanGoForward(false));
                 sender.input(PartitionMsg::Refresh);
             }
-            PartitionMsg::SetFullDisk(device, size) => {
-                trace!("SetFullDisk: {}", device);
+            PartitionMsg::SetFullDisk(disk_name, disk_id, size) => {
+                trace!("SetFullDisk: {}", disk_name);
                 self.schema = Some(PartitionSchema::FullDisk(FullDiskOptions {
-                    device,
+                    disk_id,
+                    disk_name,
                     disk_size: size,
                     hibernation: self.hibernation.model().enabled,
                     encryption: self.luks_password.model().encryption_enabled,

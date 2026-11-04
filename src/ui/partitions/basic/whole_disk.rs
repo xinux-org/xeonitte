@@ -33,15 +33,15 @@ impl FactoryComponent for WholeDisk {
             #[name(checkbtn)]
             add_suffix = &gtk::CheckButton {
                 set_group: Some(&self.group),
-                connect_toggled[id_path = self.id_path.to_string(), size = self.size] => move |btn| {
+                connect_toggled[name = self.name.to_string(), id_path = self.id_path.to_string(), size = self.size] => move |btn| {
                     if btn.is_active() {
-                        PARTITION_BROKER.send(PartitionMsg::SetFullDisk(id_path.to_string(), size));
+                        PARTITION_BROKER.send(PartitionMsg::SetFullDisk(name.to_string(), id_path.to_string(), size));
                     }
                 }
             },
-            connect_activated[checkbtn, id_path = self.id_path.to_string(), size = self.size] => move |_| {
+            connect_activated[checkbtn, name = self.name.to_string(), id_path = self.id_path.to_string(), size = self.size] => move |_| {
                 checkbtn.set_active(true);
-                PARTITION_BROKER.send(PartitionMsg::SetFullDisk(id_path.to_string(), size));
+                PARTITION_BROKER.send(PartitionMsg::SetFullDisk(name.to_string(), id_path.to_string(), size));
             }
         }
     }

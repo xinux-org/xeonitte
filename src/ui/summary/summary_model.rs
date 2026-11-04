@@ -99,7 +99,7 @@ impl SimpleComponent for SummaryModel {
                                 adw::ActionRow {
                                     set_activatable: false,
                                     #[watch]
-                                    set_title: &disk.device,
+                                    set_title: &disk.disk_name,
                                     #[watch]
                                     set_subtitle: &gettext("Full Disk"),
                                     add_suffix = &gtk::Label {

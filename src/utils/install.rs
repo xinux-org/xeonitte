@@ -208,7 +208,7 @@ impl Worker for InstallAsyncModel {
                 if let Some(partitions) = partitions.as_ref() {
                     match partitions {
                         PartitionSchema::FullDisk(disk) => {
-                            mbrdisk = Some(disk.device.clone());
+                            mbrdisk = Some(disk.disk_id.clone());
                         }
                         PartitionSchema::Custom(options) => {
                             for part in options.partitions.values() {
