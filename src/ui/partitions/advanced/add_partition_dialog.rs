@@ -120,6 +120,18 @@ impl Component for XAddPartitionDialogModel {
                               // },
                             },
                           }
+                        },
+                        adw::PreferencesGroup {
+                          #[name(size_unit_combo)]
+                          adw::ComboRow  {
+                            set_title: &gettext("Units"),
+                            // notify::selected => $on_size_unit_changed_cb(template);
+                            set_model: Some(&gtk::StringList::new(&[
+                                &gettext("MB"),
+                                &gettext("GB"),
+                                &gettext("TB"),
+                            ])),
+                          }
                         }
                     }
                 }
