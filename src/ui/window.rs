@@ -220,66 +220,64 @@ impl Component for AppModel {
                 match model.page {
                     StackPage::Carousel => {
                         gtk::Overlay {
-                            #[local_ref]
-                            main_carousel -> adw::Carousel {
-                                set_interactive: false,
+                            gtk::ScrolledWindow {
+                                set_margin_bottom: 10,
+                                #[local_ref]
+                                main_carousel -> adw::Carousel {
+                                    set_interactive: false,
+                                    set_halign: gtk::Align::Fill,
+                                    set_valign: gtk::Align::Fill,
+                                    set_hexpand: true,
+                                    set_vexpand: true,
+                                },
+                            },
+
+                            add_overlay = &gtk::Revealer {
+                                set_transition_type: gtk::RevealerTransitionType::Crossfade,
+                                set_reveal_child: true,
                                 set_halign: gtk::Align::Fill,
-                                set_valign: gtk::Align::Fill,
-                                set_hexpand: true,
-                                set_vexpand: true,
-                            },
-                            add_overlay = &gtk::Revealer {
-                                set_transition_type: gtk::RevealerTransitionType::Crossfade,
-                                #[watch]
-                                set_reveal_child: model.can_go_back && model.current_page > 0,
-                                set_halign: gtk::Align::Start,
-                                set_valign: gtk::Align::Center,
-                                set_margin_all: 20,
-                                gtk::Button {
-                                    set_can_focus: false,
-                                    set_can_target: true,
-                                    set_height_request: 40,
-                                    set_width_request: 40,
-                                    add_css_class: "circular",
-                                    set_halign: gtk::Align::Start,
-                                    set_valign: gtk::Align::Center,
-                                    set_icon_name: "go-previous-symbolic",
-                                    connect_clicked[main_carousel, sender] => move |_| {
-                                        let i = adw::Carousel::position(&main_carousel) as u32;
-                                        if i > 0 {
-                                            let w = main_carousel.nth_page(i-1);
-                                            main_carousel.scroll_to(&w, true);
+                                set_valign: gtk::Align::End,
+                                add_css_class: "background",
+                                gtk::Box{
+                                    set_spacing: 10,
+                                    set_margin_all: 18,
+                                    set_halign: gtk::Align::End,
+                                    gtk::Button {
+                                        set_label: "Back",
+                                        set_can_focus: false,
+                                        set_can_target: true,
+                                        set_halign: gtk::Align::Start,
+                                        set_valign: gtk::Align::Center,
+                                        #[watch]
+                                        set_sensitive: model.can_go_back && model.current_page > 0,
+                                        connect_clicked[main_carousel, sender] => move |_| {
+                                            let i = adw::Carousel::position(&main_carousel) as u32;
+                                            if i > 0 {
+                                                let w = main_carousel.nth_page(i-1);
+                                                main_carousel.scroll_to(&w, true);
+                                            }
+                                            sender.input(AppMsg::ChangePage(i.saturating_sub(1)));
                                         }
-                                        sender.input(AppMsg::ChangePage(i.saturating_sub(1)));
-                                    }
-                                }
-                            },
-                            add_overlay = &gtk::Revealer {
-                                set_transition_type: gtk::RevealerTransitionType::Crossfade,
-                                #[watch]
-                                set_reveal_child: model.can_go_forward,
-                                set_halign: gtk::Align::End,
-                                set_valign: gtk::Align::Center,
-                                set_margin_all: 20,
-                                gtk::Button {
-                                    set_can_focus: false,
-                                    set_can_target: true,
-                                    set_height_request: 40,
-                                    set_width_request: 40,
-                                    #[watch]
-                                    set_css_classes: if model.current_page.eq(&main_carousel.n_pages().saturating_sub(1)) { &["circular", "suggested-action"] } else { &["circular"] },
-                                    set_halign: gtk::Align::Start,
-                                    set_valign: gtk::Align::Center,
-                                    set_icon_name: "go-next-symbolic",
-                                    connect_clicked[main_carousel, sender] => move |_| {
-                                        let i = adw::Carousel::position(&main_carousel) as u32;
-                                        if i < main_carousel.n_pages().saturating_sub(1) {
-                                            let w = main_carousel.nth_page(i+1);
-                                            main_carousel.scroll_to(&w, true);
-                                            sender.input(AppMsg::ChangePage(i + 1));
-                                        } else {
-                                            sender.input(AppMsg::SetStackPage(StackPage::Install));
-                                            sender.input(AppMsg::Install);
+                                    },
+                                    gtk::Button {
+                                        set_label: "Continue",
+                                        set_can_focus: false,
+                                        set_can_target: true,
+                                        add_css_class: "suggested-action",
+                                        #[watch]
+                                        set_sensitive: model.can_go_forward,
+                                        set_halign: gtk::Align::Start,
+                                        set_valign: gtk::Align::Center,
+                                        connect_clicked[main_carousel, sender] => move |_| {
+                                            let i = adw::Carousel::position(&main_carousel) as u32;
+                                            if i < main_carousel.n_pages().saturating_sub(1) {
+                                                let w = main_carousel.nth_page(i+1);
+                                                main_carousel.scroll_to(&w, true);
+                                                sender.input(AppMsg::ChangePage(i + 1));
+                                            } else {
+                                                sender.input(AppMsg::SetStackPage(StackPage::Install));
+                                                sender.input(AppMsg::Install);
+                                            }
                                         }
                                     }
                                 }
