@@ -57,7 +57,7 @@ pub fn get_storage_size(device: &str, logical_block_size: u64) -> Option<u64> {
     };
     let contents = std::fs::read_to_string(format!("/sys/class/block/{device}/size"))
         .unwrap_or_else(|e| {
-            eprintln!("Couldnʻt read the /sys/class/block/{device}/size file: {e}",);
+            eprintln!("Couldn't read the /sys/class/block/{device}/size file: {e}",);
             "".to_string()
         })
         .trim()
@@ -74,7 +74,7 @@ pub fn get_disk_brand_name(device: &str) -> Option<String> {
     let contents = std::fs::read_to_string(format!("/sys/class/block/{device}/device/model"))
         .map(|text| text.trim().to_string());
     if let Err(why) = &contents {
-        eprintln!("Couldnʻt read the /sys/class/block/{device}/device/model file: {why}");
+        eprintln!("Couldn't read the /sys/class/block/{device}/device/model file: {why}");
     }
 
     contents.ok()
