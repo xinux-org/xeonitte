@@ -23,13 +23,15 @@ pub struct UserData {
     #[garde(length(min = 1))]
     pub hostname: String,
 
-    #[garde(length(min = 1))]
+    #[garde(if(cond = !self.same_password, length(min = 1)))]
     pub root_password: Option<String>,
-    #[garde(matches(root_password), length(min = 1))]
+    #[garde(if(cond = !self.same_password, matches(root_password), length(min = 1)))]
     pub confirm_root_password: Option<String>,
 
     #[garde(skip)]
     pub autologin: bool,
+    #[garde(skip)]
+    pub same_password: bool,
 }
 
 #[tracker::track]
@@ -170,22 +172,6 @@ impl SimpleComponent for UserModel {
                                 sender.input(UserMsg::Update(UserDataPatch {confirm_password: Some(entry.text().to_string()), ..Default::default()}));
                             }
                         },
-                        adw::ActionRow {
-                            #[watch]
-                            set_title: &gettext("Log in automatically"),
-                            set_activatable: true,
-                            connect_activated[autoswitch] => move |_| {
-                                autoswitch.activate();
-                            },
-                            #[name(autoswitch)]
-                            add_suffix = &gtk::Switch {
-                                set_valign: gtk::Align::Center,
-                                connect_state_set[sender] => move |_, state| {
-                                    sender.input(UserMsg::Update(UserDataPatch { autologin: Some(state), ..Default::default()}));
-                                    relm4::gtk::glib::Propagation::Proceed
-                                }
-                            }
-                        }
                     },
                     gtk::ListBox {
                         #[watch]
@@ -216,11 +202,27 @@ impl SimpleComponent for UserModel {
                             }
                         }
                     },
-                    gtk::ListBox {
+                    gtk::CheckButton {
+                        set_label: Some(&gettext("Log in automatically")),
+                        connect_toggled[sender] => move |check_button| {
+                            let active = check_button.is_active();
+                            sender.input(UserMsg::Update(UserDataPatch { autologin: Some(active), ..Default::default()}));
+                        }
+                    },
+                    gtk::CheckButton {
+                        set_label: Some(&gettext("Use the same password for root account")),
                         #[watch]
                         set_visible: model.showrootpassword,
+                        connect_toggled[sender] => move |check_button| {
+                            let active = check_button.is_active();
+                            sender.input(UserMsg::Update(UserDataPatch { same_password: Some(active), ..Default::default()}));
+                        },
+                    },
+                    adw::PreferencesGroup {
+                        set_title: &gettext("Root user's password"),
+                        #[watch]
+                        set_visible: model.showrootpassword && !model.data.same_password,
                         add_css_class: "boxed-list",
-                        set_selection_mode: gtk::SelectionMode::None,
                         adw::PasswordEntryRow {
                             #[watch]
                             set_title: &gettext("Root password"),
@@ -240,7 +242,7 @@ impl SimpleComponent for UserModel {
                                 sender.input(UserMsg::Update(UserDataPatch { confirm_root_password: Some(Some(entry.text().to_string())), ..Default::default()}));
                             }
                         }
-                    }
+                    },
                 }
             }
         }
@@ -280,10 +282,8 @@ impl SimpleComponent for UserModel {
         self.data.reset();
         match msg {
             UserMsg::CheckSelected => {
-                sender.input(UserMsg::Update(UserDataPatch {
-                    ..Default::default()
-                }));
-                let _ = sender.output(AppMsg::SetCanGoForward(self.validation.is_none()));
+                let valid = self.data.validate().is_ok();
+                let _ = sender.output(AppMsg::SetCanGoForward(valid));
             }
             UserMsg::SetConfig(root, showhostname) => {
                 self.showrootpassword = root;
@@ -307,10 +307,16 @@ impl SimpleComponent for UserModel {
                         username,
                         password,
                         hostname,
-                        root_password: rootpassword,
+                        root_password,
                         autologin,
                         ..
                     } = self.data.clone();
+
+                    let rootpassword = if self.data.same_password {
+                        Some(password.clone())
+                    } else {
+                        root_password
+                    };
 
                     let _ = sender.output(AppMsg::SetUserConfig(Some(UserConfig {
                         name,
