@@ -116,9 +116,7 @@ pub fn setup_logger() -> anyhow::Result<()> {
             File::create("/tmp/xeonitte.log").context("Can't open log file: /tmp/xeonitte.log")?,
         ),
     ])
-    .context("Failed to initialize loggers")?;
-
-    Ok(())
+    .context("Failed to initialize loggers")
 }
 
 pub fn setup_gettext() -> anyhow::Result<()> {
