@@ -272,7 +272,7 @@ msgstr ""
 msgid "Username"
 msgstr ""
 
-#: src/ui/summary/summary_model.rs:172 src/ui/user/user_model.rs:198
+#: src/ui/summary/summary_model.rs:172 src/ui/user/user_model.rs:182
 msgid "Hostname"
 msgstr ""
 
@@ -284,16 +284,20 @@ msgstr ""
 msgid "Password"
 msgstr ""
 
-#: src/ui/user/user_model.rs:175
-msgid "Log in automatically"
+#: src/ui/user/user_model.rs:204
+msgid "Root user's password"
 msgstr ""
 
-#: src/ui/user/user_model.rs:226
+#: src/ui/user/user_model.rs:210
 msgid "Root password"
 msgstr ""
 
-#: src/ui/user/user_model.rs:236
+#: src/ui/user/user_model.rs:220
 msgid "Confirm root password"
+msgstr ""
+
+#: src/ui/user/user_model.rs:230
+msgid "Log in automatically"
 msgstr ""
 
 #: src/ui/welcome/welcome_model.rs:44

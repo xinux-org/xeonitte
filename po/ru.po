@@ -273,7 +273,7 @@ msgstr "Имя"
 msgid "Username"
 msgstr "Имя пользователя"
 
-#: src/ui/summary/summary_model.rs:172 src/ui/user/user_model.rs:198
+#: src/ui/summary/summary_model.rs:172 src/ui/user/user_model.rs:182
 msgid "Hostname"
 msgstr "Имя хоста"
 
@@ -285,17 +285,23 @@ msgstr "Создать нового пользователя"
 msgid "Password"
 msgstr "Пароль"
 
-#: src/ui/user/user_model.rs:175
-msgid "Log in automatically"
-msgstr "Войти автоматически"
+#: src/ui/user/user_model.rs:204
+#, fuzzy
+#| msgid "Root password"
+msgid "Root user's password"
+msgstr "Пароль root"
 
-#: src/ui/user/user_model.rs:226
+#: src/ui/user/user_model.rs:210
 msgid "Root password"
 msgstr "Пароль root"
 
-#: src/ui/user/user_model.rs:236
+#: src/ui/user/user_model.rs:220
 msgid "Confirm root password"
 msgstr "Подтвердите пароль root"
+
+#: src/ui/user/user_model.rs:230
+msgid "Log in automatically"
+msgstr "Войти автоматически"
 
 #: src/ui/welcome/welcome_model.rs:44
 msgid "Welcome!"
