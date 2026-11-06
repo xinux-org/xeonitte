@@ -4,22 +4,25 @@ use crate::{
     utils::{branding::get_slides, report::ErrorPhase},
 };
 use anyhow::Context;
+use gettextrs::gettext;
 use log::{debug, error};
 use relm4::{
     ComponentParts, ComponentSender, MessageBroker, RelmWidgetExt, SimpleComponent,
     adw::{self},
     factory::*,
-    gtk::{self, gio, glib},
+    gtk::{self, gio, prelude::*},
 };
 use std::{fs::File, process::Command};
 use vte::{self, TerminalExt, TerminalExtManual};
 
+#[tracker::track]
 pub struct InstallModel {
     terminal: vte::Terminal,
     progressbar_title: String,
     progressbar: gtk::ProgressBar,
     showterminal: bool,
     installing: bool,
+    #[tracker::no_eq]
     slides: FactoryVecDeque<InstallSlide>,
     locale: Option<String>,
 }
@@ -126,6 +129,7 @@ impl SimpleComponent for InstallModel {
             installing: false,
             slides: FactoryVecDeque::builder().launch_default().detach(),
             locale: None,
+            tracker: 0,
         };
 
         let mut slides_guard = model.slides.guard();
@@ -178,6 +182,7 @@ impl SimpleComponent for InstallModel {
     }
 
     fn update(&mut self, msg: Self::Input, sender: ComponentSender<Self>) {
+        self.reset();
         match msg {
             InstallMsg::Pulse => {
                 self.progressbar.pulse();
@@ -262,18 +267,6 @@ impl SimpleComponent for InstallModel {
             InstallMsg::VTEOutput(status) => {
                 debug!("VTE command exited with status: {}", status);
 
-                let Ok(_) = Command::new("touch")
-                    .arg("/tmp/xeonitte-term.log")
-                    .output()
-                    .context("Cannot create /tmp/xeonitte-term.log")
-                else {
-                    sender.output(AppMsg::error(
-                        ErrorPhase::Installation,
-                        "Failed to create /tmp/xeonitte-term.log",
-                    ));
-                    return;
-                };
-
                 if let Ok(file) = File::create("/tmp/xeonitte-term.log") {
                     let output = gio::WriteOutputStream::new(file);
                     if let Err(e) = self.terminal.write_contents_sync(
@@ -284,6 +277,12 @@ impl SimpleComponent for InstallModel {
                         error!("InstallMsg::VTEOutput_+| {:?}", e);
                     }
                     let _ = output.flush(gio::Cancellable::NONE);
+                } else {
+                    sender.output_sender().emit(AppMsg::error(
+                        ErrorPhase::Installation,
+                        "Failed to create /tmp/xeonitte-term.log",
+                    ));
+                    return;
                 }
                 if self.installing {
                     if status == 0 {
@@ -322,15 +321,16 @@ impl SimpleComponent for InstallModel {
     }
 }
 
-use adw::prelude::*;
-use gettextrs::gettext;
-
 #[derive(Debug)]
 #[tracker::track]
 pub struct InstallSlide {
+    #[tracker::do_not_track]
     pub title: String,
+    #[tracker::do_not_track]
     pub subtitle: String,
+    #[tracker::do_not_track]
     pub image: String,
+    #[tracker::no_eq]
     pub locale: Option<String>,
 }
 
