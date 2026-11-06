@@ -245,7 +245,7 @@ impl Component for AppModel {
                         StackPage::Carousel => {
                             gtk::Overlay {
                                 gtk::ScrolledWindow {
-                                    set_margin_bottom: 10,
+                                    set_margin_bottom: 70,
                                     #[local_ref]
                                     main_carousel -> adw::Carousel {
                                         set_interactive: false,
