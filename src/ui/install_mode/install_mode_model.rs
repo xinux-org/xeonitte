@@ -69,10 +69,7 @@ impl SimpleComponent for InstallModeModel {
         root: Self::Root,
         sender: ComponentSender<Self>,
     ) -> ComponentParts<Self> {
-        let model = InstallModeModel {
-            selected: Some(Flow::Basic),
-        };
-        sender.input(InstallModeMsg::SetSelected(Some(Flow::Basic)));
+        let model = InstallModeModel { selected: None };
 
         let widgets = view_output!();
         ComponentParts { model, widgets }
