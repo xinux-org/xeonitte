@@ -65,7 +65,7 @@ impl SimpleComponent for InstallModeModel {
     }
 
     fn init(
-        init: Self::Init,
+        _init: Self::Init,
         root: Self::Root,
         sender: ComponentSender<Self>,
     ) -> ComponentParts<Self> {
