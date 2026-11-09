@@ -62,18 +62,28 @@ impl SimpleComponent for WelcomeModel {
         let mut languages = get_languages().into_iter().collect::<Vec<_>>();
         languages.sort_by(|a, b| a.name.cmp(&b.name));
 
+        let formatted_languages = WelcomeModel::format_languages(languages.clone());
+
         let languages_component = Selector::builder()
-            .launch(WelcomeModel::format_languages(languages.clone()))
+            .launch(formatted_languages.clone())
             .forward(sender.input_sender(), move |msg| match msg {
                 SelectorRowOutput::Select(index) => {
-                    let selected = languages.iter().nth(index.current_index());
-                    WelcomeMsg::SetSelected(selected.map(|locale| locale.name.clone()))
+                    let selected = formatted_languages
+                        .iter()
+                        .nth(index.current_index())
+                        .and_then(|x| {
+                            dbg!(&x);
+                            languages.iter().find_map(|locale| {
+                                locale.variants.iter().find(|utf| utf.title == *x)
+                            })
+                        });
+                    WelcomeMsg::SetSelected(selected.map(|utf| utf.code.clone()))
                 }
             });
 
         let model = WelcomeModel {
             showall: false,
-            default_language: "uz_UZ.UTF-8".to_owned(),
+            default_language: "uz_UZ.UTF-8".into(),
             selected: None,
             selectiongroup: gtk::CheckButton::new(),
             expanders: vec![],
@@ -90,7 +100,7 @@ impl SimpleComponent for WelcomeModel {
         self.reset();
         match msg {
             WelcomeMsg::SetSelected(lang) => {
-                info!("Selected language: {:?}", lang);
+                dbg!("Selected language: {:?}", &lang);
                 // TODO: Change output and input signal values with SharedState
                 sender.output(AppMsg::SetLanguageConfig(lang.clone()));
                 sender.output(AppMsg::SetCanGoForward(lang.is_some()));

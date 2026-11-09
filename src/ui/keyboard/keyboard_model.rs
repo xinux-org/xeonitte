@@ -290,6 +290,8 @@ impl SimpleComponent for KeyboardModel {
             model.expanders.push(expander);
         }
 
+        dbg!(&model);
+
         let widgets = view_output!();
         widgets.kbdstack.set_vhomogeneous(false);
         model.shortkbdbox = shortkbdbox;
