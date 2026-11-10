@@ -169,175 +169,199 @@ impl Component for AppModel {
                     relm4::gtk::glib::Propagation::Proceed
                 }
             },
-            gtk::Box {
-                set_hexpand: true,
-                set_vexpand: true,
-                set_halign: gtk::Align::Fill,
-                set_valign: gtk::Align::Fill,
-                set_orientation: gtk::Orientation::Vertical,
-                adw::HeaderBar {
-                    add_css_class: "flat",
-                    #[wrap(Some)]
-                    #[transition(Crossfade)]
-                    set_title_widget = match model.page {
-                        (StackPage::NoInternet) => {
-                            gtk::Label {
-                                #[watch]
-                                // Translators: Do NOT translate the '{}'
-                                // The string reads "{distribution name} Installer"
-                                set_label: &i18n_f("{} Installer", &[DISTRO_NAME])
+            adw::BreakpointBin {
+                add_breakpoint = adw::Breakpoint::new(
+                    adw::BreakpointCondition::new_length(
+                        adw::BreakpointConditionLengthType::MaxWidth,
+                        550.0,
+                        adw::LengthUnit::Px,
+                    )
+                ){
+                    add_setters: &[
+                        (&footer_box, "halign", gtk::Align::Center),
+                    ],
+                },
+                add_breakpoint = adw::Breakpoint::new(
+                    adw::BreakpointCondition::new_length(
+                        adw::BreakpointConditionLengthType::MinWidth,
+                        500.0,
+                        adw::LengthUnit::Px,
+                    )
+                ){
+                    add_setters: &[
+                        (&footer_box, "halign", gtk::Align::End),
+                    ],
+                },
+                #[wrap(Some)]
+                set_child = &gtk::Box {
+                    set_hexpand: true,
+                    set_vexpand: true,
+                    set_halign: gtk::Align::Fill,
+                    set_valign: gtk::Align::Fill,
+                    set_orientation: gtk::Orientation::Vertical,
+                    adw::HeaderBar {
+                        add_css_class: "flat",
+                        #[wrap(Some)]
+                        #[transition(Crossfade)]
+                        set_title_widget = match model.page {
+                            (StackPage::NoInternet) => {
+                                gtk::Label {
+                                    #[watch]
+                                    // Translators: Do NOT translate the '{}'
+                                    // The string reads "{distribution name} Installer"
+                                    set_label: &i18n_f("{} Installer", &[DISTRO_NAME])
+                                }
+                            },
+                            StackPage::Carousel => {
+                                adw::CarouselIndicatorDots {
+                                    set_halign: gtk::Align::Center,
+                                    set_hexpand: true,
+                                    set_carousel: Some(main_carousel)
+                                }
+                            },
+                            StackPage::Install => {
+                                gtk::Label {
+                                    #[watch]
+                                    set_label: &gettext("Installing…")
+                                }
+                            },
+                            StackPage::Finished => {
+                                gtk::Label {
+                                    #[watch]
+                                    set_label: &gettext("Installation Finished")
+                                }
+                            },
+                            StackPage::Error => {
+                                gtk::Label {
+                                    #[watch]
+                                    set_label: &gettext("Installation Failed")
+                                }
                             }
-                        },
+                        }
+                    },
+
+                    #[transition(SlideLeftRight)]
+                    match model.page {
                         StackPage::Carousel => {
-                            adw::CarouselIndicatorDots {
-                                set_halign: gtk::Align::Center,
-                                set_hexpand: true,
-                                set_carousel: Some(main_carousel)
+                            gtk::Overlay {
+                                gtk::ScrolledWindow {
+                                    set_margin_bottom: 70,
+                                    #[local_ref]
+                                    main_carousel -> adw::Carousel {
+                                        set_interactive: false,
+                                        set_halign: gtk::Align::Fill,
+                                        set_valign: gtk::Align::Fill,
+                                        set_hexpand: true,
+                                        set_vexpand: true,
+                                    },
+                                },
+
+                                add_overlay = &gtk::Revealer {
+                                    set_transition_type: gtk::RevealerTransitionType::Crossfade,
+                                    set_reveal_child: true,
+                                    set_halign: gtk::Align::Fill,
+                                    set_valign: gtk::Align::End,
+                                    add_css_class: "background",
+
+                                    #[name = "footer_box"]
+                                    gtk::Box{
+                                        set_spacing: 10,
+                                        set_margin_all: 18,
+                                        gtk::Button {
+                                            set_label: "Back",
+                                            set_can_focus: false,
+                                            set_can_target: true,
+                                            set_halign: gtk::Align::Start,
+                                            set_valign: gtk::Align::Center,
+                                            #[watch]
+                                            set_sensitive: model.can_go_back && model.current_page > 0,
+                                            connect_clicked[main_carousel, sender] => move |_| {
+                                                let i = adw::Carousel::position(&main_carousel) as u32;
+                                                if i > 0 {
+                                                    let w = main_carousel.nth_page(i-1);
+                                                    main_carousel.scroll_to(&w, true);
+                                                }
+                                                sender.input(AppMsg::ChangePage(i.saturating_sub(1)));
+                                            }
+                                        },
+                                        gtk::Button {
+                                            set_label: "Continue",
+                                            set_can_focus: false,
+                                            set_can_target: true,
+                                            add_css_class: "suggested-action",
+                                            #[watch]
+                                            set_sensitive: model.can_go_forward,
+                                            set_halign: gtk::Align::Start,
+                                            set_valign: gtk::Align::Center,
+                                            connect_clicked[main_carousel, sender] => move |_| {
+                                                let i = adw::Carousel::position(&main_carousel) as u32;
+                                                if i < main_carousel.n_pages().saturating_sub(1) {
+                                                    let w = main_carousel.nth_page(i+1);
+                                                    main_carousel.scroll_to(&w, true);
+                                                    sender.input(AppMsg::ChangePage(i + 1));
+                                                } else {
+                                                    sender.input(AppMsg::SetStackPage(StackPage::Install));
+                                                    sender.input(AppMsg::Install);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
-                        },
+                        }
                         StackPage::Install => {
-                            gtk::Label {
-                                #[watch]
-                                set_label: &gettext("Installing…")
-                            }
-                        },
+                            #[local]
+                            installpage -> gtk::ScrolledWindow {}
+                        }
                         StackPage::Finished => {
-                            gtk::Label {
-                                #[watch]
-                                set_label: &gettext("Installation Finished")
+                            gtk::ScrolledWindow {
+                                adw::Clamp {
+                                    gtk::Box {
+                                        set_hexpand: true,
+                                        set_vexpand: true,
+                                        set_valign: gtk::Align::Center,
+                                        set_orientation: gtk::Orientation::Vertical,
+                                        set_spacing: 30,
+                                        set_margin_all: 20,
+                                        gtk::Label {
+                                            add_css_class: "title-1",
+                                            #[watch]
+                                            set_label: &gettext("Finished!"),
+                                        },
+                                        gtk::Image {
+                                            add_css_class: "success",
+                                            set_icon_name: Some("emblem-ok-symbolic"),
+                                            set_pixel_size: 256,
+                                        },
+                                        gtk::Button {
+                                            add_css_class: "suggested-action",
+                                            add_css_class: "pill",
+                                            set_halign: gtk::Align::Center,
+                                            set_valign: gtk::Align::Center,
+                                            #[watch]
+                                            set_label: &gettext("Reboot"),
+                                            connect_clicked => move |_| {
+                                                let _ = Command::new("systemctl").arg("reboot").arg("-i").spawn();
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         },
                         StackPage::Error => {
-                            gtk::Label {
-                                #[watch]
-                                set_label: &gettext("Installation Failed")
+                            #[local]
+                            errorpage -> gtk::ScrolledWindow {}
+                        },
+                        StackPage::NoInternet => {
+                            adw::StatusPage {
+                                set_icon_name: Some("network-wireless-offline-symbolic"),
+                                set_title: &gettext("No Internet"),
+                                set_description: Some(&gettext("Please connect to the Internet to continue")),
                             }
-                        }
-                    }
-                },
-
-                #[transition(SlideLeftRight)]
-                match model.page {
-                    StackPage::Carousel => {
-                        gtk::Overlay {
-                            #[local_ref]
-                            main_carousel -> adw::Carousel {
-                                set_interactive: false,
-                                set_halign: gtk::Align::Fill,
-                                set_valign: gtk::Align::Fill,
-                                set_hexpand: true,
-                                set_vexpand: true,
-                            },
-                            add_overlay = &gtk::Revealer {
-                                set_transition_type: gtk::RevealerTransitionType::Crossfade,
-                                #[watch]
-                                set_reveal_child: model.can_go_back && model.current_page > 0,
-                                set_halign: gtk::Align::Start,
-                                set_valign: gtk::Align::Center,
-                                set_margin_all: 20,
-                                gtk::Button {
-                                    set_can_focus: false,
-                                    set_can_target: true,
-                                    set_height_request: 40,
-                                    set_width_request: 40,
-                                    add_css_class: "circular",
-                                    set_halign: gtk::Align::Start,
-                                    set_valign: gtk::Align::Center,
-                                    set_icon_name: "go-previous-symbolic",
-                                    connect_clicked[main_carousel, sender] => move |_| {
-                                        let i = adw::Carousel::position(&main_carousel) as u32;
-                                        if i > 0 {
-                                            let w = main_carousel.nth_page(i-1);
-                                            main_carousel.scroll_to(&w, true);
-                                        }
-                                        sender.input(AppMsg::ChangePage(i.saturating_sub(1)));
-                                    }
-                                }
-                            },
-                            add_overlay = &gtk::Revealer {
-                                set_transition_type: gtk::RevealerTransitionType::Crossfade,
-                                #[watch]
-                                set_reveal_child: model.can_go_forward,
-                                set_halign: gtk::Align::End,
-                                set_valign: gtk::Align::Center,
-                                set_margin_all: 20,
-                                gtk::Button {
-                                    set_can_focus: false,
-                                    set_can_target: true,
-                                    set_height_request: 40,
-                                    set_width_request: 40,
-                                    #[watch]
-                                    set_css_classes: if model.current_page.eq(&main_carousel.n_pages().saturating_sub(1)) { &["circular", "suggested-action"] } else { &["circular"] },
-                                    set_halign: gtk::Align::Start,
-                                    set_valign: gtk::Align::Center,
-                                    set_icon_name: "go-next-symbolic",
-                                    connect_clicked[main_carousel, sender] => move |_| {
-                                        let i = adw::Carousel::position(&main_carousel) as u32;
-                                        if i < main_carousel.n_pages().saturating_sub(1) {
-                                            let w = main_carousel.nth_page(i+1);
-                                            main_carousel.scroll_to(&w, true);
-                                            sender.input(AppMsg::ChangePage(i + 1));
-                                        } else {
-                                            sender.input(AppMsg::SetStackPage(StackPage::Install));
-                                            sender.input(AppMsg::Install);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    StackPage::Install => {
-                        #[local]
-                        installpage -> gtk::ScrolledWindow {}
-                    }
-                    StackPage::Finished => {
-                        gtk::ScrolledWindow {
-                            adw::Clamp {
-                                gtk::Box {
-                                    set_hexpand: true,
-                                    set_vexpand: true,
-                                    set_valign: gtk::Align::Center,
-                                    set_orientation: gtk::Orientation::Vertical,
-                                    set_spacing: 30,
-                                    set_margin_all: 20,
-                                    gtk::Label {
-                                        add_css_class: "title-1",
-                                        #[watch]
-                                        set_label: &gettext("Finished!"),
-                                    },
-                                    gtk::Image {
-                                        add_css_class: "success",
-                                        set_icon_name: Some("emblem-ok-symbolic"),
-                                        set_pixel_size: 256,
-                                    },
-                                    gtk::Button {
-                                        add_css_class: "suggested-action",
-                                        add_css_class: "pill",
-                                        set_halign: gtk::Align::Center,
-                                        set_valign: gtk::Align::Center,
-                                        #[watch]
-                                        set_label: &gettext("Reboot"),
-                                        connect_clicked => move |_| {
-                                            let _ = Command::new("systemctl").arg("reboot").arg("-i").spawn();
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    StackPage::Error => {
-                        #[local]
-                        errorpage -> gtk::ScrolledWindow {}
-                    },
-                    StackPage::NoInternet => {
-                        adw::StatusPage {
-                            set_icon_name: Some("network-wireless-offline-symbolic"),
-                            set_title: &gettext("No Internet"),
-                            set_description: Some(&gettext("Please connect to the Internet to continue")),
                         }
                     }
                 }
-            }
+            },
         }
     }
 
