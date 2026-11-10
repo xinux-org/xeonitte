@@ -59,7 +59,7 @@ impl SimpleComponent for WelcomeModel {
         root: Self::Root,
         sender: ComponentSender<Self>,
     ) -> ComponentParts<Self> {
-        let mut languages = get_languages().into_iter().collect::<Vec<_>>();
+        let mut languages: Vec<Locale> = get_languages().into_iter().collect();
         languages.sort_by(|a, b| a.name.cmp(&b.name));
 
         let formatted_languages = WelcomeModel::format_languages(languages.clone());
@@ -72,7 +72,6 @@ impl SimpleComponent for WelcomeModel {
                         .iter()
                         .nth(index.current_index())
                         .and_then(|x| {
-                            dbg!(&x);
                             languages.iter().find_map(|locale| {
                                 locale.variants.iter().find(|utf| utf.title == *x)
                             })
