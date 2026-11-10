@@ -285,8 +285,6 @@ msgid "Confirm root password"
 msgstr "Подтвердите пароль root"
 
 #: src/ui/welcome/welcome_model.rs:47
-#, fuzzy
-#| msgid "Choose a language"
 msgid "Select a language"
 msgstr "Выберите язык"
 

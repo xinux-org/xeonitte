@@ -102,23 +102,24 @@ impl SimpleComponent for WelcomeModel {
         self.reset();
         match msg {
             WelcomeMsg::SetSelected(lang) => {
-                dbg!("Selected language: {:?}", &lang);
+                info!("Selected language: {:?}", &lang);
                 // TODO: Change output and input signal values with SharedState
                 sender.output(AppMsg::SetLanguageConfig(lang.clone()));
                 sender.output(AppMsg::SetCanGoForward(lang.is_some()));
 
                 self.selectiongroup.set_active(lang.is_none());
                 self.selected = lang;
-                let x = self
-                    .selected
-                    .as_deref()
-                    .unwrap_or_default()
-                    .split('.')
-                    .next()
-                    .unwrap_or_default();
 
-                dbg!(&x);
-                gettextrs::setlocale(gettextrs::LocaleCategory::LcAll, x);
+                // change gnome locale
+                gettextrs::setlocale(
+                    gettextrs::LocaleCategory::LcAll,
+                    self.selected
+                        .as_deref()
+                        .unwrap_or_default()
+                        .split('.')
+                        .next()
+                        .unwrap_or_default(),
+                );
             }
             WelcomeMsg::CheckSelected => {
                 trace!("WelcomeMsg::CheckSelected {}", self.selected.is_some());
