@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 18:11+0500\n"
+"POT-Creation-Date: 2026-11-10 14:14+0500\n"
 "PO-Revision-Date: 2025-09-26 13:55+0500\n"
 "Last-Translator: BeMeritus <bemerituss@gmail.com>\n"
 "Language-Team: \n"
@@ -61,12 +61,10 @@ msgid "Test the Keyboard Layout"
 msgstr "Проверьте раскладку клавиатуры"
 
 #: src/ui/keyboard/keyboard_model.rs:111 src/ui/timezone/timezone_model.rs:92
-#: src/ui/welcome/welcome_model.rs:102
 msgid "Show less"
 msgstr "Показать меньше"
 
 #: src/ui/keyboard/keyboard_model.rs:111 src/ui/timezone/timezone_model.rs:92
-#: src/ui/welcome/welcome_model.rs:102
 msgid "Show all"
 msgstr "Показать все"
 
@@ -100,7 +98,7 @@ msgstr "Зашифруйте диск с помощью LUKS"
 msgid "Encryption Password"
 msgstr "Пароль шифрования"
 
-#: src/ui/partitions/luks_password.rs:54 src/ui/user/user_model.rs:166
+#: src/ui/partitions/luks_password.rs:54 src/ui/user/user_model.rs:168
 msgid "Confirm Password"
 msgstr "Подтвердите пароль"
 
@@ -244,50 +242,52 @@ msgstr "Весь диск будет отформатирован."
 msgid "User"
 msgstr "Пользователь"
 
-#: src/ui/summary/summary_model.rs:136 src/ui/user/user_model.rs:112
+#: src/ui/summary/summary_model.rs:136 src/ui/user/user_model.rs:114
 msgid "Name"
 msgstr "Имя"
 
-#: src/ui/summary/summary_model.rs:154 src/ui/user/user_model.rs:122
+#: src/ui/summary/summary_model.rs:154 src/ui/user/user_model.rs:124
 msgid "Username"
 msgstr "Имя пользователя"
 
-#: src/ui/summary/summary_model.rs:172 src/ui/user/user_model.rs:182
+#: src/ui/summary/summary_model.rs:172 src/ui/user/user_model.rs:184
 msgid "Hostname"
 msgstr "Имя хоста"
 
-#: src/ui/user/user_model.rs:104
+#: src/ui/user/user_model.rs:106
 msgid "Create a new user"
 msgstr "Создать нового пользователя"
 
-#: src/ui/user/user_model.rs:156
+#: src/ui/user/user_model.rs:158
 msgid "Password"
 msgstr "Пароль"
 
-#: src/ui/user/user_model.rs:204
+#: src/ui/user/user_model.rs:206
+msgid "Log in automatically"
+msgstr "Войти автоматически"
+
+#: src/ui/user/user_model.rs:213
+msgid "Use the same password for root account"
+msgstr ""
+
+#: src/ui/user/user_model.rs:222
 #, fuzzy
 #| msgid "Root password"
 msgid "Root user's password"
 msgstr "Пароль root"
 
-#: src/ui/user/user_model.rs:210
+#: src/ui/user/user_model.rs:228
 msgid "Root password"
 msgstr "Пароль root"
 
-#: src/ui/user/user_model.rs:220
+#: src/ui/user/user_model.rs:238
 msgid "Confirm root password"
 msgstr "Подтвердите пароль root"
 
-#: src/ui/user/user_model.rs:230
-msgid "Log in automatically"
-msgstr "Войти автоматически"
-
-#: src/ui/welcome/welcome_model.rs:44
-msgid "Welcome!"
-msgstr "Добро пожаловать!"
-
-#: src/ui/welcome/welcome_model.rs:49
-msgid "Choose a language"
+#: src/ui/welcome/welcome_model.rs:47
+#, fuzzy
+#| msgid "Choose a language"
+msgid "Select a language"
 msgstr "Выберите язык"
 
 #: src/ui/quitdialog.rs:21
@@ -461,6 +461,9 @@ msgstr ""
 #: src/utils/flow.rs:118
 msgid "Install the Zen kernel"
 msgstr ""
+
+#~ msgid "Welcome!"
+#~ msgstr "Добро пожаловать!"
 
 #~ msgid "Install Xinux"
 #~ msgstr "Установить Xinux"

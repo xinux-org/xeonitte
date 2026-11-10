@@ -109,15 +109,16 @@ impl SimpleComponent for WelcomeModel {
 
                 self.selectiongroup.set_active(lang.is_none());
                 self.selected = lang;
-                gettextrs::setlocale(
-                    gettextrs::LocaleCategory::LcAll,
-                    self.selected
-                        .as_deref()
-                        .unwrap_or_default()
-                        .split('.')
-                        .next()
-                        .unwrap_or_default(),
-                );
+                let x = self
+                    .selected
+                    .as_deref()
+                    .unwrap_or_default()
+                    .split('.')
+                    .next()
+                    .unwrap_or_default();
+
+                dbg!(&x);
+                gettextrs::setlocale(gettextrs::LocaleCategory::LcAll, x);
             }
             WelcomeMsg::CheckSelected => {
                 trace!("WelcomeMsg::CheckSelected {}", self.selected.is_some());

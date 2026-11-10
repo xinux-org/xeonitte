@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 18:11+0500\n"
+"POT-Creation-Date: 2026-11-10 14:14+0500\n"
 "PO-Revision-Date: 2025-09-26 13:40+0500\n"
 "Last-Translator: BeMeritus <bemerituss@gmail.com>\n"
 "Language-Team: \n"
@@ -61,12 +61,10 @@ msgid "Test the Keyboard Layout"
 msgstr "Klaviatura maketini sinash"
 
 #: src/ui/keyboard/keyboard_model.rs:111 src/ui/timezone/timezone_model.rs:92
-#: src/ui/welcome/welcome_model.rs:102
 msgid "Show less"
 msgstr "Kamroq ko‘rsatish"
 
 #: src/ui/keyboard/keyboard_model.rs:111 src/ui/timezone/timezone_model.rs:92
-#: src/ui/welcome/welcome_model.rs:102
 msgid "Show all"
 msgstr "Hammasini ko‘rsatish"
 
@@ -100,7 +98,7 @@ msgstr "Diskni LUKS bilan shifrlash"
 msgid "Encryption Password"
 msgstr "Shifr paroli"
 
-#: src/ui/partitions/luks_password.rs:54 src/ui/user/user_model.rs:166
+#: src/ui/partitions/luks_password.rs:54 src/ui/user/user_model.rs:168
 msgid "Confirm Password"
 msgstr "Parolni tasdiqlash"
 
@@ -244,50 +242,52 @@ msgstr "Butun disk formatlanadi"
 msgid "User"
 msgstr "Foydalanuvchi"
 
-#: src/ui/summary/summary_model.rs:136 src/ui/user/user_model.rs:112
+#: src/ui/summary/summary_model.rs:136 src/ui/user/user_model.rs:114
 msgid "Name"
 msgstr "Nomi"
 
-#: src/ui/summary/summary_model.rs:154 src/ui/user/user_model.rs:122
+#: src/ui/summary/summary_model.rs:154 src/ui/user/user_model.rs:124
 msgid "Username"
 msgstr "Foydalanuvchi nomi"
 
-#: src/ui/summary/summary_model.rs:172 src/ui/user/user_model.rs:182
+#: src/ui/summary/summary_model.rs:172 src/ui/user/user_model.rs:184
 msgid "Hostname"
 msgstr "Host nomi"
 
-#: src/ui/user/user_model.rs:104
+#: src/ui/user/user_model.rs:106
 msgid "Create a new user"
 msgstr "Yangi foydalanuvchi yaratish"
 
-#: src/ui/user/user_model.rs:156
+#: src/ui/user/user_model.rs:158
 msgid "Password"
 msgstr "Parol"
 
-#: src/ui/user/user_model.rs:204
+#: src/ui/user/user_model.rs:206
+msgid "Log in automatically"
+msgstr "Avtomatik kirish"
+
+#: src/ui/user/user_model.rs:213
+msgid "Use the same password for root account"
+msgstr ""
+
+#: src/ui/user/user_model.rs:222
 #, fuzzy
 #| msgid "Root password"
 msgid "Root user's password"
 msgstr "Root parol"
 
-#: src/ui/user/user_model.rs:210
+#: src/ui/user/user_model.rs:228
 msgid "Root password"
 msgstr "Root parol"
 
-#: src/ui/user/user_model.rs:220
+#: src/ui/user/user_model.rs:238
 msgid "Confirm root password"
 msgstr "Root parolini tasdiqlash"
 
-#: src/ui/user/user_model.rs:230
-msgid "Log in automatically"
-msgstr "Avtomatik kirish"
-
-#: src/ui/welcome/welcome_model.rs:44
-msgid "Welcome!"
-msgstr "Xush kelibsiz!"
-
-#: src/ui/welcome/welcome_model.rs:49
-msgid "Choose a language"
+#: src/ui/welcome/welcome_model.rs:47
+#, fuzzy
+#| msgid "Choose a language"
+msgid "Select a language"
 msgstr "Tilni tanlang"
 
 #: src/ui/quitdialog.rs:21
@@ -459,6 +459,9 @@ msgstr ""
 #: src/utils/flow.rs:118
 msgid "Install the Zen kernel"
 msgstr ""
+
+#~ msgid "Welcome!"
+#~ msgstr "Xush kelibsiz!"
 
 #~ msgid "Install Xinux"
 #~ msgstr "Xinux o‘rnatish"

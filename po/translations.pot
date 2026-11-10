@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 18:11+0500\n"
+"POT-Creation-Date: 2026-11-10 14:14+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -58,12 +58,10 @@ msgid "Test the Keyboard Layout"
 msgstr ""
 
 #: src/ui/keyboard/keyboard_model.rs:111 src/ui/timezone/timezone_model.rs:92
-#: src/ui/welcome/welcome_model.rs:102
 msgid "Show less"
 msgstr ""
 
 #: src/ui/keyboard/keyboard_model.rs:111 src/ui/timezone/timezone_model.rs:92
-#: src/ui/welcome/welcome_model.rs:102
 msgid "Show all"
 msgstr ""
 
@@ -95,7 +93,7 @@ msgstr ""
 msgid "Encryption Password"
 msgstr ""
 
-#: src/ui/partitions/luks_password.rs:54 src/ui/user/user_model.rs:166
+#: src/ui/partitions/luks_password.rs:54 src/ui/user/user_model.rs:168
 msgid "Confirm Password"
 msgstr ""
 
@@ -239,48 +237,48 @@ msgstr ""
 msgid "User"
 msgstr ""
 
-#: src/ui/summary/summary_model.rs:136 src/ui/user/user_model.rs:112
+#: src/ui/summary/summary_model.rs:136 src/ui/user/user_model.rs:114
 msgid "Name"
 msgstr ""
 
-#: src/ui/summary/summary_model.rs:154 src/ui/user/user_model.rs:122
+#: src/ui/summary/summary_model.rs:154 src/ui/user/user_model.rs:124
 msgid "Username"
 msgstr ""
 
-#: src/ui/summary/summary_model.rs:172 src/ui/user/user_model.rs:182
+#: src/ui/summary/summary_model.rs:172 src/ui/user/user_model.rs:184
 msgid "Hostname"
 msgstr ""
 
-#: src/ui/user/user_model.rs:104
+#: src/ui/user/user_model.rs:106
 msgid "Create a new user"
 msgstr ""
 
-#: src/ui/user/user_model.rs:156
+#: src/ui/user/user_model.rs:158
 msgid "Password"
 msgstr ""
 
-#: src/ui/user/user_model.rs:204
-msgid "Root user's password"
-msgstr ""
-
-#: src/ui/user/user_model.rs:210
-msgid "Root password"
-msgstr ""
-
-#: src/ui/user/user_model.rs:220
-msgid "Confirm root password"
-msgstr ""
-
-#: src/ui/user/user_model.rs:230
+#: src/ui/user/user_model.rs:206
 msgid "Log in automatically"
 msgstr ""
 
-#: src/ui/welcome/welcome_model.rs:44
-msgid "Welcome!"
+#: src/ui/user/user_model.rs:213
+msgid "Use the same password for root account"
 msgstr ""
 
-#: src/ui/welcome/welcome_model.rs:49
-msgid "Choose a language"
+#: src/ui/user/user_model.rs:222
+msgid "Root user's password"
+msgstr ""
+
+#: src/ui/user/user_model.rs:228
+msgid "Root password"
+msgstr ""
+
+#: src/ui/user/user_model.rs:238
+msgid "Confirm root password"
+msgstr ""
+
+#: src/ui/welcome/welcome_model.rs:47
+msgid "Select a language"
 msgstr ""
 
 #: src/ui/quitdialog.rs:21
