@@ -30,10 +30,7 @@ impl Devices {
     // importable module: `{ disko.devices = { ... }; }`.
     pub fn to_nix_module(&self) -> String {
         let mut body = format!("  disko.devices = {};\n", indent(&self.to_nix_devices(), 1));
-        if self.has_luks() {
-            // boot.initrd.systemd.enable - saves passphrase to keyring and open all encrypted partitions
-            body.push_str("  boot.initrd.systemd.enable = true;\n");
-        }
+
         format!("{{\n{body}}}\n")
     }
 

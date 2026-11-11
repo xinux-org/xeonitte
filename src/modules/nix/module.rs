@@ -1,14 +1,7 @@
 use super::{expr::NixExpr, render::render_at};
 
 // A composable NixOS module — a flat list of dotted option paths and their values.
-//
-// Renders as:
-// ```nix
-// {
-//   disko.devices = { ... };
-//   boot.initrd.systemd.enable = true;
-// }
-// ```
+
 #[derive(Debug, Clone, Default)]
 pub struct NixModule {
     entries: Vec<(String, NixExpr)>,

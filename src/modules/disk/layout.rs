@@ -164,9 +164,7 @@ impl DiskLayout {
             .any(|p| p.content.as_ref().is_some_and(Content::has_luks));
 
         let mut module = NixModule::new().set("disko.devices", self.to_nix());
-        if has_luks {
-            module = module.set("boot.initrd.systemd.enable", NixExpr::Bool(true));
-        }
+
         module
     }
 
@@ -247,9 +245,6 @@ pub fn layouts_to_nix_module(layouts: &[DiskLayout]) -> NixModule {
     let devices = NixExpr::Attrs(BTreeMap::from([("disk".into(), NixExpr::Attrs(disks))]));
 
     let mut module = NixModule::new().set("disko.devices", devices);
-    if has_luks {
-        module = module.set("boot.initrd.systemd.enable", NixExpr::Bool(true));
-    }
     module
 }
 
