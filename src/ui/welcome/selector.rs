@@ -5,6 +5,7 @@ use std::convert::identity;
 
 #[derive(Debug)]
 pub struct SelectorRow {
+    isDefault: bool,
     content: String,
     group: gtk::ToggleButton,
 }
@@ -25,6 +26,7 @@ impl FactoryComponent for SelectorRow {
     view! {
         #[root]
         gtk::ToggleButton {
+            set_active: self.isDefault,
             set_group: Some(&self.group),
             set_has_frame: false,
             add_css_class: "selector-row",
@@ -40,7 +42,7 @@ impl FactoryComponent for SelectorRow {
             gtk::Label {
                 #[watch]
                 set_label: &self.content,
-                set_width_chars: 3,
+                // set_width_chars: 3,
                 set_halign: gtk::Align::Start,
             },
 
@@ -57,22 +59,27 @@ pub struct Selector {
     rows: FactoryVecDeque<SelectorRow>,
 }
 
+pub struct SelectorInit {
+    pub default: Option<String>,
+    pub vec: Vec<String>,
+}
+
 #[relm4::component(pub)]
 impl SimpleComponent for Selector {
-    type Init = Vec<String>;
+    type Init = SelectorInit;
     type Input = ();
     type Output = SelectorRowOutput;
 
     view! {
         adw::PreferencesGroup {
             gtk::ScrolledWindow {
-                set_height_request: 300,
+                set_height_request: 314,
                 add_css_class: "rounded-scroll",
 
                 #[local_ref]
                 rows_box -> gtk::Box {
                     set_orientation: gtk::Orientation::Vertical,
-                    set_spacing: 1,
+                    // set_spacing: 1,
                     set_hexpand: true,
                     set_overflow: gtk::Overflow::Hidden,
                     add_css_class: "selector",
@@ -93,11 +100,12 @@ impl SimpleComponent for Selector {
             .launch(gtk::Box::default())
             .forward(sender.output_sender(), identity);
 
-        let group = gtk::ToggleButton::default();
-        for row in init {
+        // add rows to the selector component's factory
+        for row in init.vec {
             rows.guard().push_back(SelectorRow {
+                isDefault: init.default.clone().is_some_and(|value| value == row),
                 content: row,
-                group: group.clone(),
+                group: gtk::ToggleButton::default(),
             });
         }
 

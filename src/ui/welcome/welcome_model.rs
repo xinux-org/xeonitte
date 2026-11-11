@@ -1,4 +1,4 @@
-use crate::ui::welcome::selector::{Selector, SelectorRowOutput};
+use crate::ui::welcome::selector::{Selector, SelectorInit, SelectorRowOutput};
 use crate::utils::language::{Locale, LocaleUtf};
 use crate::{ui::window::AppMsg, utils::language::get_languages};
 use adw::prelude::*;
@@ -59,13 +59,17 @@ impl SimpleComponent for WelcomeModel {
         root: Self::Root,
         sender: ComponentSender<Self>,
     ) -> ComponentParts<Self> {
-        let mut languages: Vec<Locale> = get_languages().into_iter().collect();
+        let default_language = String::from("uz_UZ.UTF-8");
+        let mut languages: Vec<Locale> = get_languages();
         languages.sort_by(|a, b| a.name.cmp(&b.name));
 
         let formatted_languages = WelcomeModel::format_languages(languages.clone());
 
         let languages_component = Selector::builder()
-            .launch(formatted_languages.clone())
+            .launch(SelectorInit {
+                default: default_language.clone().into(),
+                vec: formatted_languages.clone(),
+            })
             .forward(sender.input_sender(), move |msg| match msg {
                 SelectorRowOutput::Select(index) => {
                     let selected = formatted_languages
@@ -85,7 +89,7 @@ impl SimpleComponent for WelcomeModel {
 
         let model = WelcomeModel {
             showall: false,
-            default_language: "uz_UZ.UTF-8".into(),
+            default_language,
             selected: None,
             selectiongroup: gtk::CheckButton::new(),
             expanders: vec![],

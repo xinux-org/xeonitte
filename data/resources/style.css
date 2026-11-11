@@ -25,7 +25,7 @@
 
 @media (prefers-color-scheme: light) {
     :root{
-        --selector-bg-color: rgba(0,0,0,0.15);
+        --selector-bg-color: rgba(0,0,0,0.05);
         --selector-row-bg-color: #fff;
     }
     .rounded-scroll > viewport {
