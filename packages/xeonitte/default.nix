@@ -30,6 +30,7 @@
   zlib,
   disko,
   cryptsetup,
+  aws-lc,
   ...
 }:
 stdenv.mkDerivation {
@@ -76,6 +77,7 @@ stdenv.mkDerivation {
     systemd.dev
     dbus.dev
     zlib
+    aws-lc
   ];
 
   postFixup = ''
