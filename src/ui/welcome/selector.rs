@@ -42,7 +42,6 @@ impl FactoryComponent for SelectorRow {
             gtk::Label {
                 #[watch]
                 set_label: &self.content,
-                // set_width_chars: 3,
                 set_halign: gtk::Align::Start,
             },
         }
