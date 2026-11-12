@@ -41,7 +41,6 @@ impl SimpleComponent for WelcomeModel {
                     set_valign: gtk::Align::Center,
                     set_orientation: gtk::Orientation::Vertical,
                     set_spacing: 20,
-                    set_margin_all: 20,
                     gtk::Label {
                         #[watch]
                         set_label: &gettext("Select a language"),
@@ -63,11 +62,12 @@ impl SimpleComponent for WelcomeModel {
         let mut languages: Vec<Locale> = get_languages();
         languages.sort_by(|a, b| a.name.cmp(&b.name));
 
-        let formatted_languages = WelcomeModel::format_languages(languages.clone());
+        let (default_index, formatted_languages) =
+            WelcomeModel::format_languages(default_language.clone().into(), languages.clone());
 
         let languages_component = Selector::builder()
             .launch(SelectorInit {
-                default: default_language.clone().into(),
+                default: default_index,
                 vec: formatted_languages.clone(),
             })
             .forward(sender.input_sender(), move |msg| match msg {
@@ -134,7 +134,10 @@ impl SimpleComponent for WelcomeModel {
 }
 
 impl WelcomeModel {
-    pub fn format_languages(languages: Vec<Locale>) -> Vec<String> {
+    pub fn format_languages(
+        default_utf_code: Option<String>,
+        languages: Vec<Locale>,
+    ) -> (Option<usize>, Vec<String>) {
         // List of 6 popular languages
         let default_langs_codes = ["uz_UZ.UTF-8", "en_US.UTF-8", "ru_RU.UTF-8"].map(String::from);
 
@@ -165,11 +168,16 @@ impl WelcomeModel {
 
         mutable_languages.append(&mut without_default_langs);
 
-        mutable_languages
+        let variants = mutable_languages
             .iter()
             .map(|locale| locale.variants.clone())
-            .flatten()
-            .map(|utf| utf.title)
-            .collect::<Vec<_>>()
+            .flatten();
+
+        let titles: Vec<String> = variants.clone().map(|utf| utf.title).collect();
+
+        let default_index =
+            default_utf_code.and_then(|code| variants.clone().position(|utf| utf.code == code));
+
+        (default_index, titles)
     }
 }

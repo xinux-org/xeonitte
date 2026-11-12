@@ -59,7 +59,7 @@ pub struct Selector {
 }
 
 pub struct SelectorInit {
-    pub default: Option<String>,
+    pub default: Option<usize>,
     pub vec: Vec<String>,
 }
 
@@ -100,13 +100,14 @@ impl SimpleComponent for Selector {
 
         // add rows to the selector component's factory
         let group = gtk::ToggleButton::new();
-        for row in init.vec {
+        dbg!(&init.default);
+        init.vec.iter().enumerate().for_each(|(index, row)| {
             rows.guard().push_back(SelectorRow {
-                is_default: init.default.clone().is_some_and(|value| value == row),
-                content: row,
+                is_default: init.default.clone().is_some_and(|value| value == index),
+                content: row.into(),
                 group: group.clone(),
             });
-        }
+        });
 
         // initializing model
         let model = Selector { rows };
