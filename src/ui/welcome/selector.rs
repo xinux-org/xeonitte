@@ -1,4 +1,4 @@
-use relm4::factory::{DynamicIndex, FactoryComponent, FactorySender, FactoryVecDeque, Position};
+use relm4::factory::{DynamicIndex, FactoryComponent, FactorySender, FactoryVecDeque};
 use relm4::{ComponentParts, ComponentSender, SimpleComponent};
 use relm4::{adw, adw::prelude::*, gtk};
 use std::convert::identity;
