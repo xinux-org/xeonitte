@@ -1,11 +1,11 @@
-use relm4::factory::{DynamicIndex, FactoryComponent, FactorySender, FactoryVecDeque};
+use relm4::factory::{DynamicIndex, FactoryComponent, FactorySender, FactoryVecDeque, Position};
 use relm4::{ComponentParts, ComponentSender, SimpleComponent};
 use relm4::{adw, adw::prelude::*, gtk};
 use std::convert::identity;
 
 #[derive(Debug)]
 pub struct SelectorRow {
-    isDefault: bool,
+    is_default: bool,
     content: String,
     group: gtk::ToggleButton,
 }
@@ -26,7 +26,7 @@ impl FactoryComponent for SelectorRow {
     view! {
         #[root]
         gtk::ToggleButton {
-            set_active: self.isDefault,
+            set_active: self.is_default,
             set_group: Some(&self.group),
             set_has_frame: false,
             add_css_class: "selector-row",
@@ -45,7 +45,6 @@ impl FactoryComponent for SelectorRow {
                 // set_width_chars: 3,
                 set_halign: gtk::Align::Start,
             },
-
         }
     }
 
@@ -73,17 +72,16 @@ impl SimpleComponent for Selector {
     view! {
         adw::PreferencesGroup {
             gtk::ScrolledWindow {
-                set_height_request: 314,
+                set_height_request: 384,
                 add_css_class: "rounded-scroll",
 
                 #[local_ref]
                 rows_box -> gtk::Box {
                     set_orientation: gtk::Orientation::Vertical,
-                    // set_spacing: 1,
+                    set_spacing: 1,
                     set_hexpand: true,
                     set_overflow: gtk::Overflow::Hidden,
                     add_css_class: "selector",
-                    add_css_class: "selector-bg",
                 },
             }
         }
@@ -101,11 +99,12 @@ impl SimpleComponent for Selector {
             .forward(sender.output_sender(), identity);
 
         // add rows to the selector component's factory
+        let group = gtk::ToggleButton::new();
         for row in init.vec {
             rows.guard().push_back(SelectorRow {
-                isDefault: init.default.clone().is_some_and(|value| value == row),
+                is_default: init.default.clone().is_some_and(|value| value == row),
                 content: row,
-                group: gtk::ToggleButton::default(),
+                group: group.clone(),
             });
         }
 

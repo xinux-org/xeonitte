@@ -3,19 +3,34 @@
   --selector-row-bg-color: #38383C;
 }
 
-.selector-bg {
+/* make the components inside our custom component to not use any default spacings */
+.selector * {
+    padding: 0;
+    margin: 0;
+    font-size: 0;
+    font-weight: 0;
+    line-height: 0;
+}
+
+.selector {
     background-color: var(--selector-bg-color);
 }
 
 .selector-row {
     background-color: var(--selector-row-bg-color);
     border-radius: 0%;
-    font-weight: 590;
-    padding: 10px;
+    padding: 15px;
 }
 
 .selector-row:checked {
     background-color: var(--accent-bg-color);
+}
+
+.selector-row label {
+    font-size: 18px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 120%;
 }
 
 .rounded-scroll > viewport {
