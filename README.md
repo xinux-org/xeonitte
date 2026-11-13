@@ -37,9 +37,6 @@ just install
 # Run
 just run
 
-# Or one time build.
-nix build --show--trace
-
 # Optional. Generate translation words from /po/POTFILES.in if needed.
 just trans
 ```
