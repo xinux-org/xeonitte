@@ -1,6 +1,6 @@
 :root {
-  --selector-bg-color: rgba(255,255,255,0.15);
-  --selector-row-bg-color: #38383C;
+    --selector-bg-color: rgba(255, 255, 255, 0.15);
+    --selector-row-bg-color: #38383c;
 }
 
 /* make the components inside our custom component to not use any default spacings */
@@ -39,8 +39,8 @@
 }
 
 @media (prefers-color-scheme: light) {
-    :root{
-        --selector-bg-color: rgba(0,0,0,0.05);
+    :root {
+        --selector-bg-color: rgba(0, 0, 0, 0.05);
         --selector-row-bg-color: #fff;
     }
     .rounded-scroll > viewport {
