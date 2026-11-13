@@ -84,7 +84,6 @@ impl SimpleComponent for Selector {
                 },
             }
         }
-
     }
 
     fn init(
@@ -99,7 +98,6 @@ impl SimpleComponent for Selector {
 
         // add rows to the selector component's factory
         let group = gtk::ToggleButton::new();
-        dbg!(&init.default);
         init.vec.iter().enumerate().for_each(|(index, row)| {
             rows.guard().push_back(SelectorRow {
                 is_default: init.default.clone().is_some_and(|value| value == index),
