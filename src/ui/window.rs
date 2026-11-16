@@ -685,7 +685,9 @@ impl Component for AppModel {
                 }
                 if index > 0 {
                     sender.input(AppMsg::SetCanGoForward(true));
-                    sender.input(AppMsg::ChangePage((index - 1) as u32));
+                    if self.current_page as usize >= index {
+                        sender.input(AppMsg::ChangePage((index - 1) as u32));
+                    }
                 } else {
                     sender.input(AppMsg::ChangePage(0));
                 }
