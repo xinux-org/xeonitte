@@ -43,7 +43,6 @@ use std::{
 #[tracker::track]
 pub struct AppModel {
     config: Flow,
-    installconfig: Option<Flow>,
     page: StackPage,
     #[tracker::no_eq]
     welcome: Controller<WelcomeModel>,
@@ -456,7 +455,6 @@ impl Component for AppModel {
         let model = AppModel {
             page: startpage,
             config: Flow::Init,
-            installconfig: None,
             welcome: welcomepage,
             keyboard: keyboardpage,
             timezone: timezonepage,
@@ -581,7 +579,7 @@ impl Component for AppModel {
                 trace!("Flow: {:?}", flow);
 
                 self.page = page;
-                self.installconfig = flow.into();
+                self.config = flow;
                 let mut next_steps = flow.steps();
                 let index = if flow == Flow::Init {
                     1
@@ -730,30 +728,26 @@ impl Component for AppModel {
             }
             AppMsg::Install => {
                 debug!("Installing!");
-                if let Some(config) = &self.installconfig {
-                    self.installworker.emit(InstallAsyncMsg::Install(
-                        (*config).into(),
-                        self.languageconfig.clone(),
-                        self.timezoneconfig.clone(),
-                        self.keyboardconfig.clone(),
-                        Box::new(self.partitionconfig.clone()),
-                        Box::new(self.userconfig.clone()),
-                        self.listconfig.clone(),
-                        config.config_type(),
-                        config.imperative_timezone(),
-                        self.diskoconfig.clone(),
-                    ));
-                }
+                self.installworker.emit(InstallAsyncMsg::Install(
+                    self.config.into(),
+                    self.languageconfig.clone(),
+                    self.timezoneconfig.clone(),
+                    self.keyboardconfig.clone(),
+                    Box::new(self.partitionconfig.clone()),
+                    Box::new(self.userconfig.clone()),
+                    self.listconfig.clone(),
+                    self.config.config_type(),
+                    self.config.imperative_timezone(),
+                    self.diskoconfig.clone(),
+                ));
             }
             AppMsg::FinishInstall => {
                 debug!("Finishing install!");
-                if let Some(config) = &self.installconfig {
-                    self.installworker.emit(InstallAsyncMsg::FinishInstall(
-                        self.timezoneconfig.clone(),
-                        config.imperative_timezone(),
-                        vec![],
-                    ));
-                }
+                self.installworker.emit(InstallAsyncMsg::FinishInstall(
+                    self.timezoneconfig.clone(),
+                    self.config.imperative_timezone(),
+                    vec![],
+                ));
             }
             AppMsg::RunNextCommand => {
                 debug!("Running next postinstall command");
