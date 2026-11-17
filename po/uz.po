@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 16:44+0500\n"
+"POT-Creation-Date: 2026-11-17 17:34+0500\n"
 "PO-Revision-Date: 2026-10-27 17:02+0500\n"
 "Last-Translator: BeMeritus <bemerituss@gmail.com>\n"
 "Language-Team: \n"
@@ -305,7 +305,7 @@ msgstr "Root parol"
 msgid "Confirm root password"
 msgstr "Root parolini tasdiqlash"
 
-#: src/ui/welcome/welcome_model.rs:47
+#: src/ui/welcome/welcome_model.rs:46
 msgid "Select a language"
 msgstr "Tilni tanlang"
 
@@ -329,39 +329,39 @@ msgstr "Bekor qilish"
 msgid "Quit"
 msgstr "Chiqish"
 
-#: src/ui/window.rs:188
+#: src/ui/window.rs:210
 msgid "%d Installer"
 msgstr "%d oʻrnatish"
 
-#: src/ui/window.rs:196
+#: src/ui/window.rs:218
 msgid "Step %d of %f"
 msgstr "%d/%f-bosqich"
 
-#: src/ui/window.rs:205
+#: src/ui/window.rs:227
 msgid "Installing…"
 msgstr "O‘rnatilmoqda…"
 
-#: src/ui/window.rs:212
+#: src/ui/window.rs:234
 msgid "Installation Finished"
 msgstr "O‘rnatish yakunlandi"
 
-#: src/ui/window.rs:219
+#: src/ui/window.rs:241
 msgid "Installation Failed"
 msgstr "O‘rnatish muvaffaqiyatsiz"
 
-#: src/ui/window.rs:313
+#: src/ui/window.rs:334
 msgid "Finished!"
 msgstr "Tamom!"
 
-#: src/ui/window.rs:326
+#: src/ui/window.rs:347
 msgid "Reboot"
 msgstr "Qayta ishga tushirish"
 
-#: src/ui/window.rs:342
+#: src/ui/window.rs:363
 msgid "No Internet"
 msgstr "Internet yo‘q"
 
-#: src/ui/window.rs:343
+#: src/ui/window.rs:364
 msgid "Please connect to the Internet to continue"
 msgstr "Davom etish uchun internetga ulaning"
 
@@ -494,26 +494,6 @@ msgstr "Zen kernel oʻrnatish"
 
 #~ msgid "Welcome!"
 #~ msgstr "Xush kelibsiz!"
-
-#~ msgid "Install Xinux"
-#~ msgstr "Xinux o‘rnatish"
-
-#~ msgid "Install"
-#~ msgstr "O‘rnatish"
-
-#~ msgid "Installer;Xeonitte;"
-#~ msgstr "O‘rnatuvchi;Xeonitte;"
-
-#~ msgid "Give Xeonitte Installer root access"
-#~ msgstr "Xeonitte o‘rnatuvchisiga root huquqini bering"
-
-#~ msgid "Authentication is required to install operating system"
-#~ msgstr "Operatsion tizimni o‘rnatish uchun autentifikatsiya talab qilinadi"
-#~ msgid "<b>Installation Failed</b>"
-#~ msgstr "<b>Muvaffaqiyatsiz oʻrnatish</b>"
-
-#~ msgid "Launch GParted"
-#~ msgstr "GParted ishga tushirish"
 
 #~ msgid "Custom mount point"
 #~ msgstr "Yangi ulash nuqtasi"

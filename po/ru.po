@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 16:44+0500\n"
+"POT-Creation-Date: 2026-11-17 17:34+0500\n"
 "PO-Revision-Date: 2026-10-27 17:00+0500\n"
 "Last-Translator: BeMeritus <bemerituss@gmail.com>\n"
 "Language-Team: \n"
@@ -305,7 +305,7 @@ msgstr "Пароль root"
 msgid "Confirm root password"
 msgstr "Подтвердите пароль root"
 
-#: src/ui/welcome/welcome_model.rs:47
+#: src/ui/welcome/welcome_model.rs:46
 msgid "Select a language"
 msgstr "Выберите язык"
 
@@ -329,39 +329,39 @@ msgstr "Отменить"
 msgid "Quit"
 msgstr "Выйти"
 
-#: src/ui/window.rs:188
+#: src/ui/window.rs:210
 msgid "%d Installer"
 msgstr "%d установщик"
 
-#: src/ui/window.rs:196
+#: src/ui/window.rs:218
 msgid "Step %d of %f"
 msgstr "Этап %d из %f"
 
-#: src/ui/window.rs:205
+#: src/ui/window.rs:227
 msgid "Installing…"
 msgstr "Установка..."
 
-#: src/ui/window.rs:212
+#: src/ui/window.rs:234
 msgid "Installation Finished"
 msgstr "Установка завершена"
 
-#: src/ui/window.rs:219
+#: src/ui/window.rs:241
 msgid "Installation Failed"
 msgstr "Установка не удалас"
 
-#: src/ui/window.rs:313
+#: src/ui/window.rs:334
 msgid "Finished!"
 msgstr "Законченный!"
 
-#: src/ui/window.rs:326
+#: src/ui/window.rs:347
 msgid "Reboot"
 msgstr "Перезагрузить"
 
-#: src/ui/window.rs:342
+#: src/ui/window.rs:363
 msgid "No Internet"
 msgstr "Нет интернета"
 
-#: src/ui/window.rs:343
+#: src/ui/window.rs:364
 msgid "Please connect to the Internet to continue"
 msgstr "Пожалуйста, подключитесь к Интернету, чтобы продолжить"
 
@@ -493,29 +493,6 @@ msgstr "Install the Zen kernel"
 
 #~ msgid "Welcome!"
 #~ msgstr "Добро пожаловать!"
-
-#~ msgid "Install Xinux"
-#~ msgstr "Установить Xinux"
-
-#~ msgid "Install"
-#~ msgstr "Установить"
-
-#~ msgid "Installer;Xeonitte;"
-#~ msgstr "Установщик;Xeonitte;"
-
-#~ msgid "Give Xeonitte Installer root access"
-#~ msgstr "Предоставьте установщику Xeonitte root-доступ"
-
-#~ msgid "Authentication is required to install operating system"
-#~ msgstr "Для установки операционной системы требуется аутентификация."
-#~ msgid "<b>Installation Failed</b>"
-#~ msgstr "<b>Установка не удалась</b>"
-
-#~ msgid "Launch GParted"
-#~ msgstr "Запустить GParted"
-
-#~ msgid "Custom mount point"
-#~ msgstr "Пользовательская точка монтирования"
 
 #~ msgid "Mount point exists"
 #~ msgstr "Точка монтирования существует"
