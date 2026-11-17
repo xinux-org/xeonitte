@@ -43,7 +43,7 @@ use std::{
 #[tracker::track]
 pub struct AppModel {
     config: Flow,
-    page: StackPage,
+    stack_page: StackPage,
     #[tracker::no_eq]
     welcome: Controller<WelcomeModel>,
     #[tracker::no_eq]
@@ -159,7 +159,7 @@ impl Component for AppModel {
             set_default_height: 900,
             connect_close_request[sender] => move |_| {
                 debug!("Caught close request");
-                if model.page == StackPage::Install {
+                if model.stack_page == StackPage::Install {
                     sender.input(AppMsg::QuitDialog);
                     relm4::gtk::glib::Propagation::Stop
                 } else {
@@ -202,7 +202,7 @@ impl Component for AppModel {
                         add_css_class: "flat",
                         #[wrap(Some)]
                         #[transition(Crossfade)]
-                        set_title_widget = match model.page {
+                        set_title_widget = match model.stack_page {
                             (StackPage::NoInternet) => {
                                 gtk::Label {
                                     // Translators: Do NOT translate the '{}'
@@ -246,7 +246,7 @@ impl Component for AppModel {
                     },
 
                     #[transition(SlideLeftRight)]
-                    match model.page {
+                    match model.stack_page {
                         StackPage::Carousel => {
                             gtk::Overlay {
                                 gtk::ScrolledWindow {
@@ -453,7 +453,7 @@ impl Component for AppModel {
         }
 
         let model = AppModel {
-            page: startpage,
+            stack_page: startpage,
             config: Flow::Init,
             welcome: welcomepage,
             keyboard: keyboardpage,
@@ -568,24 +568,31 @@ impl Component for AppModel {
             AppMsg::SetCanGoForward(can_go_forward) => {
                 self.can_go_forward = can_go_forward;
             }
-            AppMsg::SetStackPage(page) => {
-                debug!("StackPage: {:?}", page);
-                if page.ne(&self.page) {
-                    self.page = page;
+            AppMsg::SetStackPage(stack_page) => {
+                debug!("StackPage: {:?}", stack_page);
+                if stack_page.ne(&self.stack_page) {
+                    self.stack_page = stack_page;
                 }
             }
-            AppMsg::SetStackPageConfig(page, flow) => {
-                trace!("StackPage: {:?}", page);
+            AppMsg::SetStackPageConfig(stack_page, flow) => {
+                trace!("StackPage: {:?}", stack_page);
                 trace!("Flow: {:?}", flow);
 
-                self.page = page;
+                self.stack_page = stack_page;
                 self.config = flow;
                 let mut next_steps = flow.steps();
-                let index = if flow == Flow::Init {
+                let index: usize = if flow == Flow::Init {
                     1
                 } else {
-                    Flow::Init.steps().len()
+                    flow.steps().len()
                 };
+                sender.input(AppMsg::SetCanGoForward(index.gt(&0)));
+
+                if index > 0 && self.current_page as usize >= index {
+                    sender.input(AppMsg::ChangePage((index - 1) as u32));
+                } else {
+                    sender.input(AppMsg::ChangePage(0));
+                }
 
                 if index > 1 {
                     let init_pages_count = index as u32;
@@ -594,7 +601,7 @@ impl Component for AppModel {
                         let page = self.carousel.nth_page(last);
                         self.carousel.remove(&page);
                     }
-                    self.carouselpages.truncate(index as usize);
+                    self.carouselpages.truncate(index);
                     next_steps = next_steps
                         .iter()
                         .filter(|step| !self.carouselpages.contains(step))
@@ -681,14 +688,6 @@ impl Component for AppModel {
                         }
                     }
                 }
-                if index > 0 {
-                    sender.input(AppMsg::SetCanGoForward(true));
-                    if self.current_page as usize >= index {
-                        sender.input(AppMsg::ChangePage((index - 1) as u32));
-                    }
-                } else {
-                    sender.input(AppMsg::ChangePage(0));
-                }
             }
             AppMsg::SetLanguageConfig(language) => {
                 self.languageconfig = language;
@@ -755,11 +754,11 @@ impl Component for AppModel {
             }
             AppMsg::Finished => {
                 debug!("Finished!");
-                self.page = StackPage::Finished;
+                self.stack_page = StackPage::Finished;
             }
             AppMsg::Error(phase, message) => {
                 error!("Error in {phase} phase: {message}");
-                self.page = StackPage::Error;
+                self.stack_page = StackPage::Error;
                 self.error.emit(ErrorMsg::Show(phase, message));
             }
         }
