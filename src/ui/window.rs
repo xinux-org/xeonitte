@@ -22,7 +22,7 @@ use crate::{
             NixValue, Partition, PartitionContent, Swap, canonical, luks_encrypted,
         },
         flow::{BRANDING, Choice, DISTRO_NAME, Flow, INTERNET_CHECK_URL, Step},
-        i18n::i18n_f,
+        i18n::{i18n, i18n_f},
         install::{InstallAsyncModel, InstallAsyncMsg},
         language::{get_country, get_lang},
         report::ErrorPhase,
@@ -43,8 +43,7 @@ use std::{
 #[tracker::track]
 pub struct AppModel {
     config: Flow,
-    installconfig: Option<Flow>,
-    page: StackPage,
+    stack_page: StackPage,
     #[tracker::no_eq]
     welcome: Controller<WelcomeModel>,
     #[tracker::no_eq]
@@ -112,7 +111,7 @@ pub enum AppMsg {
     SetTimezoneConfig(Option<String>),
     SetPartitionConfig(Option<PartitionSchema>),
     SetUserConfig(Option<UserConfig>),
-    SetStackPageConfig(StackPage, Flow),
+    SetStackPageConfig(Flow),
     SetListConfig(String, HashMap<String, Choice>),
 
     Install,
@@ -133,7 +132,7 @@ impl AppMsg {
 
 #[derive(Debug)]
 pub enum AppAsyncMsg {
-    SetPage(StackPage, Flow),
+    SetFlowPage(Flow),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -160,7 +159,7 @@ impl Component for AppModel {
             set_default_height: 900,
             connect_close_request[sender] => move |_| {
                 debug!("Caught close request");
-                if model.page == StackPage::Install {
+                if model.stack_page == StackPage::Install {
                     sender.input(AppMsg::QuitDialog);
                     relm4::gtk::glib::Propagation::Stop
                 } else {
@@ -203,45 +202,51 @@ impl Component for AppModel {
                         add_css_class: "flat",
                         #[wrap(Some)]
                         #[transition(Crossfade)]
-                        set_title_widget = match model.page {
-                            (StackPage::NoInternet) => {
+                        set_title_widget = match model.stack_page {
+                            StackPage::NoInternet => {
                                 gtk::Label {
-                                    #[watch]
                                     // Translators: Do NOT translate the '{}'
                                     // The string reads "{distribution name} Installer"
-                                    set_label: &i18n_f("{} Installer", &[DISTRO_NAME])
+                                    set_label: &gettext("%d Installer").replace("%d", DISTRO_NAME),
+                                    add_css_class: "heading",
                                 }
                             },
                             StackPage::Carousel => {
-                                adw::CarouselIndicatorDots {
-                                    set_halign: gtk::Align::Center,
-                                    set_hexpand: true,
-                                    set_carousel: Some(main_carousel)
+                                gtk::Label {
+                                    #[watch]
+                                    // Translators: Do NOT translate the "&d" and "%f"
+                                    set_label: &gettext("Step %d of %f")
+                                        .replace("%d", &(model.current_page + 1).to_string())
+                                        .replace("%f", &model.carouselpages.len().to_string()),
+                                    add_css_class: "heading",
                                 }
                             },
                             StackPage::Install => {
                                 gtk::Label {
                                     #[watch]
-                                    set_label: &gettext("Installing…")
+                                    set_label: &gettext("Installing…"),
+                                    add_css_class: "heading",
                                 }
                             },
                             StackPage::Finished => {
                                 gtk::Label {
                                     #[watch]
-                                    set_label: &gettext("Installation Finished")
+                                    set_label: &gettext("Installation Finished"),
+                                    add_css_class: "heading",
                                 }
                             },
                             StackPage::Error => {
                                 gtk::Label {
                                     #[watch]
-                                    set_label: &gettext("Installation Failed")
+                                    set_label: &gettext("Installation Failed"),
+                                    add_css_class: "heading",
                                 }
                             }
                         }
                     },
 
                     #[transition(SlideLeftRight)]
-                    match model.page {
+                    match model.stack_page {
                         StackPage::Carousel => {
                             gtk::Overlay {
                                 gtk::ScrolledWindow {
@@ -441,16 +446,15 @@ impl Component for AppModel {
                     }
                     tokio::time::sleep(std::time::Duration::from_secs(1)).await;
                 }
-                AppAsyncMsg::SetPage(StackPage::Carousel, Flow::Init)
+                AppAsyncMsg::SetFlowPage(Flow::Init)
             });
         } else {
-            sender.input(AppMsg::SetStackPageConfig(StackPage::Carousel, Flow::Init));
+            sender.input(AppMsg::SetStackPageConfig(Flow::Init));
         }
 
         let model = AppModel {
-            page: startpage,
+            stack_page: startpage,
             config: Flow::Init,
-            installconfig: None,
             welcome: welcomepage,
             keyboard: keyboardpage,
             timezone: timezonepage,
@@ -483,6 +487,8 @@ impl Component for AppModel {
         let installpage = model.install.widget().clone();
         let errorpage = model.error.widget().clone();
         let widgets = view_output!();
+
+        debug!("Current page on init function: {}", model.current_page);
 
         ComponentParts { model, widgets }
     }
@@ -562,125 +568,47 @@ impl Component for AppModel {
             AppMsg::SetCanGoForward(can_go_forward) => {
                 self.can_go_forward = can_go_forward;
             }
-            AppMsg::SetStackPage(page) => {
-                debug!("StackPage: {:?}", page);
-                if page.ne(&self.page) {
-                    self.page = page;
+            AppMsg::SetStackPage(stack_page) => {
+                debug!("StackPage: {:?}", stack_page);
+                if stack_page.ne(&self.stack_page) {
+                    self.stack_page = stack_page;
                 }
             }
-            AppMsg::SetStackPageConfig(page, flow) => {
-                trace!("StackPage: {:?}", page);
+            AppMsg::SetStackPageConfig(flow) => {
                 trace!("Flow: {:?}", flow);
+                self.config = flow;
 
-                self.page = page;
-                self.installconfig = flow.into();
+                // When called at start: 4
+                // Basic: 7
+                // Advanced: 9
                 let mut next_steps = flow.steps();
-                let index = if flow == Flow::Init {
-                    1
-                } else {
-                    Flow::Init.steps().len()
+
+                match flow {
+                    Flow::Init => {}
+                    Flow::Basic | Flow::Advanced => {
+                        // Current page index. When app start itʼs 0
+                        // At mode selction itʼs 4
+                        let index: usize = Flow::Init.steps().len();
+                        if self.current_page as usize >= index {
+                            sender.input(AppMsg::ChangePage((index - 1) as u32));
+                        }
+
+                        while self.carousel.n_pages() > index as u32 {
+                            let last = self.carousel.n_pages() - 1;
+                            let page = self.carousel.nth_page(last);
+                            self.carousel.remove(&page);
+                        }
+                        self.carouselpages.truncate(index);
+                        next_steps = next_steps
+                            .iter()
+                            .filter(|step| !self.carouselpages.contains(step))
+                            .cloned()
+                            .collect();
+                    }
                 };
 
-                if index > 1 {
-                    let init_pages_count = index as u32;
-                    while self.carousel.n_pages() > init_pages_count {
-                        let last = self.carousel.n_pages() - 1;
-                        let page = self.carousel.nth_page(last);
-                        self.carousel.remove(&page);
-                    }
-                    self.carouselpages.truncate(index as usize);
-                    next_steps = next_steps
-                        .iter()
-                        .filter(|step| !self.carouselpages.contains(step))
-                        .cloned()
-                        .collect();
-                }
-
                 // add new pages starting from current page
-                for step in next_steps {
-                    use Step::*;
-                    match step {
-                        Welcome => {
-                            trace!("Welcome append");
-                            self.carousel.append(self.welcome.widget());
-                            self.carouselpages.push(Welcome);
-                        }
-                        Keyboard => {
-                            trace!("Keyboard append");
-                            self.carousel.append(self.keyboard.widget());
-                            self.carouselpages.push(Keyboard);
-                        }
-                        Location => {
-                            trace!("Timezone append");
-                            self.carousel.append(self.timezone.widget());
-                            self.carouselpages.push(Location);
-                        }
-                        InstallMode => {
-                            trace!("Install Mode append");
-                            self.carousel.append(self.install_mode.widget());
-                            self.carouselpages.push(InstallMode);
-                        }
-                        Partitioning => {
-                            trace!("Partitioning append");
-                            self.carousel.append(self.partition.widget());
-                            self.carouselpages.push(Partitioning);
-                        }
-                        User { root, hostname } => {
-                            trace!("User append");
-                            self.carousel.append(self.user.widget());
-                            self.carouselpages.push(User { root, hostname });
-                            self.user.emit(UserMsg::SetConfig(root, hostname));
-                            self.summary.emit(SummaryMsg::ShowHostname(hostname));
-                        }
-                        Summary => {
-                            trace!("Summary append");
-                            self.carousel.append(self.summary.widget());
-                            self.carouselpages.push(Summary);
-                        }
-                        List {
-                            id,
-                            multiple,
-                            required,
-                            title,
-                            choices,
-                        } => {
-                            trace!("List append: {}", title);
-                            let choices_map = choices
-                                .iter()
-                                .map(|choice| {
-                                    let mut map = HashMap::new();
-                                    map.insert(choice.name.clone(), choice.clone());
-                                    map
-                                })
-                                .collect();
-                            let listpage = ListModel::builder()
-                                .launch(ListInit {
-                                    multiple,
-                                    required,
-                                    id: id.into(),
-                                    title: title.to_string(),
-                                    choices: choices_map,
-                                })
-                                .forward(sender.input_sender(), identity);
-                            self.carousel.append(listpage.widget());
-                            self.list.insert(title.to_string(), listpage);
-                            self.carouselpages.push(List {
-                                id,
-                                multiple,
-                                required,
-                                title: title.to_string(),
-                                choices: choices.clone(),
-                            });
-                            self.listconfig.insert(id.into(), HashMap::new());
-                        }
-                    }
-                }
-                if index > 0 {
-                    sender.input(AppMsg::SetCanGoForward(true));
-                    sender.input(AppMsg::ChangePage((index - 1) as u32));
-                } else {
-                    sender.input(AppMsg::ChangePage(0));
-                }
+                self.add_carousel_next_steps(&sender, next_steps);
             }
             AppMsg::SetLanguageConfig(language) => {
                 self.languageconfig = language;
@@ -720,30 +648,26 @@ impl Component for AppModel {
             }
             AppMsg::Install => {
                 debug!("Installing!");
-                if let Some(config) = &self.installconfig {
-                    self.installworker.emit(InstallAsyncMsg::Install(
-                        (*config).into(),
-                        self.languageconfig.clone(),
-                        self.timezoneconfig.clone(),
-                        self.keyboardconfig.clone(),
-                        Box::new(self.partitionconfig.clone()),
-                        Box::new(self.userconfig.clone()),
-                        self.listconfig.clone(),
-                        config.config_type(),
-                        config.imperative_timezone(),
-                        self.diskoconfig.clone(),
-                    ));
-                }
+                self.installworker.emit(InstallAsyncMsg::Install(
+                    self.config.into(),
+                    self.languageconfig.clone(),
+                    self.timezoneconfig.clone(),
+                    self.keyboardconfig.clone(),
+                    Box::new(self.partitionconfig.clone()),
+                    Box::new(self.userconfig.clone()),
+                    self.listconfig.clone(),
+                    self.config.config_type(),
+                    self.config.imperative_timezone(),
+                    self.diskoconfig.clone(),
+                ));
             }
             AppMsg::FinishInstall => {
                 debug!("Finishing install!");
-                if let Some(config) = &self.installconfig {
-                    self.installworker.emit(InstallAsyncMsg::FinishInstall(
-                        self.timezoneconfig.clone(),
-                        config.imperative_timezone(),
-                        vec![],
-                    ));
-                }
+                self.installworker.emit(InstallAsyncMsg::FinishInstall(
+                    self.timezoneconfig.clone(),
+                    self.config.imperative_timezone(),
+                    vec![],
+                ));
             }
             AppMsg::RunNextCommand => {
                 debug!("Running next postinstall command");
@@ -751,11 +675,11 @@ impl Component for AppModel {
             }
             AppMsg::Finished => {
                 debug!("Finished!");
-                self.page = StackPage::Finished;
+                self.stack_page = StackPage::Finished;
             }
             AppMsg::Error(phase, message) => {
                 error!("Error in {phase} phase: {message}");
-                self.page = StackPage::Error;
+                self.stack_page = StackPage::Error;
                 self.error.emit(ErrorMsg::Show(phase, message));
             }
         }
@@ -768,14 +692,98 @@ impl Component for AppModel {
         _root: &Self::Root,
     ) {
         match msg {
-            AppAsyncMsg::SetPage(page, flow) => {
-                sender.input(AppMsg::SetStackPageConfig(page, flow));
+            AppAsyncMsg::SetFlowPage(flow) => {
+                sender.input(AppMsg::SetStackPageConfig(flow));
             }
         }
     }
 }
 
 impl AppModel {
+    fn add_carousel_next_steps(
+        &mut self,
+        sender: &ComponentSender<AppModel>,
+        next_steps: Vec<Step>,
+    ) {
+        for step in next_steps {
+            use Step::*;
+            match step {
+                Welcome => {
+                    trace!("Welcome append");
+                    self.carousel.append(self.welcome.widget());
+                    self.carouselpages.push(Welcome);
+                }
+                Keyboard => {
+                    trace!("Keyboard append");
+                    self.carousel.append(self.keyboard.widget());
+                    self.carouselpages.push(Keyboard);
+                }
+                Location => {
+                    trace!("Timezone append");
+                    self.carousel.append(self.timezone.widget());
+                    self.carouselpages.push(Location);
+                }
+                InstallMode => {
+                    trace!("Install Mode append");
+                    self.carousel.append(self.install_mode.widget());
+                    self.carouselpages.push(InstallMode);
+                }
+                Partitioning => {
+                    trace!("Partitioning append");
+                    self.carousel.append(self.partition.widget());
+                    self.carouselpages.push(Partitioning);
+                }
+                User { root, hostname } => {
+                    trace!("User append");
+                    self.carousel.append(self.user.widget());
+                    self.carouselpages.push(User { root, hostname });
+                    self.user.emit(UserMsg::SetConfig(root, hostname));
+                    self.summary.emit(SummaryMsg::ShowHostname(hostname));
+                }
+                Summary => {
+                    trace!("Summary append");
+                    self.carousel.append(self.summary.widget());
+                    self.carouselpages.push(Summary);
+                }
+                List {
+                    id,
+                    multiple,
+                    required,
+                    title,
+                    choices,
+                } => {
+                    trace!("List append: {}", title);
+                    let choices_map = choices
+                        .iter()
+                        .map(|choice| {
+                            let mut map = HashMap::new();
+                            map.insert(choice.name.clone(), choice.clone());
+                            map
+                        })
+                        .collect();
+                    let listpage = ListModel::builder()
+                        .launch(ListInit {
+                            multiple,
+                            required,
+                            id: id.into(),
+                            title: title.to_string(),
+                            choices: choices_map,
+                        })
+                        .forward(sender.input_sender(), identity);
+                    self.carousel.append(listpage.widget());
+                    self.list.insert(title.to_string(), listpage);
+                    self.carouselpages.push(List {
+                        id,
+                        multiple,
+                        required,
+                        title: title.to_string(),
+                        choices: choices.clone(),
+                    });
+                    self.listconfig.insert(id.into(), HashMap::new());
+                }
+            }
+        }
+    }
     fn set_partition_config(&mut self, partition: &Option<PartitionSchema>) {
         if let Some(partition_schema) = partition.clone() {
             match partition_schema {

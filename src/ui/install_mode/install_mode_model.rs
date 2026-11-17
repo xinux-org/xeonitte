@@ -9,12 +9,12 @@ use relm4::{
 };
 
 pub struct InstallModeModel {
-    selected: Option<Flow>,
+    selected: Flow,
 }
 
 #[derive(Debug)]
 pub enum InstallModeMsg {
-    SetSelected(Option<Flow>),
+    SetSelected(Flow),
     CheckSelected,
 }
 
@@ -41,10 +41,10 @@ impl SimpleComponent for InstallModeModel {
                     gtk::CheckButton {
                         set_label: Some(&gettext("Recommended")),
                         #[watch]
-                        set_active: model.selected == Some(Flow::Basic),
+                        set_active: model.selected == Flow::Basic,
                         connect_toggled[sender] => move |btn| {
                             if btn.is_active() {
-                                sender.input(InstallModeMsg::SetSelected(Some(Flow::Basic)))
+                                sender.input(InstallModeMsg::SetSelected(Flow::Basic))
                             }
                         },
                     },
@@ -52,10 +52,10 @@ impl SimpleComponent for InstallModeModel {
                         set_label: Some(&gettext("Advanced mode")),
                         set_group: Some(&install_mode),
                         #[watch]
-                        set_active: model.selected == Some(Flow::Advanced),
+                        set_active: model.selected == Flow::Advanced,
                         connect_toggled[sender] => move |btn| {
                             if btn.is_active() {
-                                sender.input(InstallModeMsg::SetSelected(Some(Flow::Advanced)))
+                                sender.input(InstallModeMsg::SetSelected(Flow::Advanced))
                             }
                         },
                     },
@@ -70,9 +70,9 @@ impl SimpleComponent for InstallModeModel {
         sender: ComponentSender<Self>,
     ) -> ComponentParts<Self> {
         let model = InstallModeModel {
-            selected: Some(Flow::Basic),
+            selected: Flow::Basic,
         };
-        sender.input(InstallModeMsg::SetSelected(Some(Flow::Basic)));
+        sender.input(InstallModeMsg::SetSelected(Flow::Basic));
 
         let widgets = view_output!();
         ComponentParts { model, widgets }
@@ -82,16 +82,12 @@ impl SimpleComponent for InstallModeModel {
         match msg {
             InstallModeMsg::SetSelected(mode) => {
                 self.selected = mode;
-                sender
-                    .output(AppMsg::SetStackPageConfig(
-                        StackPage::Carousel,
-                        mode.unwrap_or(Flow::Init),
-                    ))
-                    .unwrap();
+                sender.output(AppMsg::SetStackPageConfig(mode)).unwrap();
             }
             InstallModeMsg::CheckSelected => {
-                trace!("InstallMode::CheckSelected {}", self.selected.is_some());
-                sender.output(AppMsg::SetCanGoForward(self.selected.is_some()));
+                trace!("InstallMode::CheckSelected {:?}", self.selected);
+                // By default Flow::Basic selected
+                sender.output(AppMsg::SetCanGoForward(true));
             }
         }
     }
