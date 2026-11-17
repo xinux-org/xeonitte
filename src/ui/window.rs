@@ -439,7 +439,7 @@ impl Component for AppModel {
             listconfig: HashMap::new(),
             error: errorpage,
             quitdialog,
-            can_go_back: false,
+            can_go_back: true,
             can_go_forward: false,
             carousel: adw::Carousel::new(),
             carouselpages: Vec::new(),
