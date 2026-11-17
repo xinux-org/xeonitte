@@ -12,7 +12,7 @@ pub struct SelectorRow {
 
 #[derive(Debug)]
 pub enum SelectorRowOutput {
-    Select(DynamicIndex),
+    Select(usize),
 }
 
 #[relm4::factory(pub)]
@@ -34,7 +34,7 @@ impl FactoryComponent for SelectorRow {
 
             connect_toggled[sender, index] => move |button| {
                 if button.is_active() {
-                    sender.output(SelectorRowOutput::Select(index.clone()));
+                    sender.output(SelectorRowOutput::Select(index.current_index()));
                 }
             },
 
@@ -105,6 +105,11 @@ impl SimpleComponent for Selector {
                 group: group.clone(),
             });
         });
+
+        // if there is default option available, then make it already chosen during init
+        if let Some(index) = init.default {
+            sender.output(SelectorRowOutput::Select(index));
+        }
 
         // initializing model
         let model = Selector { rows };

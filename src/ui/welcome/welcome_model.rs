@@ -72,17 +72,18 @@ impl SimpleComponent for WelcomeModel {
             })
             .forward(sender.input_sender(), move |msg| match msg {
                 SelectorRowOutput::Select(index) => {
-                    let selected = formatted_languages
-                        .iter()
-                        .nth(index.current_index())
-                        .and_then(|selected_title| {
-                            languages.iter().find_map(|locale| {
-                                locale
-                                    .variants
-                                    .iter()
-                                    .find(|utf| utf.title == *selected_title)
-                            })
-                        });
+                    let selected =
+                        formatted_languages
+                            .iter()
+                            .nth(index)
+                            .and_then(|selected_title| {
+                                languages.iter().find_map(|locale| {
+                                    locale
+                                        .variants
+                                        .iter()
+                                        .find(|utf| utf.title == *selected_title)
+                                })
+                            });
                     WelcomeMsg::SetSelected(selected.map(|utf| utf.code.clone()))
                 }
             });
