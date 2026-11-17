@@ -576,116 +576,39 @@ impl Component for AppModel {
             }
             AppMsg::SetStackPageConfig(flow) => {
                 trace!("Flow: {:?}", flow);
-
                 self.config = flow;
+
+                // When called at start: 4
+                // Basic: 7
+                // Advanced: 9
                 let mut next_steps = flow.steps();
-                let index: usize = if flow == Flow::Init {
-                    1
-                } else {
-                    flow.steps().len()
-                };
-                sender.input(AppMsg::SetCanGoForward(index.gt(&0)));
 
-                if index > 0 && self.current_page as usize >= index {
-                    sender.input(AppMsg::ChangePage((index - 1) as u32));
-                } else {
-                    sender.input(AppMsg::ChangePage(0));
-                }
+                match flow {
+                    Flow::Init => {}
+                    Flow::Basic | Flow::Advanced => {
+                        // Current page index. When app start itʼs 0
+                        // At mode selction itʼs 4
+                        let index: usize = Flow::Init.steps().len();
+                        if self.current_page as usize >= index {
+                            sender.input(AppMsg::ChangePage((index - 1) as u32));
+                        }
 
-                if index > 1 {
-                    let init_pages_count = index as u32;
-                    while self.carousel.n_pages() > init_pages_count {
-                        let last = self.carousel.n_pages() - 1;
-                        let page = self.carousel.nth_page(last);
-                        self.carousel.remove(&page);
+                        while self.carousel.n_pages() > index as u32 {
+                            let last = self.carousel.n_pages() - 1;
+                            let page = self.carousel.nth_page(last);
+                            self.carousel.remove(&page);
+                        }
+                        self.carouselpages.truncate(index);
+                        next_steps = next_steps
+                            .iter()
+                            .filter(|step| !self.carouselpages.contains(step))
+                            .cloned()
+                            .collect();
                     }
-                    self.carouselpages.truncate(index);
-                    next_steps = next_steps
-                        .iter()
-                        .filter(|step| !self.carouselpages.contains(step))
-                        .cloned()
-                        .collect();
-                }
+                };
 
                 // add new pages starting from current page
-                for step in next_steps {
-                    use Step::*;
-                    match step {
-                        Welcome => {
-                            trace!("Welcome append");
-                            self.carousel.append(self.welcome.widget());
-                            self.carouselpages.push(Welcome);
-                        }
-                        Keyboard => {
-                            trace!("Keyboard append");
-                            self.carousel.append(self.keyboard.widget());
-                            self.carouselpages.push(Keyboard);
-                        }
-                        Location => {
-                            trace!("Timezone append");
-                            self.carousel.append(self.timezone.widget());
-                            self.carouselpages.push(Location);
-                        }
-                        InstallMode => {
-                            trace!("Install Mode append");
-                            self.carousel.append(self.install_mode.widget());
-                            self.carouselpages.push(InstallMode);
-                        }
-                        Partitioning => {
-                            trace!("Partitioning append");
-                            self.carousel.append(self.partition.widget());
-                            self.carouselpages.push(Partitioning);
-                        }
-                        User { root, hostname } => {
-                            trace!("User append");
-                            self.carousel.append(self.user.widget());
-                            self.carouselpages.push(User { root, hostname });
-                            self.user.emit(UserMsg::SetConfig(root, hostname));
-                            self.summary.emit(SummaryMsg::ShowHostname(hostname));
-                        }
-                        Summary => {
-                            trace!("Summary append");
-                            self.carousel.append(self.summary.widget());
-                            self.carouselpages.push(Summary);
-                        }
-                        List {
-                            id,
-                            multiple,
-                            required,
-                            title,
-                            choices,
-                        } => {
-                            trace!("List append: {}", title);
-                            let choices_map = choices
-                                .iter()
-                                .map(|choice| {
-                                    let mut map = HashMap::new();
-                                    map.insert(choice.name.clone(), choice.clone());
-                                    map
-                                })
-                                .collect();
-                            let listpage = ListModel::builder()
-                                .launch(ListInit {
-                                    multiple,
-                                    required,
-                                    id: id.into(),
-                                    title: title.to_string(),
-                                    choices: choices_map,
-                                })
-                                .forward(sender.input_sender(), identity);
-                            self.carousel.append(listpage.widget());
-                            self.list.insert(title.to_string(), listpage);
-                            self.carouselpages.push(List {
-                                id,
-                                multiple,
-                                required,
-                                title: title.to_string(),
-                                choices: choices.clone(),
-                            });
-                            self.listconfig.insert(id.into(), HashMap::new());
-                        }
-                    }
-                }
+                self.add_carousel_next_steps(&sender, next_steps);
             }
             AppMsg::SetLanguageConfig(language) => {
                 self.languageconfig = language;
@@ -777,6 +700,90 @@ impl Component for AppModel {
 }
 
 impl AppModel {
+    fn add_carousel_next_steps(
+        &mut self,
+        sender: &ComponentSender<AppModel>,
+        next_steps: Vec<Step>,
+    ) {
+        for step in next_steps {
+            use Step::*;
+            match step {
+                Welcome => {
+                    trace!("Welcome append");
+                    self.carousel.append(self.welcome.widget());
+                    self.carouselpages.push(Welcome);
+                }
+                Keyboard => {
+                    trace!("Keyboard append");
+                    self.carousel.append(self.keyboard.widget());
+                    self.carouselpages.push(Keyboard);
+                }
+                Location => {
+                    trace!("Timezone append");
+                    self.carousel.append(self.timezone.widget());
+                    self.carouselpages.push(Location);
+                }
+                InstallMode => {
+                    trace!("Install Mode append");
+                    self.carousel.append(self.install_mode.widget());
+                    self.carouselpages.push(InstallMode);
+                }
+                Partitioning => {
+                    trace!("Partitioning append");
+                    self.carousel.append(self.partition.widget());
+                    self.carouselpages.push(Partitioning);
+                }
+                User { root, hostname } => {
+                    trace!("User append");
+                    self.carousel.append(self.user.widget());
+                    self.carouselpages.push(User { root, hostname });
+                    self.user.emit(UserMsg::SetConfig(root, hostname));
+                    self.summary.emit(SummaryMsg::ShowHostname(hostname));
+                }
+                Summary => {
+                    trace!("Summary append");
+                    self.carousel.append(self.summary.widget());
+                    self.carouselpages.push(Summary);
+                }
+                List {
+                    id,
+                    multiple,
+                    required,
+                    title,
+                    choices,
+                } => {
+                    trace!("List append: {}", title);
+                    let choices_map = choices
+                        .iter()
+                        .map(|choice| {
+                            let mut map = HashMap::new();
+                            map.insert(choice.name.clone(), choice.clone());
+                            map
+                        })
+                        .collect();
+                    let listpage = ListModel::builder()
+                        .launch(ListInit {
+                            multiple,
+                            required,
+                            id: id.into(),
+                            title: title.to_string(),
+                            choices: choices_map,
+                        })
+                        .forward(sender.input_sender(), identity);
+                    self.carousel.append(listpage.widget());
+                    self.list.insert(title.to_string(), listpage);
+                    self.carouselpages.push(List {
+                        id,
+                        multiple,
+                        required,
+                        title: title.to_string(),
+                        choices: choices.clone(),
+                    });
+                    self.listconfig.insert(id.into(), HashMap::new());
+                }
+            }
+        }
+    }
     fn set_partition_config(&mut self, partition: &Option<PartitionSchema>) {
         if let Some(partition_schema) = partition.clone() {
             match partition_schema {
