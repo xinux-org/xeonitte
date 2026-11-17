@@ -111,7 +111,7 @@ pub enum AppMsg {
     SetTimezoneConfig(Option<String>),
     SetPartitionConfig(Option<PartitionSchema>),
     SetUserConfig(Option<UserConfig>),
-    SetStackPageConfig(StackPage, Flow),
+    SetStackPageConfig(Flow),
     SetListConfig(String, HashMap<String, Choice>),
 
     Install,
@@ -132,7 +132,7 @@ impl AppMsg {
 
 #[derive(Debug)]
 pub enum AppAsyncMsg {
-    SetPage(StackPage, Flow),
+    SetFlowPage(Flow),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -203,7 +203,7 @@ impl Component for AppModel {
                         #[wrap(Some)]
                         #[transition(Crossfade)]
                         set_title_widget = match model.stack_page {
-                            (StackPage::NoInternet) => {
+                            StackPage::NoInternet => {
                                 gtk::Label {
                                     // Translators: Do NOT translate the '{}'
                                     // The string reads "{distribution name} Installer"
@@ -446,10 +446,10 @@ impl Component for AppModel {
                     }
                     tokio::time::sleep(std::time::Duration::from_secs(1)).await;
                 }
-                AppAsyncMsg::SetPage(StackPage::Carousel, Flow::Init)
+                AppAsyncMsg::SetFlowPage(Flow::Init)
             });
         } else {
-            sender.input(AppMsg::SetStackPageConfig(StackPage::Carousel, Flow::Init));
+            sender.input(AppMsg::SetStackPageConfig(Flow::Init));
         }
 
         let model = AppModel {
@@ -574,11 +574,9 @@ impl Component for AppModel {
                     self.stack_page = stack_page;
                 }
             }
-            AppMsg::SetStackPageConfig(stack_page, flow) => {
-                trace!("StackPage: {:?}", stack_page);
+            AppMsg::SetStackPageConfig(flow) => {
                 trace!("Flow: {:?}", flow);
 
-                self.stack_page = stack_page;
                 self.config = flow;
                 let mut next_steps = flow.steps();
                 let index: usize = if flow == Flow::Init {
@@ -771,8 +769,8 @@ impl Component for AppModel {
         _root: &Self::Root,
     ) {
         match msg {
-            AppAsyncMsg::SetPage(page, flow) => {
-                sender.input(AppMsg::SetStackPageConfig(page, flow));
+            AppAsyncMsg::SetFlowPage(flow) => {
+                sender.input(AppMsg::SetStackPageConfig(flow));
             }
         }
     }
