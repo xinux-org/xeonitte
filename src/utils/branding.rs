@@ -12,7 +12,7 @@ pub fn get_slides() -> Vec<Slide> {
         Slide {
             title: gettext("Configurable and Customizable"),
             subtitle: gettext(
-                "Easily modify and manage your system configuration with the power of NixOS",
+                "Easily modify and manage your system configuration with the power of nix",
             ),
             image: "configuration.svg".into(),
         },
@@ -45,7 +45,7 @@ pub fn get_slides() -> Vec<Slide> {
         Slide {
             title: gettext("Module Manager"),
             subtitle: gettext(
-                "The goal of this project is to provide a simple graphical tool for modifying and managing desktop NixOS configurations.",
+                "The goal of this project is to provide a simple graphical tool for modifying and managing desktop Xinux configurations.",
             ),
             image: "module-manager.png".into(),
         },

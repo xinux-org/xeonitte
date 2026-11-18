@@ -17,7 +17,7 @@ use crate::{
     },
     utils::{
         flow::{BRANDING, Choice, DISTRO_NAME, Flow, INTERNET_CHECK_URL, Step},
-        i18n::i18n_f,
+        i18n::{i18n, i18n_f},
         install::{InstallAsyncModel, InstallAsyncMsg},
         language::{get_country, get_lang},
         report::ErrorPhase,
@@ -32,8 +32,7 @@ use std::{collections::HashMap, convert::identity, process::Command, thread, tim
 #[tracker::track]
 pub struct AppModel {
     config: Flow,
-    installconfig: Option<Flow>,
-    page: StackPage,
+    stack_page: StackPage,
     #[tracker::no_eq]
     welcome: Controller<WelcomeModel>,
     #[tracker::no_eq]
@@ -101,7 +100,7 @@ pub enum AppMsg {
     SetTimezoneConfig(Option<String>),
     SetPartitionConfig(Option<PartitionSchema>),
     SetUserConfig(Option<UserConfig>),
-    SetStackPageConfig(StackPage, Flow),
+    SetStackPageConfig(Flow),
     SetListConfig(String, HashMap<String, Choice>),
 
     Install,
@@ -122,7 +121,7 @@ impl AppMsg {
 
 #[derive(Debug)]
 pub enum AppAsyncMsg {
-    SetPage(StackPage, Flow),
+    SetFlowPage(Flow),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -149,7 +148,7 @@ impl Component for AppModel {
             set_default_height: 900,
             connect_close_request[sender] => move |_| {
                 debug!("Caught close request");
-                if model.page == StackPage::Install {
+                if model.stack_page == StackPage::Install {
                     sender.input(AppMsg::QuitDialog);
                     relm4::gtk::glib::Propagation::Stop
                 } else {
@@ -158,175 +157,205 @@ impl Component for AppModel {
                     relm4::gtk::glib::Propagation::Proceed
                 }
             },
-            gtk::Box {
-                set_hexpand: true,
-                set_vexpand: true,
-                set_halign: gtk::Align::Fill,
-                set_valign: gtk::Align::Fill,
-                set_orientation: gtk::Orientation::Vertical,
-                adw::HeaderBar {
-                    add_css_class: "flat",
-                    #[wrap(Some)]
-                    #[transition(Crossfade)]
-                    set_title_widget = match model.page {
-                        (StackPage::NoInternet) => {
-                            gtk::Label {
-                                #[watch]
-                                // Translators: Do NOT translate the '{}'
-                                // The string reads "{distribution name} Installer"
-                                set_label: &i18n_f("{} Installer", &[DISTRO_NAME])
+            adw::BreakpointBin {
+                add_breakpoint = adw::Breakpoint::new(
+                    adw::BreakpointCondition::new_length(
+                        adw::BreakpointConditionLengthType::MaxWidth,
+                        550.0,
+                        adw::LengthUnit::Px,
+                    )
+                ){
+                    add_setters: &[
+                        (&footer_box, "halign", gtk::Align::Center),
+                    ],
+                },
+                add_breakpoint = adw::Breakpoint::new(
+                    adw::BreakpointCondition::new_length(
+                        adw::BreakpointConditionLengthType::MinWidth,
+                        500.0,
+                        adw::LengthUnit::Px,
+                    )
+                ){
+                    add_setters: &[
+                        (&footer_box, "halign", gtk::Align::End),
+                    ],
+                },
+                #[wrap(Some)]
+                set_child = &gtk::Box {
+                    set_hexpand: true,
+                    set_vexpand: true,
+                    set_halign: gtk::Align::Fill,
+                    set_valign: gtk::Align::Fill,
+                    set_orientation: gtk::Orientation::Vertical,
+                    adw::HeaderBar {
+                        add_css_class: "flat",
+                        #[wrap(Some)]
+                        #[transition(Crossfade)]
+                        set_title_widget = match model.stack_page {
+                            StackPage::NoInternet => {
+                                gtk::Label {
+                                    // Translators: Do NOT translate the '{}'
+                                    // The string reads "{distribution name} Installer"
+                                    set_label: &gettext("%d Installer").replace("%d", DISTRO_NAME),
+                                    add_css_class: "heading",
+                                }
+                            },
+                            StackPage::Carousel => {
+                                gtk::Label {
+                                    #[watch]
+                                    // Translators: Do NOT translate the "&d" and "%f"
+                                    set_label: &gettext("Step %d of %f")
+                                        .replace("%d", &(model.current_page + 1).to_string())
+                                        .replace("%f", &model.carouselpages.len().to_string()),
+                                    add_css_class: "heading",
+                                }
+                            },
+                            StackPage::Install => {
+                                gtk::Label {
+                                    #[watch]
+                                    set_label: &gettext("Installing…"),
+                                    add_css_class: "heading",
+                                }
+                            },
+                            StackPage::Finished => {
+                                gtk::Label {
+                                    #[watch]
+                                    set_label: &gettext("Installation Finished"),
+                                    add_css_class: "heading",
+                                }
+                            },
+                            StackPage::Error => {
+                                gtk::Label {
+                                    #[watch]
+                                    set_label: &gettext("Installation Failed"),
+                                    add_css_class: "heading",
+                                }
                             }
-                        },
+                        }
+                    },
+
+                    #[transition(SlideLeftRight)]
+                    match model.stack_page {
                         StackPage::Carousel => {
-                            adw::CarouselIndicatorDots {
-                                set_halign: gtk::Align::Center,
-                                set_hexpand: true,
-                                set_carousel: Some(main_carousel)
+                            gtk::Overlay {
+                                gtk::ScrolledWindow {
+                                    set_margin_bottom: 70,
+                                    #[local_ref]
+                                    main_carousel -> adw::Carousel {
+                                        set_interactive: false,
+                                        set_halign: gtk::Align::Fill,
+                                        set_valign: gtk::Align::Fill,
+                                        set_hexpand: true,
+                                        set_vexpand: true,
+                                    },
+                                },
+
+                                add_overlay = &gtk::Revealer {
+                                    set_transition_type: gtk::RevealerTransitionType::Crossfade,
+                                    set_reveal_child: true,
+                                    set_halign: gtk::Align::Fill,
+                                    set_valign: gtk::Align::End,
+                                    add_css_class: "background",
+
+                                    #[name = "footer_box"]
+                                    gtk::Box{
+                                        set_spacing: 10,
+                                        set_margin_all: 18,
+                                        gtk::Button {
+                                            set_label: "Back",
+                                            set_can_focus: false,
+                                            set_can_target: true,
+                                            set_halign: gtk::Align::Start,
+                                            set_valign: gtk::Align::Center,
+                                            #[watch]
+                                            set_sensitive: model.can_go_back && model.current_page > 0,
+                                            connect_clicked[main_carousel, sender] => move |_| {
+                                                let i = adw::Carousel::position(&main_carousel) as u32;
+                                                if i > 0 {
+                                                    let w = main_carousel.nth_page(i-1);
+                                                    main_carousel.scroll_to(&w, true);
+                                                }
+                                                sender.input(AppMsg::ChangePage(i.saturating_sub(1)));
+                                            }
+                                        },
+                                        gtk::Button {
+                                            set_label: "Continue",
+                                            set_can_focus: false,
+                                            set_can_target: true,
+                                            add_css_class: "suggested-action",
+                                            #[watch]
+                                            set_sensitive: model.can_go_forward,
+                                            set_halign: gtk::Align::Start,
+                                            set_valign: gtk::Align::Center,
+                                            connect_clicked[main_carousel, sender] => move |_| {
+                                                let i = adw::Carousel::position(&main_carousel) as u32;
+                                                if i < main_carousel.n_pages().saturating_sub(1) {
+                                                    let w = main_carousel.nth_page(i+1);
+                                                    main_carousel.scroll_to(&w, true);
+                                                    sender.input(AppMsg::ChangePage(i + 1));
+                                                } else {
+                                                    sender.input(AppMsg::SetStackPage(StackPage::Install));
+                                                    sender.input(AppMsg::Install);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
-                        },
+                        }
                         StackPage::Install => {
-                            gtk::Label {
-                                #[watch]
-                                set_label: &gettext("Installing…")
-                            }
-                        },
+                            #[local]
+                            installpage -> gtk::ScrolledWindow {}
+                        }
                         StackPage::Finished => {
-                            gtk::Label {
-                                #[watch]
-                                set_label: &gettext("Installation Finished")
+                            gtk::ScrolledWindow {
+                                adw::Clamp {
+                                    gtk::Box {
+                                        set_hexpand: true,
+                                        set_vexpand: true,
+                                        set_valign: gtk::Align::Center,
+                                        set_orientation: gtk::Orientation::Vertical,
+                                        set_spacing: 30,
+                                        set_margin_all: 20,
+                                        gtk::Label {
+                                            add_css_class: "title-1",
+                                            #[watch]
+                                            set_label: &gettext("Finished!"),
+                                        },
+                                        gtk::Image {
+                                            add_css_class: "success",
+                                            set_icon_name: Some("emblem-ok-symbolic"),
+                                            set_pixel_size: 256,
+                                        },
+                                        gtk::Button {
+                                            add_css_class: "suggested-action",
+                                            add_css_class: "pill",
+                                            set_halign: gtk::Align::Center,
+                                            set_valign: gtk::Align::Center,
+                                            #[watch]
+                                            set_label: &gettext("Reboot"),
+                                            connect_clicked => move |_| {
+                                                let _ = Command::new("systemctl").arg("reboot").arg("-i").spawn();
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         },
                         StackPage::Error => {
-                            gtk::Label {
-                                #[watch]
-                                set_label: &gettext("Installation Failed")
+                            #[local]
+                            errorpage -> gtk::ScrolledWindow {}
+                        },
+                        StackPage::NoInternet => {
+                            adw::StatusPage {
+                                set_icon_name: Some("network-wireless-offline-symbolic"),
+                                set_title: &gettext("No Internet"),
+                                set_description: Some(&gettext("Please connect to the Internet to continue")),
                             }
-                        }
-                    }
-                },
-
-                #[transition(SlideLeftRight)]
-                match model.page {
-                    StackPage::Carousel => {
-                        gtk::Overlay {
-                            #[local_ref]
-                            main_carousel -> adw::Carousel {
-                                set_interactive: false,
-                                set_halign: gtk::Align::Fill,
-                                set_valign: gtk::Align::Fill,
-                                set_hexpand: true,
-                                set_vexpand: true,
-                            },
-                            add_overlay = &gtk::Revealer {
-                                set_transition_type: gtk::RevealerTransitionType::Crossfade,
-                                #[watch]
-                                set_reveal_child: model.can_go_back && model.current_page > 0,
-                                set_halign: gtk::Align::Start,
-                                set_valign: gtk::Align::Center,
-                                set_margin_all: 20,
-                                gtk::Button {
-                                    set_can_focus: false,
-                                    set_can_target: true,
-                                    set_height_request: 40,
-                                    set_width_request: 40,
-                                    add_css_class: "circular",
-                                    set_halign: gtk::Align::Start,
-                                    set_valign: gtk::Align::Center,
-                                    set_icon_name: "go-previous-symbolic",
-                                    connect_clicked[main_carousel, sender] => move |_| {
-                                        let i = adw::Carousel::position(&main_carousel) as u32;
-                                        if i > 0 {
-                                            let w = main_carousel.nth_page(i-1);
-                                            main_carousel.scroll_to(&w, true);
-                                        }
-                                        sender.input(AppMsg::ChangePage(i.saturating_sub(1)));
-                                    }
-                                }
-                            },
-                            add_overlay = &gtk::Revealer {
-                                set_transition_type: gtk::RevealerTransitionType::Crossfade,
-                                #[watch]
-                                set_reveal_child: model.can_go_forward,
-                                set_halign: gtk::Align::End,
-                                set_valign: gtk::Align::Center,
-                                set_margin_all: 20,
-                                gtk::Button {
-                                    set_can_focus: false,
-                                    set_can_target: true,
-                                    set_height_request: 40,
-                                    set_width_request: 40,
-                                    #[watch]
-                                    set_css_classes: if model.current_page.eq(&main_carousel.n_pages().saturating_sub(1)) { &["circular", "suggested-action"] } else { &["circular"] },
-                                    set_halign: gtk::Align::Start,
-                                    set_valign: gtk::Align::Center,
-                                    set_icon_name: "go-next-symbolic",
-                                    connect_clicked[main_carousel, sender] => move |_| {
-                                        let i = adw::Carousel::position(&main_carousel) as u32;
-                                        if i < main_carousel.n_pages().saturating_sub(1) {
-                                            let w = main_carousel.nth_page(i+1);
-                                            main_carousel.scroll_to(&w, true);
-                                            sender.input(AppMsg::ChangePage(i + 1));
-                                        } else {
-                                            sender.input(AppMsg::SetStackPage(StackPage::Install));
-                                            sender.input(AppMsg::Install);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    StackPage::Install => {
-                        #[local]
-                        installpage -> gtk::ScrolledWindow {}
-                    }
-                    StackPage::Finished => {
-                        gtk::ScrolledWindow {
-                            adw::Clamp {
-                                gtk::Box {
-                                    set_hexpand: true,
-                                    set_vexpand: true,
-                                    set_valign: gtk::Align::Center,
-                                    set_orientation: gtk::Orientation::Vertical,
-                                    set_spacing: 30,
-                                    set_margin_all: 20,
-                                    gtk::Label {
-                                        add_css_class: "title-1",
-                                        #[watch]
-                                        set_label: &gettext("Finished!"),
-                                    },
-                                    gtk::Image {
-                                        add_css_class: "success",
-                                        set_icon_name: Some("emblem-ok-symbolic"),
-                                        set_pixel_size: 256,
-                                    },
-                                    gtk::Button {
-                                        add_css_class: "suggested-action",
-                                        add_css_class: "pill",
-                                        set_halign: gtk::Align::Center,
-                                        set_valign: gtk::Align::Center,
-                                        #[watch]
-                                        set_label: &gettext("Reboot"),
-                                        connect_clicked => move |_| {
-                                            let _ = Command::new("systemctl").arg("reboot").arg("-i").spawn();
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    StackPage::Error => {
-                        #[local]
-                        errorpage -> gtk::ScrolledWindow {}
-                    },
-                    StackPage::NoInternet => {
-                        adw::StatusPage {
-                            set_icon_name: Some("network-wireless-offline-symbolic"),
-                            set_title: &gettext("No Internet"),
-                            set_description: Some(&gettext("Please connect to the Internet to continue")),
                         }
                     }
                 }
-            }
+            },
         }
     }
 
@@ -406,16 +435,15 @@ impl Component for AppModel {
                     }
                     tokio::time::sleep(std::time::Duration::from_secs(1)).await;
                 }
-                AppAsyncMsg::SetPage(StackPage::Carousel, Flow::Init)
+                AppAsyncMsg::SetFlowPage(Flow::Init)
             });
         } else {
-            sender.input(AppMsg::SetStackPageConfig(StackPage::Carousel, Flow::Init));
+            sender.input(AppMsg::SetStackPageConfig(Flow::Init));
         }
 
         let model = AppModel {
-            page: startpage,
+            stack_page: startpage,
             config: Flow::Init,
-            installconfig: None,
             welcome: welcomepage,
             keyboard: keyboardpage,
             timezone: timezonepage,
@@ -448,6 +476,8 @@ impl Component for AppModel {
         let installpage = model.install.widget().clone();
         let errorpage = model.error.widget().clone();
         let widgets = view_output!();
+
+        debug!("Current page on init function: {}", model.current_page);
 
         ComponentParts { model, widgets }
     }
@@ -527,125 +557,47 @@ impl Component for AppModel {
             AppMsg::SetCanGoForward(can_go_forward) => {
                 self.can_go_forward = can_go_forward;
             }
-            AppMsg::SetStackPage(page) => {
-                debug!("StackPage: {:?}", page);
-                if page.ne(&self.page) {
-                    self.page = page;
+            AppMsg::SetStackPage(stack_page) => {
+                debug!("StackPage: {:?}", stack_page);
+                if stack_page.ne(&self.stack_page) {
+                    self.stack_page = stack_page;
                 }
             }
-            AppMsg::SetStackPageConfig(page, flow) => {
-                trace!("StackPage: {:?}", page);
+            AppMsg::SetStackPageConfig(flow) => {
                 trace!("Flow: {:?}", flow);
+                self.config = flow;
 
-                self.page = page;
-                self.installconfig = flow.into();
+                // When called at start: 4
+                // Basic: 7
+                // Advanced: 9
                 let mut next_steps = flow.steps();
-                let index = if flow == Flow::Init {
-                    1
-                } else {
-                    Flow::Init.steps().len()
+
+                match flow {
+                    Flow::Init => {}
+                    Flow::Basic | Flow::Advanced => {
+                        // Current page index. When app start itʼs 0
+                        // At mode selction itʼs 4
+                        let index: usize = Flow::Init.steps().len();
+                        if self.current_page as usize >= index {
+                            sender.input(AppMsg::ChangePage((index - 1) as u32));
+                        }
+
+                        while self.carousel.n_pages() > index as u32 {
+                            let last = self.carousel.n_pages() - 1;
+                            let page = self.carousel.nth_page(last);
+                            self.carousel.remove(&page);
+                        }
+                        self.carouselpages.truncate(index);
+                        next_steps = next_steps
+                            .iter()
+                            .filter(|step| !self.carouselpages.contains(step))
+                            .cloned()
+                            .collect();
+                    }
                 };
 
-                if index > 1 {
-                    let init_pages_count = index as u32;
-                    while self.carousel.n_pages() > init_pages_count {
-                        let last = self.carousel.n_pages() - 1;
-                        let page = self.carousel.nth_page(last);
-                        self.carousel.remove(&page);
-                    }
-                    self.carouselpages.truncate(index as usize);
-                    next_steps = next_steps
-                        .iter()
-                        .filter(|step| !self.carouselpages.contains(step))
-                        .cloned()
-                        .collect();
-                }
-
                 // add new pages starting from current page
-                for step in next_steps {
-                    use Step::*;
-                    match step {
-                        Welcome => {
-                            trace!("Welcome append");
-                            self.carousel.append(self.welcome.widget());
-                            self.carouselpages.push(Welcome);
-                        }
-                        Keyboard => {
-                            trace!("Keyboard append");
-                            self.carousel.append(self.keyboard.widget());
-                            self.carouselpages.push(Keyboard);
-                        }
-                        Location => {
-                            trace!("Timezone append");
-                            self.carousel.append(self.timezone.widget());
-                            self.carouselpages.push(Location);
-                        }
-                        InstallMode => {
-                            trace!("Install Mode append");
-                            self.carousel.append(self.install_mode.widget());
-                            self.carouselpages.push(InstallMode);
-                        }
-                        Partitioning => {
-                            trace!("Partitioning append");
-                            self.carousel.append(self.partition.widget());
-                            self.carouselpages.push(Partitioning);
-                        }
-                        User { root, hostname } => {
-                            trace!("User append");
-                            self.carousel.append(self.user.widget());
-                            self.carouselpages.push(User { root, hostname });
-                            self.user.emit(UserMsg::SetConfig(root, hostname));
-                            self.summary.emit(SummaryMsg::ShowHostname(hostname));
-                        }
-                        Summary => {
-                            trace!("Summary append");
-                            self.carousel.append(self.summary.widget());
-                            self.carouselpages.push(Summary);
-                        }
-                        List {
-                            id,
-                            multiple,
-                            required,
-                            title,
-                            choices,
-                        } => {
-                            trace!("List append: {}", title);
-                            let choices_map = choices
-                                .iter()
-                                .map(|choice| {
-                                    let mut map = HashMap::new();
-                                    map.insert(choice.name.clone(), choice.clone());
-                                    map
-                                })
-                                .collect();
-                            let listpage = ListModel::builder()
-                                .launch(ListInit {
-                                    multiple,
-                                    required,
-                                    id: id.into(),
-                                    title: title.to_string(),
-                                    choices: choices_map,
-                                })
-                                .forward(sender.input_sender(), identity);
-                            self.carousel.append(listpage.widget());
-                            self.list.insert(title.to_string(), listpage);
-                            self.carouselpages.push(List {
-                                id,
-                                multiple,
-                                required,
-                                title: title.to_string(),
-                                choices: choices.clone(),
-                            });
-                            self.listconfig.insert(id.into(), HashMap::new());
-                        }
-                    }
-                }
-                if index > 0 {
-                    sender.input(AppMsg::SetCanGoForward(true));
-                    sender.input(AppMsg::ChangePage((index - 1) as u32));
-                } else {
-                    sender.input(AppMsg::ChangePage(0));
-                }
+                self.add_carousel_next_steps(&sender, next_steps);
             }
             AppMsg::SetLanguageConfig(language) => {
                 self.languageconfig = language;
@@ -685,30 +637,26 @@ impl Component for AppModel {
             }
             AppMsg::Install => {
                 debug!("Installing!");
-                if let Some(config) = &self.installconfig {
-                    self.installworker.emit(InstallAsyncMsg::Install(
-                        (*config).into(),
-                        self.languageconfig.clone(),
-                        self.timezoneconfig.clone(),
-                        self.keyboardconfig.clone(),
-                        Box::new(self.partitionconfig.clone()),
-                        Box::new(self.userconfig.clone()),
-                        self.listconfig.clone(),
-                        config.config_type(),
-                        config.imperative_timezone(),
-                        self.disko_config.clone(),
-                    ));
-                }
+                self.installworker.emit(InstallAsyncMsg::Install(
+                    self.config.into(),
+                    self.languageconfig.clone(),
+                    self.timezoneconfig.clone(),
+                    self.keyboardconfig.clone(),
+                    Box::new(self.partitionconfig.clone()),
+                    Box::new(self.userconfig.clone()),
+                    self.listconfig.clone(),
+                    self.config.config_type(),
+                    self.config.imperative_timezone(),
+                    self.disko_config.clone(),
+                ));
             }
             AppMsg::FinishInstall => {
                 debug!("Finishing install!");
-                if let Some(config) = &self.installconfig {
-                    self.installworker.emit(InstallAsyncMsg::FinishInstall(
-                        self.timezoneconfig.clone(),
-                        config.imperative_timezone(),
-                        vec![],
-                    ));
-                }
+                self.installworker.emit(InstallAsyncMsg::FinishInstall(
+                    self.timezoneconfig.clone(),
+                    self.config.imperative_timezone(),
+                    vec![],
+                ));
             }
             AppMsg::RunNextCommand => {
                 debug!("Running next postinstall command");
@@ -716,11 +664,11 @@ impl Component for AppModel {
             }
             AppMsg::Finished => {
                 debug!("Finished!");
-                self.page = StackPage::Finished;
+                self.stack_page = StackPage::Finished;
             }
             AppMsg::Error(phase, message) => {
                 error!("Error in {phase} phase: {message}");
-                self.page = StackPage::Error;
+                self.stack_page = StackPage::Error;
                 self.error.emit(ErrorMsg::Show(phase, message));
             }
         }
@@ -733,18 +681,101 @@ impl Component for AppModel {
         _root: &Self::Root,
     ) {
         match msg {
-            AppAsyncMsg::SetPage(page, flow) => {
-                sender.input(AppMsg::SetStackPageConfig(page, flow));
+            AppAsyncMsg::SetFlowPage(flow) => {
+                sender.input(AppMsg::SetStackPageConfig(flow));
             }
         }
     }
 }
 
 impl AppModel {
+    fn add_carousel_next_steps(
+        &mut self,
+        sender: &ComponentSender<AppModel>,
+        next_steps: Vec<Step>,
+    ) {
+        for step in next_steps {
+            use Step::*;
+            match step {
+                Welcome => {
+                    trace!("Welcome append");
+                    self.carousel.append(self.welcome.widget());
+                    self.carouselpages.push(Welcome);
+                }
+                Keyboard => {
+                    trace!("Keyboard append");
+                    self.carousel.append(self.keyboard.widget());
+                    self.carouselpages.push(Keyboard);
+                }
+                Location => {
+                    trace!("Timezone append");
+                    self.carousel.append(self.timezone.widget());
+                    self.carouselpages.push(Location);
+                }
+                InstallMode => {
+                    trace!("Install Mode append");
+                    self.carousel.append(self.install_mode.widget());
+                    self.carouselpages.push(InstallMode);
+                }
+                Partitioning => {
+                    trace!("Partitioning append");
+                    self.carousel.append(self.partition.widget());
+                    self.carouselpages.push(Partitioning);
+                }
+                User { root, hostname } => {
+                    trace!("User append");
+                    self.carousel.append(self.user.widget());
+                    self.carouselpages.push(User { root, hostname });
+                    self.user.emit(UserMsg::SetConfig(root, hostname));
+                    self.summary.emit(SummaryMsg::ShowHostname(hostname));
+                }
+                Summary => {
+                    trace!("Summary append");
+                    self.carousel.append(self.summary.widget());
+                    self.carouselpages.push(Summary);
+                }
+                List {
+                    id,
+                    multiple,
+                    required,
+                    title,
+                    choices,
+                } => {
+                    trace!("List append: {}", title);
+                    let choices_map = choices
+                        .iter()
+                        .map(|choice| {
+                            let mut map = HashMap::new();
+                            map.insert(choice.name.clone(), choice.clone());
+                            map
+                        })
+                        .collect();
+                    let listpage = ListModel::builder()
+                        .launch(ListInit {
+                            multiple,
+                            required,
+                            id: id.into(),
+                            title: title.to_string(),
+                            choices: choices_map,
+                        })
+                        .forward(sender.input_sender(), identity);
+                    self.carousel.append(listpage.widget());
+                    self.list.insert(title.to_string(), listpage);
+                    self.carouselpages.push(List {
+                        id,
+                        multiple,
+                        required,
+                        title: title.to_string(),
+                        choices: choices.clone(),
+                    });
+                    self.listconfig.insert(id.into(), HashMap::new());
+                }
+            }
+        }
+    }
     fn set_partition_config(&mut self, schema: &Option<PartitionSchema>) {
         if let Some(partition_schema) = schema.clone() {
             self.disko_config = disko_from_schema(&partition_schema);
-
             //             match partition_schema {
             //                 PartitionSchema::FullDisk(FullDiskOptions {
             //                     device, encryption, ..

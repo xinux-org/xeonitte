@@ -3,22 +3,26 @@ use crate::{
     ui::window::AppMsg,
     utils::{branding::get_slides, report::ErrorPhase},
 };
+use anyhow::Context;
+use gettextrs::gettext;
 use log::{debug, error};
 use relm4::{
     ComponentParts, ComponentSender, MessageBroker, RelmWidgetExt, SimpleComponent,
     adw::{self},
     factory::*,
-    gtk::{self, gio},
+    gtk::{self, gio, prelude::*},
 };
 use std::fs::File;
 use vte::{self, TerminalExt, TerminalExtManual};
 
+#[tracker::track]
 pub struct InstallModel {
     terminal: vte::Terminal,
     progressbar_title: String,
     progressbar: gtk::ProgressBar,
     showterminal: bool,
     installing: bool,
+    #[tracker::no_eq]
     slides: FactoryVecDeque<InstallSlide>,
     locale: Option<String>,
 }
@@ -125,6 +129,7 @@ impl SimpleComponent for InstallModel {
             installing: false,
             slides: FactoryVecDeque::builder().launch_default().detach(),
             locale: None,
+            tracker: 0,
         };
 
         let mut slides_guard = model.slides.guard();
@@ -177,6 +182,7 @@ impl SimpleComponent for InstallModel {
     }
 
     fn update(&mut self, msg: Self::Input, sender: ComponentSender<Self>) {
+        self.reset();
         match msg {
             InstallMsg::Pulse => {
                 self.progressbar.pulse();
@@ -315,15 +321,16 @@ impl SimpleComponent for InstallModel {
     }
 }
 
-use adw::prelude::*;
-use gettextrs::gettext;
-
 #[derive(Debug)]
 #[tracker::track]
 pub struct InstallSlide {
+    #[tracker::do_not_track]
     pub title: String,
+    #[tracker::do_not_track]
     pub subtitle: String,
+    #[tracker::do_not_track]
     pub image: String,
+    #[tracker::no_eq]
     pub locale: Option<String>,
 }
 
