@@ -155,8 +155,8 @@ impl Component for AppModel {
     view! {
         #[name(main_window)]
         adw::ApplicationWindow {
-            set_default_width: 1100,
-            set_default_height: 900,
+            set_default_width: 1300,
+            set_default_height: 700,
             connect_close_request[sender] => move |_| {
                 debug!("Caught close request");
                 if model.stack_page == StackPage::Install {
@@ -218,7 +218,7 @@ impl Component for AppModel {
                                     set_label: &gettext("Step %d of %f")
                                         .replace("%d", &(model.current_page + 1).to_string())
                                         .replace("%f", &model.carouselpages.len().to_string()),
-                                    add_css_class: "heading",
+                                    add_css_class: "custom-heading",
                                 }
                             },
                             StackPage::Install => {
@@ -278,6 +278,7 @@ impl Component for AppModel {
                                             set_can_target: true,
                                             set_halign: gtk::Align::Start,
                                             set_valign: gtk::Align::Center,
+                                            add_css_class: "custom-button-text",
                                             #[watch]
                                             set_sensitive: model.can_go_back && model.current_page > 0,
                                             connect_clicked[main_carousel, sender] => move |_| {
@@ -294,6 +295,7 @@ impl Component for AppModel {
                                             set_can_focus: false,
                                             set_can_target: true,
                                             add_css_class: "suggested-action",
+                                            add_css_class: "custom-button-text",
                                             #[watch]
                                             set_sensitive: model.can_go_forward,
                                             set_halign: gtk::Align::Start,

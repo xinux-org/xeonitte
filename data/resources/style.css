@@ -5,11 +5,36 @@
 
 /* make the components inside our custom component to not use any default spacings */
 .selector * {
-    padding: 0;
-    margin: 0;
-    font-size: 0;
+    padding: 0px;
+    margin: 0px;
+    font-size: 0px;
     font-weight: 0;
-    line-height: 0;
+    line-height: 0px;
+    min-height: 0px;
+    height: 0px;
+}
+
+.custom-title-1 {
+    font-size: 24px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 120%; /* 36px */
+}
+
+.custom-heading {
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 120%; /* 16.8px */
+
+}
+
+.custom-button-text {
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 125%; /* 25px */
+    letter-spacing: -0.08px;
 }
 
 .selector {
@@ -19,7 +44,7 @@
 .selector-row {
     background-color: var(--selector-row-bg-color);
     border-radius: 0%;
-    padding: 15px;
+    padding: 14px 12px;
 }
 
 .selector-row:checked {
@@ -27,10 +52,10 @@
 }
 
 .selector-row label {
-    font-size: 18px;
+    font-size: 16px;
     font-style: normal;
     font-weight: 600;
-    line-height: 120%;
+    line-height: 90%;
 }
 
 .rounded-scroll > viewport {
