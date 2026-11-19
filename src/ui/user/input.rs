@@ -23,7 +23,19 @@ impl SimpleComponent for Input {
 
     view! {
         #[root]
-        gtk::Box{}
+        gtk::Box{
+            add_css_class: "input",
+            inline_css: "
+                .input * {
+                    padding: 0;
+                    margin: 0;
+                    min-height: 0;
+                }
+                .input entry {
+                    padding: 15px;
+                }
+            "
+        }
     }
 
     // additional_fields! {
@@ -51,7 +63,6 @@ impl SimpleComponent for Input {
             text = gtk::Entry {
                 set_hexpand: true,
                 set_css_classes: &css_classes,
-                add_css_class: "input",
                 set_placeholder_text: Some(&init.placeholder),
                 connect_changed[sender] => move |buffer| {
                     sender.output(InputOut::Change(buffer.text().into()));
@@ -61,7 +72,6 @@ impl SimpleComponent for Input {
                 set_hexpand: true,
                 set_show_peek_icon: true,
                 set_css_classes: &css_classes,
-                add_css_class: "input",
                 set_placeholder_text: Some(&init.placeholder),
                 connect_changed[sender] => move |buffer| {
                     sender.output(InputOut::Change(buffer.text().into()));
