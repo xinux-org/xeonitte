@@ -24,13 +24,15 @@ pub struct UserData {
     #[garde(length(min = 1))]
     pub hostname: String,
 
-    #[garde(length(min = 1))]
+    #[garde(if(cond = !self.same_password, length(min = 1)))]
     pub root_password: Option<String>,
-    #[garde(matches(root_password), length(min = 1))]
+    #[garde(if(cond = !self.same_password, matches(root_password), length(min = 1)))]
     pub confirm_root_password: Option<String>,
 
     #[garde(skip)]
     pub autologin: bool,
+    #[garde(skip)]
+    pub same_password: bool,
 }
 
 #[tracker::track]
@@ -301,7 +303,7 @@ impl SimpleComponent for UserModel {
             })
             .forward(sender.input_sender(), |msg| match msg {
                 InputOut::Change(text) => UserMsg::Update(UserDataPatch {
-                    username: Some(text),
+                    password: Some(text),
                     ..Default::default()
                 }),
             });
@@ -313,7 +315,7 @@ impl SimpleComponent for UserModel {
             })
             .forward(sender.input_sender(), |msg| match msg {
                 InputOut::Change(text) => UserMsg::Update(UserDataPatch {
-                    username: Some(text),
+                    confirm_password: Some(text),
                     ..Default::default()
                 }),
             });
@@ -350,10 +352,8 @@ impl SimpleComponent for UserModel {
         self.data.reset();
         match msg {
             UserMsg::CheckSelected => {
-                sender.input(UserMsg::Update(UserDataPatch {
-                    ..Default::default()
-                }));
-                let _ = sender.output(AppMsg::SetCanGoForward(self.validation.is_none()));
+                let valid = self.data.validate().is_ok();
+                let _ = sender.output(AppMsg::SetCanGoForward(valid));
             }
             UserMsg::SetConfig(root, showhostname) => {
                 self.showrootpassword = root;
@@ -377,10 +377,16 @@ impl SimpleComponent for UserModel {
                         username,
                         password,
                         hostname,
-                        root_password: rootpassword,
+                        root_password,
                         autologin,
                         ..
                     } = self.data.clone();
+
+                    let rootpassword = if self.data.same_password {
+                        Some(password.clone())
+                    } else {
+                        root_password
+                    };
 
                     let _ = sender.output(AppMsg::SetUserConfig(Some(UserConfig {
                         name,

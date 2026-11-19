@@ -38,7 +38,7 @@ impl FactoryComponent for Partition {
                         set_valign: gtk::Align::Center,
                         gtk::Label {
                             #[watch]
-                            set_markup: &format!("<tt>{}</tt>", self.mountpoint.clone().unwrap_or_else(|| gettext("Do not mount"))),
+                            set_label: &self.mountpoint.clone().unwrap_or_else(|| gettext("Do not mount")),
                         },
                         set_can_target: false,
                     }
@@ -58,7 +58,7 @@ impl FactoryComponent for Partition {
                         set_valign: gtk::Align::Center,
                         gtk::Label {
                             #[watch]
-                            set_markup: &format!("<tt>{}</tt>", self.format.clone().unwrap_or_else(|| gettext("Do not format"))),
+                            set_label: &self.format.clone().unwrap_or_else(|| gettext("Do not format")),
                         },
                         set_can_target: false,
                     }

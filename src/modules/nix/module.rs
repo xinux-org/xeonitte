@@ -12,7 +12,7 @@ impl NixModule {
         Self::default()
     }
 
-    /// Add or overwrite a NixOS option at the given dotted path.
+    /// Add or overwrite a Xinux option at the given dotted path.
     pub fn set(mut self, path: impl Into<String>, value: impl Into<NixExpr>) -> Self {
         self.entries.push((path.into(), value.into()));
         self
