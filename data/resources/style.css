@@ -8,13 +8,12 @@
     padding: 0px;
     margin: 0px;
     font-size: 0px;
-    font-weight: 0;
+    font-weight: 1;
     line-height: 0px;
     min-height: 0px;
-    height: 0px;
 }
 
-.custom-title-1 {
+.welcome-title-1 {
     font-size: 24px;
     font-style: normal;
     font-weight: 700;

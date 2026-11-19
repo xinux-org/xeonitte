@@ -44,7 +44,7 @@ impl SimpleComponent for WelcomeModel {
                     gtk::Label {
                         #[watch]
                         set_label: &gettext("Select a language"),
-                        add_css_class: "custom-title-1"
+                        add_css_class: "welcome-title-1"
                     },
 
                     model.languages_component.widget(),

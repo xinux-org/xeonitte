@@ -155,8 +155,8 @@ impl Component for AppModel {
     view! {
         #[name(main_window)]
         adw::ApplicationWindow {
-            set_default_width: 1300,
-            set_default_height: 700,
+            // set_default_width: 1300,
+            // set_default_height: 700,
             connect_close_request[sender] => move |_| {
                 debug!("Caught close request");
                 if model.stack_page == StackPage::Install {
@@ -169,6 +169,8 @@ impl Component for AppModel {
                 }
             },
             adw::BreakpointBin {
+                set_width_request: 1300,
+                set_height_request: 700,
                 add_breakpoint = adw::Breakpoint::new(
                     adw::BreakpointCondition::new_length(
                         adw::BreakpointConditionLengthType::MaxWidth,
