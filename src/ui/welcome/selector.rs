@@ -111,10 +111,8 @@ impl SimpleComponent for Selector {
             sender.output(SelectorRowOutput::Select(index));
         }
 
-        // initializing model
         let model = Selector { rows };
 
-        // local component
         let rows_box = model.rows.widget();
 
         let widgets = view_output!();
