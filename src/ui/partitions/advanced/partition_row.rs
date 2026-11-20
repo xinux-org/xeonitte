@@ -1,4 +1,9 @@
-use crate::ui::partitions::partition_page::{PARTITION_BROKER, PartitionMsg};
+use crate::modules;
+use crate::modules::disk::{MiB, Size};
+use crate::{
+    modules::disk::{PartitionDef, PartitionSize},
+    ui::partitions::partition_page::{PARTITION_BROKER, PartitionMsg},
+};
 use gettextrs::gettext;
 use relm4::{
     actions::{RelmAction, RelmActionGroup},
@@ -7,7 +12,7 @@ use relm4::{
     *,
 };
 
-#[derive(Default, Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, Clone)]
 pub struct Partition {
     // example: /dev/nvme0n1p1
     pub name: String,
@@ -19,6 +24,7 @@ pub struct Partition {
     pub is_full: bool,
     pub donotmount: String,
     pub donotformat: String,
+    pub partition_disko: PartitionDef,
 }
 
 #[derive(Debug)]
@@ -135,14 +141,16 @@ impl FactoryComponent for Partition {
     }
     fn init_model(parent: Self::Init, _index: &DynamicIndex, _sender: FactorySender<Self>) -> Self {
         Partition {
-            name: parent.name,
+            name: parent.name.clone(),
             size: parent.size,
             mountrow: parent.mountrow,
             device: parent.device,
-            donotmount: gettext("Do not mount"),
-            donotformat: gettext("Leave as is"),
-            // is_swap, is_boot, is_full are selected at GUI
-            ..Default::default()
+            donotmount: parent.donotmount,
+            donotformat: parent.donotformat,
+            is_swap: false,
+            is_boot: false,
+            is_full: false,
+            partition_disko: parent.partition_disko,
         }
     }
     fn init_widgets(

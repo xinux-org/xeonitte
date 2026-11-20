@@ -1,5 +1,7 @@
+use crate::modules;
+use crate::modules::disk;
 use crate::{
-    modules::disk::{DiskLayout, LinuxFs},
+    modules::disk::{DiskLayout, LinuxFs, MiB, PartitionDef, PartitionSize},
     ui::{
         list::list_model::ListItemMsg,
         partitions::{
@@ -273,7 +275,17 @@ impl FactoryComponent for AdvancedDiskGroup {
                     size: x.size,
                     mountrow: adw::ComboRow::new(),
                     device: x.device.clone(),
-                    ..Default::default()
+                    is_swap: false,
+                    is_boot: false,
+                    is_full: false,
+                    donotmount: gettext("Do not mount"),
+                    donotformat: gettext("Leave as is"),
+                    partition_disko: PartitionDef {
+                        label: Some(x.name.clone()),
+                        size: PartitionSize::Mib(disk::Size::<MiB>::new(x.size)),
+                        type_code: None,
+                        content: None,
+                    },
                 };
                 partitions.guard().push_back(p);
             })
@@ -435,7 +447,7 @@ impl FactoryComponent for AdvancedDiskGroup {
                     .cloned()
                     .enumerate()
                     .find_map(|(i, x)| if x.name == name { Some((i, x)) } else { None })
-                    .unwrap_or_default();
+                    .unwrap();
 
                 self.free_space.add_assign(partition.size);
                 self.partitions.guard().remove(index);

@@ -8,7 +8,7 @@ use size::Size;
 
 use crate::{
     get_disk_brand_name,
-    modules::disk::{Disk, DiskLayout},
+    modules::disk::{self, Disk, DiskLayout, MiB, PartitionDef, PartitionSize},
     ui::{
         partitions::{
             advanced::{
@@ -401,7 +401,17 @@ impl SimpleComponent for PartitionModel {
                             size: part.size,
                             mountrow: adw::ComboRow::new(),
                             device: disk.name.to_string(),
-                            ..Default::default()
+                            is_swap: false,
+                            is_boot: false,
+                            is_full: false,
+                            donotmount: gettext("Do not mount"),
+                            donotformat: gettext("Leave as is"),
+                            partition_disko: PartitionDef {
+                                label: Some(part.name.clone()),
+                                size: PartitionSize::Mib(disk::Size::<MiB>::new(part.size)),
+                                type_code: None,
+                                content: None,
+                            },
                         });
                     }
 
