@@ -19,8 +19,9 @@ pub struct AddPartitionDialogModel {
     pub size_type: SizeType,
     pub size_adjustment_value: f64,
     pub stack_page: AddPartitionStackPage,
-    pub file_system_list: FactoryVecDeque<ListItem>,
-    pub file_system_list_choices: Vec<LinuxFs>,
+    pub filesystem_list_factory: FactoryVecDeque<ListItem>,
+    pub filesystem_list_choices: Vec<LinuxFs>,
+    pub mountpoint_list_factory: FactoryVecDeque<ListItem>,
 }
 
 #[derive(Debug)]
@@ -41,6 +42,7 @@ pub enum AddPartitionStackPage {
     #[default]
     Size,
     FilsSystemFormat,
+    MountPoint,
 }
 
 #[relm4::component(pub)]
@@ -97,6 +99,30 @@ impl Component for AddPartitionDialogModel {
                                 set_label: &gettext("Back"),
                                 connect_clicked[sender] => move |_| {
                                     sender.input(AddPartitionDialogInput::SetStackPage(AddPartitionStackPage::Size));
+                                }
+                            },
+                            pack_end = &gtk::Button {
+                                set_label: &gettext("Apply"),
+                                add_css_class: "suggested-action",
+                                #[watch]
+                                set_visible: true,
+                                connect_clicked[sender] => move |_| {
+                                    sender.input(AddPartitionDialogInput::SetStackPage(AddPartitionStackPage::MountPoint));
+                                }
+                            },
+                        }
+                    },
+                    AddPartitionStackPage::MountPoint => {
+                        adw::HeaderBar {
+                            set_show_end_title_buttons: false,
+                            #[wrap(Some)]
+                            set_title_widget = &adw::WindowTitle {
+                                set_title: &gettext("Mount partition"),
+                            },
+                            pack_start = &gtk::Button {
+                                set_label: &gettext("Back"),
+                                connect_clicked[sender] => move |_| {
+                                    sender.input(AddPartitionDialogInput::SetStackPage(AddPartitionStackPage::FilsSystemFormat));
                                 }
                             },
                             pack_end = &gtk::Button {
@@ -183,58 +209,13 @@ impl Component for AddPartitionDialogModel {
                         AddPartitionStackPage::FilsSystemFormat => {
                             adw::PreferencesPage {
                                 #[local_ref]
-                                file_system_list_widget -> adw::PreferencesGroup {},
-                                // adw::PreferencesGroup {
-                                //     set_title: &gettext("Type"),
-                                //     adw::ActionRow {
-                                //         set_title: "Ext4",
-                                //         set_subtitle: &gettext("For use only with Linux systems"),
-                                //         set_use_underline: true,
-                                //         set_activatable: true,
-                                //         // set_activatable_widget: ext4_checkbutton;
-                                //         #[name(ext4_checkbutton)]
-                                //         add_prefix = &gtk::CheckButton  {
-                                //             set_action_name: Some("update_fs_type"),
-                                //             set_action_target: Some("'ext4'"),
-                                //         }
-                                //     },
-                                //     adw::ActionRow {
-                                //         set_title: "vfat",
-                                //         set_subtitle: &gettext("vfat"),
-                                //         set_use_underline: true,
-                                //         set_activatable: true,
-                                //         // set_activatable_widget: ext4_checkbutton;
-                                //         #[name(vfat_checkbutton)]
-                                //         add_prefix = &gtk::CheckButton  {
-                                //             set_action_name: Some("update_fs_type"),
-                                //             set_action_target: Some("'vfat'"),
-                                //         },
-                                //     },
-                                //     adw::ActionRow {
-                                //         set_title: "Exfat",
-                                //         set_subtitle: &gettext("Exfat"),
-                                //         set_use_underline: true,
-                                //         set_activatable: true,
-                                //         // set_activatable_widget: ext4_checkbutton;
-                                //         #[name(exfat_checkbutton)]
-                                //         add_prefix = &gtk::CheckButton  {
-                                //             set_action_name: Some("update_fs_type"),
-                                //             set_action_target: Some("'exfat'"),
-                                //         }
-                                //     },
-                                //     adw::ActionRow {
-                                //         set_title: "Btrfs",
-                                //         set_subtitle: &gettext("Btrfs description"),
-                                //         set_use_underline: true,
-                                //         set_activatable: true,
-                                //         // set_activatable_widget: ext4_checkbutton;
-                                //         #[name(btrfs_checkbutton)]
-                                //         add_prefix = &gtk::CheckButton  {
-                                //             set_action_name: Some("update_fs_type"),
-                                //             set_action_target: Some("'btrfs'"),
-                                //         }
-                                //     },
-                                // },
+                                filesystem_list_factory_widget -> adw::PreferencesGroup {},
+                            }
+                        },
+                        AddPartitionStackPage::MountPoint => {
+                            adw::PreferencesPage {
+                                #[local_ref]
+                                mountpoint_list_factory_widget -> adw::PreferencesGroup {},
                             }
                         },
                     },
@@ -254,7 +235,7 @@ impl Component for AddPartitionDialogModel {
         root: Self::Root,
         sender: ComponentSender<Self>,
     ) -> ComponentParts<Self> {
-        let mut model = Self {
+        let model = Self {
             name: init.name,
             creating_partition: init.creating_partition,
             new_partition_size: init.new_partition_size,
@@ -263,33 +244,28 @@ impl Component for AddPartitionDialogModel {
             size_type: init.size_type,
             size_adjustment_value: init.free_space,
             stack_page: AddPartitionStackPage::Size,
-            // file_system_list: FactoryVecDeque::builder().launch_default().forward(
-            //     sender.input_sender(),
-            //     |msg| match msg {
-            //         ListItemMsg::Select(key) => AddPartitionDialogInput::FileSystemSelect(key),
-            //         ListItemMsg::Deselect(key) => AddPartitionDialogInput::FileSystemDeSelect(key),
-            //     },
-            // ),
-            file_system_list: init.file_system_list,
-            file_system_list_choices: init.file_system_list_choices,
+            filesystem_list_factory: init.filesystem_list_factory,
+            filesystem_list_choices: init.filesystem_list_choices,
+            mountpoint_list_factory: init.mountpoint_list_factory,
         };
 
-        let mut list_guard = model.file_system_list.guard();
-        let fs_group = gtk::CheckButton::new();
-        for choice in &model.file_system_list_choices {
-            let item = ListItem {
-                title: choice.as_str().to_owned(),
-                // description: choice.description.clone(),
-                group: Some(fs_group.clone()),
-                // locale: model.locale.clone(),
-                // tracker: 0,
-                selected: choice == &LinuxFs::Exfat,
-                ..Default::default()
-            };
-            list_guard.push_back(item);
-        }
-        list_guard.drop();
-        let file_system_list_widget = model.file_system_list.widget();
+        // let mut list_guard = model.file_system_list_factory.guard();
+        // let fs_group = gtk::CheckButton::new();
+        // for choice in &model.file_system_list_choices {
+        //     let item = ListItem {
+        //         title: choice.as_str().to_owned(),
+        //         // description: choice.description.clone(),
+        //         group: Some(fs_group.clone()),
+        //         // locale: model.locale.clone(),
+        //         // tracker: 0,
+        //         selected: choice == &LinuxFs::Exfat,
+        //         ..Default::default()
+        //     };
+        //     list_guard.push_back(item);
+        // }
+        // list_guard.drop();
+        let filesystem_list_factory_widget = model.filesystem_list_factory.widget();
+        let mountpoint_list_factory_widget = model.mountpoint_list_factory.widget();
         let widgets = view_output!();
 
         ComponentParts { model, widgets }
@@ -310,6 +286,7 @@ impl Component for AddPartitionDialogModel {
                 // let mut selected = self.choices.iter().cloned().collect::<HashMap<_, _>>();
                 // selected.retain(|k, _| self.selected.contains(k));
                 // sender.output(AppMsg::SetListConfig(self.id.to_string(), selected));
+                debug!("selected: {key}");
             }
             AddPartitionDialogInput::FileSystemDeSelect(key) => {
                 // self.selected.retain(|k| k != &key);
@@ -317,6 +294,7 @@ impl Component for AddPartitionDialogModel {
                 // let mut selected = self.choices.iter().cloned().collect::<HashMap<_, _>>();
                 // selected.retain(|k, _| self.selected.contains(k));
                 // sender.output(AppMsg::SetListConfig(self.id.to_string(), selected));
+                debug!("Unselected: {key}");
             }
         }
     }

@@ -1,5 +1,7 @@
 use crate::modules;
 use crate::modules::disk;
+use crate::ui::list::list_model::ListItem;
+use crate::ui::partitions::partition_page::MOUNT_POINT_LIST;
 use crate::{
     modules::disk::{DiskLayout, LinuxFs, MiB, PartitionDef, PartitionSize},
     ui::{
@@ -239,25 +241,62 @@ impl FactoryComponent for AdvancedDiskGroup {
         //     system_packages: state.installed_system_packages.clone(),
         //     user_packages: state.installed_user_packages.clone(),
         // });
+        let mut dialog_model = AddPartitionDialogModel {
+            name: disk.name.clone(),
+            creating_partition: disk.creating_partition,
+            new_partition_size: disk.new_partition_size,
+            free_space: disk.free_space as f64,
+            total_size: disk.total_size,
+            size_type: disk.size_type,
+            size_adjustment_value: disk.free_space as f64,
+            stack_page: AddPartitionStackPage::default(),
+            filesystem_list_factory: FactoryVecDeque::builder().launch_default().forward(
+                sender.input_sender(),
+                |msg| match msg {
+                    ListItemMsg::Select(key) => AdvancedDiskGroupMsg::FileSystemSelect(key),
+                    ListItemMsg::Deselect(key) => AdvancedDiskGroupMsg::FileSystemDeSelect(key),
+                },
+            ),
+            filesystem_list_choices: vec![LinuxFs::Exfat, LinuxFs::Btrfs, LinuxFs::Ext4],
+            mountpoint_list_factory: FactoryVecDeque::builder().launch_default().forward(
+                sender.input_sender(),
+                |msg| match msg {
+                    ListItemMsg::Select(key) => AdvancedDiskGroupMsg::FileSystemSelect(key),
+                    ListItemMsg::Deselect(key) => AdvancedDiskGroupMsg::FileSystemDeSelect(key),
+                },
+            ),
+        };
+
+        // Create filesystem widget components
+        let mut filesystem_list_guard = dialog_model.filesystem_list_factory.guard();
+        let fs_group = gtk::CheckButton::new();
+        for choice in &dialog_model.filesystem_list_choices {
+            let item = ListItem {
+                title: choice.as_str().to_owned(),
+                // description: choice.description.clone(),
+                group: Some(fs_group.clone()),
+                selected: choice == &LinuxFs::Exfat,
+                ..Default::default()
+            };
+            filesystem_list_guard.push_back(item);
+        }
+        filesystem_list_guard.drop();
+
+        // Create mountpoint widget components
+        let mut mountpoint_list_guard = dialog_model.mountpoint_list_factory.guard();
+        for choice in MOUNT_POINT_LIST.read().clone() {
+            let item = ListItem {
+                title: choice.to_owned(),
+                group: None,
+                selected: false,
+                ..Default::default()
+            };
+            mountpoint_list_guard.push_back(item);
+        }
+        mountpoint_list_guard.drop();
+
         let add_partition_dialog = AddPartitionDialogModel::builder()
-            .launch(AddPartitionDialogModel {
-                name: disk.name.clone(),
-                creating_partition: disk.creating_partition,
-                new_partition_size: disk.new_partition_size,
-                free_space: disk.free_space as f64,
-                total_size: disk.total_size,
-                size_type: disk.size_type,
-                size_adjustment_value: disk.free_space as f64,
-                stack_page: AddPartitionStackPage::default(),
-                file_system_list: FactoryVecDeque::builder().launch_default().forward(
-                    sender.input_sender(),
-                    |msg| match msg {
-                        ListItemMsg::Select(key) => AdvancedDiskGroupMsg::FileSystemSelect(key),
-                        ListItemMsg::Deselect(key) => AdvancedDiskGroupMsg::FileSystemDeSelect(key),
-                    },
-                ),
-                file_system_list_choices: vec![LinuxFs::Exfat, LinuxFs::Btrfs, LinuxFs::Ext4],
-            })
+            .launch(dialog_model)
             .detach();
 
         let mut partitions = FactoryVecDeque::builder()
@@ -278,7 +317,7 @@ impl FactoryComponent for AdvancedDiskGroup {
                     is_swap: false,
                     is_boot: false,
                     is_full: false,
-                    donotmount: gettext("Do not mount"),
+                    // donotmount: gettext("Do not mount"),
                     donotformat: gettext("Leave as is"),
                     partition_disko: PartitionDef {
                         label: Some(x.name.clone()),

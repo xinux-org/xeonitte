@@ -22,7 +22,7 @@ pub struct Partition {
     pub is_swap: bool,
     pub is_boot: bool,
     pub is_full: bool,
-    pub donotmount: String,
+    // pub donotmount: String,
     pub donotformat: String,
     pub partition_disko: PartitionDef,
 }
@@ -91,26 +91,26 @@ impl FactoryComponent for Partition {
                     }
                 }
             },
-            #[local_ref]
-            add_row = mountrow -> adw::ComboRow {
-                #[watch]
-                set_visible: !self.is_swap,
-                #[watch]
-                set_title: &gettext("Mount"),
-                // TODO: When switching language the "Do not mount" option does not update
-                set_model: Some(&gtk::StringList::new(&[&self.donotmount, " /", "/boot", "/home", "/opt", "/var", "/nix"])),
-                connect_selected_notify[sender, name = self.name.to_string(), device = self.device.to_string(), mountstring = self.donotmount.to_string(), size = self.size, is_full = self.is_full] => move |row| {
-                    if let Some(item) = row.selected_item() && let Ok(item) = item.downcast::<gtk::StringObject>(){
-                        let x = item.string();
-                        if x == mountstring {
-                            PARTITION_BROKER.send(PartitionMsg::RemoveMountPartition(name.to_string()));
-                        } else {
-                            PARTITION_BROKER.send(PartitionMsg::AddMountPartition(name.to_string(), item.string().trim().to_string(), device.to_string(), size, is_full));
-                        }
-                        sender.input(PartitionRowMsg::SetBoot(x.eq("/boot")));
-                    }
-                }
-            },
+            // #[local_ref]
+            // add_row = mountrow -> adw::ComboRow {
+            //     #[watch]
+            //     set_visible: !self.is_swap,
+            //     #[watch]
+            //     set_title: &gettext("Mount"),
+            //     // TODO: When switching language the "Do not mount" option does not update
+            //     set_model: Some(&gtk::StringList::new(&[&self.donotmount, " /", "/boot", "/home", "/opt", "/var", "/nix"])),
+            //     connect_selected_notify[sender, name = self.name.to_string(), device = self.device.to_string(), mountstring = self.donotmount.to_string(), size = self.size, is_full = self.is_full] => move |row| {
+            //         if let Some(item) = row.selected_item() && let Ok(item) = item.downcast::<gtk::StringObject>(){
+            //             let x = item.string();
+            //             if x == mountstring {
+            //                 PARTITION_BROKER.send(PartitionMsg::RemoveMountPartition(name.to_string()));
+            //             } else {
+            //                 PARTITION_BROKER.send(PartitionMsg::AddMountPartition(name.to_string(), item.string().trim().to_string(), device.to_string(), size, is_full));
+            //             }
+            //             sender.input(PartitionRowMsg::SetBoot(x.eq("/boot")));
+            //         }
+            //     }
+            // },
             add_row = &adw::ActionRow {
                 #[watch]
                 set_visible: self.is_swap,
@@ -145,7 +145,7 @@ impl FactoryComponent for Partition {
             size: parent.size,
             mountrow: parent.mountrow,
             device: parent.device,
-            donotmount: parent.donotmount,
+            // donotmount: parent.donotmount,
             donotformat: parent.donotformat,
             is_swap: false,
             is_boot: false,

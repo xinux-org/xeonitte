@@ -28,6 +28,8 @@ use crate::{
 // Global value that holds all disks -> partitions -> Content inside
 pub static DISK_LAYOUT_LIST: SharedState<Vec<DiskLayout>> = SharedState::new();
 
+pub static MOUNT_POINT_LIST: SharedState<Vec<String>> = SharedState::new();
+
 pub static PARTITION_BROKER: MessageBroker<PartitionMsg> = MessageBroker::new();
 
 pub struct PartitionModel {
@@ -327,6 +329,18 @@ impl SimpleComponent for PartitionModel {
             encryption_enabled: true,
         };
 
+        let default_mointpoints = vec![
+            "/".to_owned(),
+            "/boot".to_owned(),
+            "/home".to_owned(),
+            "/opt".to_owned(),
+            "/var".to_owned(),
+            "/nix".to_owned(),
+            "/srv".to_owned(),
+            "/media".to_owned(),
+        ];
+        *MOUNT_POINT_LIST.write() = default_mointpoints;
+
         sender.input(PartitionMsg::Refresh);
 
         let basic_disk_box = model.basic_disk_factory.widget();
@@ -404,7 +418,7 @@ impl SimpleComponent for PartitionModel {
                             is_swap: false,
                             is_boot: false,
                             is_full: false,
-                            donotmount: gettext("Do not mount"),
+                            // donotmount: gettext("Do not mount"),
                             donotformat: gettext("Leave as is"),
                             partition_disko: PartitionDef {
                                 label: Some(part.name.clone()),
