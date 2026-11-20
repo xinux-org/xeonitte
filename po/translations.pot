@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 16:58+0500\n"
+"POT-Creation-Date: 2026-11-20 20:08+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -120,7 +120,7 @@ msgstr ""
 msgid "Encryption Password"
 msgstr ""
 
-#: src/ui/partitions/luks_password.rs:54 src/ui/user/user_model.rs:166
+#: src/ui/partitions/luks_password.rs:54 src/ui/user/user_model.rs:168
 msgid "Confirm Password"
 msgstr ""
 
@@ -132,95 +132,72 @@ msgstr ""
 msgid "Password is required"
 msgstr ""
 
-#: src/ui/partitions/partition.rs:53
-msgid "Format"
-msgstr ""
-
-#: src/ui/partitions/partition.rs:72 src/ui/partitions/partition.rs:91
-msgid "Mount"
-msgstr ""
-
-#: src/ui/partitions/partition.rs:100
-msgid "Encrypt"
-msgstr ""
-
-#: src/ui/partitions/partition.rs:102
-msgid "Encrypt this partition with LUKS"
-msgstr ""
-
-#: src/ui/partitions/partition.rs:117
-msgid "Delete"
-msgstr ""
-
-#: src/ui/partitions/partition.rs:139 src/ui/summary/summary_factory.rs:41
-msgid "Do not mount"
-msgstr ""
-
-#: src/ui/partitions/partition.rs:140
-msgid "Leave as is"
-msgstr ""
-
-#: src/ui/partitions/partition_group.rs:79
+#: src/ui/partitions/advanced/disk_group.rs:102
 msgid "Total"
 msgstr ""
 
-#: src/ui/partitions/partition_group.rs:93
+#: src/ui/partitions/advanced/disk_group.rs:116
 msgid "Free"
 msgstr ""
 
-#: src/ui/partitions/partition_group.rs:145
+#: src/ui/partitions/advanced/disk_group.rs:168
 msgid "Free space"
 msgstr ""
 
-#: src/ui/partitions/partition_group.rs:164
-msgid "Enter the new partition size"
+#: src/ui/partitions/advanced/disk_group.rs:337
+#: src/ui/partitions/partition_page.rs:422
+msgid "Leave as is"
 msgstr ""
 
-#: src/ui/partitions/partition_model.rs:117
+#: src/ui/partitions/partition_page.rs:133
 msgid "Select a disk"
 msgstr ""
 
-#: src/ui/partitions/partition_model.rs:122
+#: src/ui/partitions/partition_page.rs:138
 msgid "Disk will be formatted and all data will be lost"
 msgstr ""
 
-#: src/ui/partitions/partition_model.rs:140
+#: src/ui/partitions/partition_page.rs:156
 msgid "Advanced"
 msgstr ""
 
-#: src/ui/partitions/partition_model.rs:155
-#: src/ui/partitions/partition_model.rs:260
+#: src/ui/partitions/partition_page.rs:171
+#: src/ui/partitions/partition_page.rs:276
 msgid "Refresh"
 msgstr ""
 
-#: src/ui/partitions/partition_model.rs:165
+#: src/ui/partitions/partition_page.rs:181
 msgid "Select partitions"
 msgstr ""
 
-#: src/ui/partitions/partition_model.rs:212
+#: src/ui/partitions/partition_page.rs:228
 msgid "Ready to install!"
 msgstr ""
 
-#: src/ui/partitions/partition_model.rs:214
+#: src/ui/partitions/partition_page.rs:230
 msgid "Missing <tt>/boot</tt> partition"
 msgstr ""
 
-#: src/ui/partitions/partition_model.rs:216
-#: src/ui/partitions/partition_model.rs:224
+#: src/ui/partitions/partition_page.rs:232
+#: src/ui/partitions/partition_page.rs:240
 msgid "Missing <tt>/</tt> partition"
 msgstr ""
 
-#: src/ui/partitions/partition_model.rs:218
-#: src/ui/partitions/partition_model.rs:222
+#: src/ui/partitions/partition_page.rs:234
+#: src/ui/partitions/partition_page.rs:238
 msgid "Missing <tt>/</tt> and <tt>/boot</tt> partitions"
 msgstr ""
 
-#: src/ui/partitions/partition_model.rs:245
+#: src/ui/partitions/partition_page.rs:261
 msgid "Basic"
 msgstr ""
 
 #: src/ui/summary/summary_factory.rs:34
 msgid "Mountpoint:"
+msgstr ""
+
+#: src/ui/summary/summary_factory.rs:41
+msgid "Do not mount"
 msgstr ""
 
 #: src/ui/summary/summary_factory.rs:54
@@ -264,40 +241,44 @@ msgstr ""
 msgid "User"
 msgstr ""
 
-#: src/ui/summary/summary_model.rs:136 src/ui/user/user_model.rs:112
+#: src/ui/summary/summary_model.rs:136 src/ui/user/user_model.rs:114
 msgid "Name"
 msgstr ""
 
-#: src/ui/summary/summary_model.rs:154 src/ui/user/user_model.rs:122
+#: src/ui/summary/summary_model.rs:154 src/ui/user/user_model.rs:124
 msgid "Username"
 msgstr ""
 
-#: src/ui/summary/summary_model.rs:172 src/ui/user/user_model.rs:182
+#: src/ui/summary/summary_model.rs:172 src/ui/user/user_model.rs:184
 msgid "Hostname"
 msgstr ""
 
-#: src/ui/user/user_model.rs:104
+#: src/ui/user/user_model.rs:106
 msgid "Create a new user"
 msgstr ""
 
-#: src/ui/user/user_model.rs:156
+#: src/ui/user/user_model.rs:158
 msgid "Password"
 msgstr ""
 
-#: src/ui/user/user_model.rs:204
+#: src/ui/user/user_model.rs:206
+msgid "Log in automatically"
+msgstr ""
+
+#: src/ui/user/user_model.rs:213
+msgid "Use the same password for root account"
+msgstr ""
+
+#: src/ui/user/user_model.rs:222
 msgid "Root user's password"
 msgstr ""
 
-#: src/ui/user/user_model.rs:210
+#: src/ui/user/user_model.rs:228
 msgid "Root password"
 msgstr ""
 
-#: src/ui/user/user_model.rs:220
+#: src/ui/user/user_model.rs:238
 msgid "Confirm root password"
-msgstr ""
-
-#: src/ui/user/user_model.rs:230
-msgid "Log in automatically"
 msgstr ""
 
 #: src/ui/welcome/welcome_model.rs:44
@@ -326,39 +307,39 @@ msgstr ""
 msgid "Quit"
 msgstr ""
 
-#: src/ui/window.rs:188
+#: src/ui/window.rs:199
 msgid "%d Installer"
 msgstr ""
 
-#: src/ui/window.rs:196
+#: src/ui/window.rs:207
 msgid "Step %d of %f"
 msgstr ""
 
-#: src/ui/window.rs:205
+#: src/ui/window.rs:216
 msgid "Installing…"
 msgstr ""
 
-#: src/ui/window.rs:212
+#: src/ui/window.rs:223
 msgid "Installation Finished"
 msgstr ""
 
-#: src/ui/window.rs:219
+#: src/ui/window.rs:230
 msgid "Installation Failed"
 msgstr ""
 
-#: src/ui/window.rs:313
+#: src/ui/window.rs:323
 msgid "Finished!"
 msgstr ""
 
-#: src/ui/window.rs:326
+#: src/ui/window.rs:336
 msgid "Reboot"
 msgstr ""
 
-#: src/ui/window.rs:342
+#: src/ui/window.rs:352
 msgid "No Internet"
 msgstr ""
 
-#: src/ui/window.rs:343
+#: src/ui/window.rs:353
 msgid "Please connect to the Internet to continue"
 msgstr ""
 

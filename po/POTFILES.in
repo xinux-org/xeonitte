@@ -16,10 +16,11 @@ src/ui/list/list_model.rs
 src/ui/partitions/mod.rs
 src/ui/partitions/hibernation.rs
 src/ui/partitions/luks_password.rs
-src/ui/partitions/partition.rs
-src/ui/partitions/partition_group.rs
-src/ui/partitions/partition_model.rs
-src/ui/partitions/whole_disk.rs
+src/ui/partitions/mod.rs
+src/ui/partitions/advanced/disk_group.rs
+src/ui/partitions/partition_page.rs
+src/ui/partitions/basic/whole_disk.rs
+
 src/ui/summary/mod.rs
 src/ui/summary/summary_factory.rs
 src/ui/summary/summary_model.rs

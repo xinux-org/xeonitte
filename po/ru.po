@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 16:44+0500\n"
+"POT-Creation-Date: 2026-11-20 20:08+0500\n"
 "PO-Revision-Date: 2026-10-27 17:00+0500\n"
 "Last-Translator: BeMeritus <bemerituss@gmail.com>\n"
 "Language-Team: \n"
@@ -121,7 +121,7 @@ msgstr "Зашифруйте диск с помощью LUKS"
 msgid "Encryption Password"
 msgstr "Пароль шифрования"
 
-#: src/ui/partitions/luks_password.rs:54 src/ui/user/user_model.rs:166
+#: src/ui/partitions/luks_password.rs:54 src/ui/user/user_model.rs:168
 msgid "Confirm Password"
 msgstr "Подтвердите пароль"
 
@@ -133,96 +133,73 @@ msgstr "Пароли не совпадают"
 msgid "Password is required"
 msgstr "Требуется пароль"
 
-#: src/ui/partitions/partition.rs:53
-msgid "Format"
-msgstr "Формат"
-
-#: src/ui/partitions/partition.rs:72 src/ui/partitions/partition.rs:91
-msgid "Mount"
-msgstr "Моунт"
-
-#: src/ui/partitions/partition.rs:100
-msgid "Encrypt"
-msgstr "Зашифровать"
-
-#: src/ui/partitions/partition.rs:102
-msgid "Encrypt this partition with LUKS"
-msgstr "Зашифровать раздел с помощью LUKS"
-
-#: src/ui/partitions/partition.rs:117
-msgid "Delete"
-msgstr "Удалить"
-
-#: src/ui/partitions/partition.rs:139 src/ui/summary/summary_factory.rs:41
-msgid "Do not mount"
-msgstr "Не монтировать"
-
-#: src/ui/partitions/partition.rs:140
-msgid "Leave as is"
-msgstr "Оставить как есть"
-
-#: src/ui/partitions/partition_group.rs:79
+#: src/ui/partitions/advanced/disk_group.rs:102
 msgid "Total"
 msgstr "Всего"
 
-#: src/ui/partitions/partition_group.rs:93
+#: src/ui/partitions/advanced/disk_group.rs:116
 msgid "Free"
 msgstr "Свободно"
 
-#: src/ui/partitions/partition_group.rs:145
+#: src/ui/partitions/advanced/disk_group.rs:168
 msgid "Free space"
 msgstr "Свободное место"
 
-#: src/ui/partitions/partition_group.rs:164
-msgid "Enter the new partition size"
-msgstr "Введите новый размер раздела"
+#: src/ui/partitions/advanced/disk_group.rs:337
+#: src/ui/partitions/partition_page.rs:422
+msgid "Leave as is"
+msgstr "Оставить как есть"
 
-#: src/ui/partitions/partition_model.rs:117
+#: src/ui/partitions/partition_page.rs:133
 msgid "Select a disk"
 msgstr "Выберите диск"
 
-#: src/ui/partitions/partition_model.rs:122
+#: src/ui/partitions/partition_page.rs:138
 msgid "Disk will be formatted and all data will be lost"
 msgstr "Диск будет отформатирован, и все данные будут потеряны."
 
-#: src/ui/partitions/partition_model.rs:140
+#: src/ui/partitions/partition_page.rs:156
 msgid "Advanced"
 msgstr "Передовой"
 
-#: src/ui/partitions/partition_model.rs:155
-#: src/ui/partitions/partition_model.rs:260
+#: src/ui/partitions/partition_page.rs:171
+#: src/ui/partitions/partition_page.rs:276
 msgid "Refresh"
 msgstr "Обновить"
 
-#: src/ui/partitions/partition_model.rs:165
+#: src/ui/partitions/partition_page.rs:181
 msgid "Select partitions"
 msgstr "Выберите разделы"
 
-#: src/ui/partitions/partition_model.rs:212
+#: src/ui/partitions/partition_page.rs:228
 msgid "Ready to install!"
 msgstr "Готово к установке!"
 
-#: src/ui/partitions/partition_model.rs:214
+#: src/ui/partitions/partition_page.rs:230
 msgid "Missing <tt>/boot</tt> partition"
 msgstr "Отсутствует раздел <tt>/boot</tt>"
 
-#: src/ui/partitions/partition_model.rs:216
-#: src/ui/partitions/partition_model.rs:224
+#: src/ui/partitions/partition_page.rs:232
+#: src/ui/partitions/partition_page.rs:240
 msgid "Missing <tt>/</tt> partition"
 msgstr "Отсутствует раздел <tt>/</tt>"
 
-#: src/ui/partitions/partition_model.rs:218
-#: src/ui/partitions/partition_model.rs:222
+#: src/ui/partitions/partition_page.rs:234
+#: src/ui/partitions/partition_page.rs:238
 msgid "Missing <tt>/</tt> and <tt>/boot</tt> partitions"
 msgstr "Отсутствуют разделы <tt>/</tt> и <tt>/boot</tt>"
 
-#: src/ui/partitions/partition_model.rs:245
+#: src/ui/partitions/partition_page.rs:261
 msgid "Basic"
 msgstr "Базовый"
 
 #: src/ui/summary/summary_factory.rs:34
 msgid "Mountpoint:"
 msgstr "Точка монтирования:"
+
+#: src/ui/summary/summary_factory.rs:41
+msgid "Do not mount"
+msgstr "Не монтировать"
 
 #: src/ui/summary/summary_factory.rs:54
 msgid "Format:"
@@ -265,43 +242,47 @@ msgstr "Весь диск будет отформатирован"
 msgid "User"
 msgstr "Пользователь"
 
-#: src/ui/summary/summary_model.rs:136 src/ui/user/user_model.rs:112
+#: src/ui/summary/summary_model.rs:136 src/ui/user/user_model.rs:114
 msgid "Name"
 msgstr "Имя"
 
-#: src/ui/summary/summary_model.rs:154 src/ui/user/user_model.rs:122
+#: src/ui/summary/summary_model.rs:154 src/ui/user/user_model.rs:124
 msgid "Username"
 msgstr "Имя пользователя"
 
-#: src/ui/summary/summary_model.rs:172 src/ui/user/user_model.rs:182
+#: src/ui/summary/summary_model.rs:172 src/ui/user/user_model.rs:184
 msgid "Hostname"
 msgstr "Имя хоста"
 
-#: src/ui/user/user_model.rs:104
+#: src/ui/user/user_model.rs:106
 msgid "Create a new user"
 msgstr "Создать нового пользователя"
 
-#: src/ui/user/user_model.rs:156
+#: src/ui/user/user_model.rs:158
 msgid "Password"
 msgstr "Пароль"
 
-#: src/ui/user/user_model.rs:204
+#: src/ui/user/user_model.rs:206
+msgid "Log in automatically"
+msgstr "Войти автоматически"
+
+#: src/ui/user/user_model.rs:213
+msgid "Use the same password for root account"
+msgstr ""
+
+#: src/ui/user/user_model.rs:222
 #, fuzzy
 #| msgid "Root password"
 msgid "Root user's password"
 msgstr "Пароль root"
 
-#: src/ui/user/user_model.rs:210
+#: src/ui/user/user_model.rs:228
 msgid "Root password"
 msgstr "Пароль root"
 
-#: src/ui/user/user_model.rs:220
+#: src/ui/user/user_model.rs:238
 msgid "Confirm root password"
 msgstr "Подтвердите пароль root"
-
-#: src/ui/user/user_model.rs:230
-msgid "Log in automatically"
-msgstr "Войти автоматически"
 
 #: src/ui/welcome/welcome_model.rs:44
 msgid "Welcome!"
@@ -331,39 +312,39 @@ msgstr "Отменить"
 msgid "Quit"
 msgstr "Выйти"
 
-#: src/ui/window.rs:188
+#: src/ui/window.rs:199
 msgid "%d Installer"
 msgstr "%d установщик"
 
-#: src/ui/window.rs:196
+#: src/ui/window.rs:207
 msgid "Step %d of %f"
 msgstr "Этап %d из %f"
 
-#: src/ui/window.rs:205
+#: src/ui/window.rs:216
 msgid "Installing…"
 msgstr "Установка..."
 
-#: src/ui/window.rs:212
+#: src/ui/window.rs:223
 msgid "Installation Finished"
 msgstr "Установка завершена"
 
-#: src/ui/window.rs:219
+#: src/ui/window.rs:230
 msgid "Installation Failed"
 msgstr "Установка не удалас"
 
-#: src/ui/window.rs:313
+#: src/ui/window.rs:323
 msgid "Finished!"
 msgstr "Законченный!"
 
-#: src/ui/window.rs:326
+#: src/ui/window.rs:336
 msgid "Reboot"
 msgstr "Перезагрузить"
 
-#: src/ui/window.rs:342
+#: src/ui/window.rs:352
 msgid "No Internet"
 msgstr "Нет интернета"
 
-#: src/ui/window.rs:343
+#: src/ui/window.rs:353
 msgid "Please connect to the Internet to continue"
 msgstr "Пожалуйста, подключитесь к Интернету, чтобы продолжить"
 
@@ -492,6 +473,24 @@ msgstr "Zen"
 #: src/utils/flow.rs:118
 msgid "Install the Zen kernel"
 msgstr "Install the Zen kernel"
+
+#~ msgid "Format"
+#~ msgstr "Формат"
+
+#~ msgid "Mount"
+#~ msgstr "Моунт"
+
+#~ msgid "Encrypt"
+#~ msgstr "Зашифровать"
+
+#~ msgid "Encrypt this partition with LUKS"
+#~ msgstr "Зашифровать раздел с помощью LUKS"
+
+#~ msgid "Delete"
+#~ msgstr "Удалить"
+
+#~ msgid "Enter the new partition size"
+#~ msgstr "Введите новый размер раздела"
 
 #~ msgid "<b>Installation Failed</b>"
 #~ msgstr "<b>Установка не удалась</b>"

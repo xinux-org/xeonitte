@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 16:44+0500\n"
+"POT-Creation-Date: 2026-11-20 20:08+0500\n"
 "PO-Revision-Date: 2026-10-27 17:02+0500\n"
 "Last-Translator: BeMeritus <bemerituss@gmail.com>\n"
 "Language-Team: \n"
@@ -121,7 +121,7 @@ msgstr "Diskni LUKS bilan shifrlash"
 msgid "Encryption Password"
 msgstr "Shifr paroli"
 
-#: src/ui/partitions/luks_password.rs:54 src/ui/user/user_model.rs:166
+#: src/ui/partitions/luks_password.rs:54 src/ui/user/user_model.rs:168
 msgid "Confirm Password"
 msgstr "Parolni tasdiqlash"
 
@@ -133,96 +133,73 @@ msgstr "Parollar mos kelmadi"
 msgid "Password is required"
 msgstr "Parol talab qilinadi"
 
-#: src/ui/partitions/partition.rs:53
-msgid "Format"
-msgstr "Format"
-
-#: src/ui/partitions/partition.rs:72 src/ui/partitions/partition.rs:91
-msgid "Mount"
-msgstr "Ulash"
-
-#: src/ui/partitions/partition.rs:100
-msgid "Encrypt"
-msgstr "Shifrlash"
-
-#: src/ui/partitions/partition.rs:102
-msgid "Encrypt this partition with LUKS"
-msgstr "Boʻlakni LUKS bilan shifrlash"
-
-#: src/ui/partitions/partition.rs:117
-msgid "Delete"
-msgstr "Oʻchirish"
-
-#: src/ui/partitions/partition.rs:139 src/ui/summary/summary_factory.rs:41
-msgid "Do not mount"
-msgstr "Ulanmasin"
-
-#: src/ui/partitions/partition.rs:140
-msgid "Leave as is"
-msgstr "Shundayligicha qoldirish"
-
-#: src/ui/partitions/partition_group.rs:79
+#: src/ui/partitions/advanced/disk_group.rs:102
 msgid "Total"
 msgstr "Jami"
 
-#: src/ui/partitions/partition_group.rs:93
+#: src/ui/partitions/advanced/disk_group.rs:116
 msgid "Free"
 msgstr "Boʻsh"
 
-#: src/ui/partitions/partition_group.rs:145
+#: src/ui/partitions/advanced/disk_group.rs:168
 msgid "Free space"
 msgstr "Boʻsh joy"
 
-#: src/ui/partitions/partition_group.rs:164
-msgid "Enter the new partition size"
-msgstr "Yangi boʻlak hajmini kiriting"
+#: src/ui/partitions/advanced/disk_group.rs:337
+#: src/ui/partitions/partition_page.rs:422
+msgid "Leave as is"
+msgstr "Shundayligicha qoldirish"
 
-#: src/ui/partitions/partition_model.rs:117
+#: src/ui/partitions/partition_page.rs:133
 msgid "Select a disk"
 msgstr "Diskni tanlash"
 
-#: src/ui/partitions/partition_model.rs:122
+#: src/ui/partitions/partition_page.rs:138
 msgid "Disk will be formatted and all data will be lost"
 msgstr "Disk formatlanadi va barcha ma’lumotlar o‘chib ketadi"
 
-#: src/ui/partitions/partition_model.rs:140
+#: src/ui/partitions/partition_page.rs:156
 msgid "Advanced"
 msgstr "Murakkab"
 
-#: src/ui/partitions/partition_model.rs:155
-#: src/ui/partitions/partition_model.rs:260
+#: src/ui/partitions/partition_page.rs:171
+#: src/ui/partitions/partition_page.rs:276
 msgid "Refresh"
 msgstr "Yangilash"
 
-#: src/ui/partitions/partition_model.rs:165
+#: src/ui/partitions/partition_page.rs:181
 msgid "Select partitions"
 msgstr "Bo‘laklarni tanlash"
 
-#: src/ui/partitions/partition_model.rs:212
+#: src/ui/partitions/partition_page.rs:228
 msgid "Ready to install!"
 msgstr "O‘rnatishga tayyor!"
 
-#: src/ui/partitions/partition_model.rs:214
+#: src/ui/partitions/partition_page.rs:230
 msgid "Missing <tt>/boot</tt> partition"
 msgstr "<tt>/boot</tt> bo‘linmasi yetishmayapti"
 
-#: src/ui/partitions/partition_model.rs:216
-#: src/ui/partitions/partition_model.rs:224
+#: src/ui/partitions/partition_page.rs:232
+#: src/ui/partitions/partition_page.rs:240
 msgid "Missing <tt>/</tt> partition"
 msgstr "<tt>/</tt> bo‘lim yetishmayapti"
 
-#: src/ui/partitions/partition_model.rs:218
-#: src/ui/partitions/partition_model.rs:222
+#: src/ui/partitions/partition_page.rs:234
+#: src/ui/partitions/partition_page.rs:238
 msgid "Missing <tt>/</tt> and <tt>/boot</tt> partitions"
 msgstr "<tt>/</tt> va <tt>/boot</tt> bo‘limlari yetishmayapti"
 
-#: src/ui/partitions/partition_model.rs:245
+#: src/ui/partitions/partition_page.rs:261
 msgid "Basic"
 msgstr "Oddiy"
 
 #: src/ui/summary/summary_factory.rs:34
 msgid "Mountpoint:"
 msgstr "Ulash nuqtasi:"
+
+#: src/ui/summary/summary_factory.rs:41
+msgid "Do not mount"
+msgstr "Ulanmasin"
 
 #: src/ui/summary/summary_factory.rs:54
 msgid "Format:"
@@ -265,43 +242,47 @@ msgstr "Butun disk formatlanadi"
 msgid "User"
 msgstr "Foydalanuvchi"
 
-#: src/ui/summary/summary_model.rs:136 src/ui/user/user_model.rs:112
+#: src/ui/summary/summary_model.rs:136 src/ui/user/user_model.rs:114
 msgid "Name"
 msgstr "Nomi"
 
-#: src/ui/summary/summary_model.rs:154 src/ui/user/user_model.rs:122
+#: src/ui/summary/summary_model.rs:154 src/ui/user/user_model.rs:124
 msgid "Username"
 msgstr "Foydalanuvchi nomi"
 
-#: src/ui/summary/summary_model.rs:172 src/ui/user/user_model.rs:182
+#: src/ui/summary/summary_model.rs:172 src/ui/user/user_model.rs:184
 msgid "Hostname"
 msgstr "Host nomi"
 
-#: src/ui/user/user_model.rs:104
+#: src/ui/user/user_model.rs:106
 msgid "Create a new user"
 msgstr "Yangi foydalanuvchi yaratish"
 
-#: src/ui/user/user_model.rs:156
+#: src/ui/user/user_model.rs:158
 msgid "Password"
 msgstr "Parol"
 
-#: src/ui/user/user_model.rs:204
+#: src/ui/user/user_model.rs:206
+msgid "Log in automatically"
+msgstr "Avtomatik kirish"
+
+#: src/ui/user/user_model.rs:213
+msgid "Use the same password for root account"
+msgstr ""
+
+#: src/ui/user/user_model.rs:222
 #, fuzzy
 #| msgid "Root password"
 msgid "Root user's password"
 msgstr "Root parol"
 
-#: src/ui/user/user_model.rs:210
+#: src/ui/user/user_model.rs:228
 msgid "Root password"
 msgstr "Root parol"
 
-#: src/ui/user/user_model.rs:220
+#: src/ui/user/user_model.rs:238
 msgid "Confirm root password"
 msgstr "Root parolini tasdiqlash"
-
-#: src/ui/user/user_model.rs:230
-msgid "Log in automatically"
-msgstr "Avtomatik kirish"
 
 #: src/ui/welcome/welcome_model.rs:44
 msgid "Welcome!"
@@ -331,39 +312,39 @@ msgstr "Bekor qilish"
 msgid "Quit"
 msgstr "Chiqish"
 
-#: src/ui/window.rs:188
+#: src/ui/window.rs:199
 msgid "%d Installer"
 msgstr "%d oʻrnatish"
 
-#: src/ui/window.rs:196
+#: src/ui/window.rs:207
 msgid "Step %d of %f"
 msgstr "%d/%f-bosqich"
 
-#: src/ui/window.rs:205
+#: src/ui/window.rs:216
 msgid "Installing…"
 msgstr "O‘rnatilmoqda…"
 
-#: src/ui/window.rs:212
+#: src/ui/window.rs:223
 msgid "Installation Finished"
 msgstr "O‘rnatish yakunlandi"
 
-#: src/ui/window.rs:219
+#: src/ui/window.rs:230
 msgid "Installation Failed"
 msgstr "O‘rnatish muvaffaqiyatsiz"
 
-#: src/ui/window.rs:313
+#: src/ui/window.rs:323
 msgid "Finished!"
 msgstr "Tamom!"
 
-#: src/ui/window.rs:326
+#: src/ui/window.rs:336
 msgid "Reboot"
 msgstr "Qayta ishga tushirish"
 
-#: src/ui/window.rs:342
+#: src/ui/window.rs:352
 msgid "No Internet"
 msgstr "Internet yo‘q"
 
-#: src/ui/window.rs:343
+#: src/ui/window.rs:353
 msgid "Please connect to the Internet to continue"
 msgstr "Davom etish uchun internetga ulaning"
 
@@ -493,6 +474,24 @@ msgstr "Zen"
 #: src/utils/flow.rs:118
 msgid "Install the Zen kernel"
 msgstr "Zen kernel oʻrnatish"
+
+#~ msgid "Format"
+#~ msgstr "Format"
+
+#~ msgid "Mount"
+#~ msgstr "Ulash"
+
+#~ msgid "Encrypt"
+#~ msgstr "Shifrlash"
+
+#~ msgid "Encrypt this partition with LUKS"
+#~ msgstr "Boʻlakni LUKS bilan shifrlash"
+
+#~ msgid "Delete"
+#~ msgstr "Oʻchirish"
+
+#~ msgid "Enter the new partition size"
+#~ msgstr "Yangi boʻlak hajmini kiriting"
 
 #~ msgid "<b>Installation Failed</b>"
 #~ msgstr "<b>Muvaffaqiyatsiz oʻrnatish</b>"
