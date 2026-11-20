@@ -4,13 +4,13 @@ use gettextrs::gettext;
 use relm4::{factory::*, *};
 use std::collections::HashMap;
 
-#[tracker::track]
+// #[tracker::track]
 pub struct ListModel {
     id: String,
     title: String,
-    #[tracker::no_eq]
+    // #[tracker::no_eq]
     list: FactoryVecDeque<ListItem>,
-    #[tracker::no_eq]
+    // #[tracker::no_eq]
     choices: Vec<(String, Choice)>,
     selected: Vec<String>,
     group: Option<gtk::CheckButton>,
@@ -52,17 +52,17 @@ impl SimpleComponent for ListModel {
                     set_margin_all: 20,
                     gtk::Label {
                         add_css_class: "title-1",
-                        #[track(model.changed(ListModel::locale()))]
+                        // #[track(model.changed(ListModel::locale()))]
+                        #[watch]
                         set_label: &gettext(&model.title),
                     },
                     #[local_ref]
-                    group -> adw::PreferencesGroup {
-
-                    },
+                    group -> adw::PreferencesGroup {},
                     gtk::Button {
                         add_css_class: "pill",
                         set_halign: gtk::Align::Center,
-                        #[track(model.changed(ListModel::locale()))]
+                        // #[track(model.changed(ListModel::locale()))]
+                        #[watch]
                         set_label: &gettext("Clear"),
                         #[watch]
                         set_visible: !model.required && model.group.is_some(),
@@ -113,7 +113,7 @@ impl SimpleComponent for ListModel {
                 Some(gtk::CheckButton::new())
             },
             locale: None,
-            tracker: 0,
+            // tracker: 0,
         };
 
         let mut list_guard = model.list.guard();
@@ -123,7 +123,7 @@ impl SimpleComponent for ListModel {
                 description: choice.description.clone(),
                 group: model.group.clone(),
                 locale: model.locale.clone(),
-                tracker: 0,
+                // tracker: 0,
                 selected: choice.default,
             };
             list_guard.push_back(item);
@@ -134,7 +134,7 @@ impl SimpleComponent for ListModel {
         ComponentParts { model, widgets }
     }
     fn update(&mut self, msg: Self::Input, sender: ComponentSender<Self>) {
-        self.reset();
+        // self.reset();
         match msg {
             ListMsg::CheckSelected => {
                 let cangoforward = if self.required {
@@ -160,10 +160,10 @@ impl SimpleComponent for ListModel {
                 sender.output(AppMsg::SetListConfig(self.id.to_string(), selected));
             }
             ListMsg::SetLocale(locale) => {
-                self.set_locale(locale);
+                self.locale = locale;
                 let mut list_guard = self.list.guard();
                 for item in list_guard.iter_mut() {
-                    item.set_locale(self.locale.clone());
+                    item.locale = self.locale.clone();
                 }
                 list_guard.drop();
             }
@@ -173,13 +173,14 @@ impl SimpleComponent for ListModel {
 
 use relm4::{adw, factory::FactoryComponent};
 
-#[tracker::track]
+// #[tracker::track]
+#[derive(Debug, Default)]
 pub struct ListItem {
-    title: String,
-    description: String,
-    group: Option<gtk::CheckButton>,
-    locale: Option<String>,
-    selected: bool,
+    pub title: String,
+    pub description: String,
+    pub group: Option<gtk::CheckButton>,
+    pub locale: Option<String>,
+    pub selected: bool,
 }
 
 #[derive(Debug)]
@@ -198,9 +199,11 @@ impl FactoryComponent for ListItem {
 
     view! {
         adw::ActionRow {
-            #[track(self.changed(ListItem::locale()))]
+            // #[track(self.changed(ListItem::locale()))]
+            #[watch]
             set_title: &gettext(&self.title),
-            #[track(self.changed(ListItem::locale()))]
+            // #[track(self.changed(ListItem::locale()))]
+            #[watch]
             set_subtitle: &gettext(&self.description),
             set_activatable: true,
             connect_activated[checkbtn] => move |_| {
@@ -224,6 +227,6 @@ impl FactoryComponent for ListItem {
         parent
     }
     fn update(&mut self, _message: Self::Input, _sender: FactorySender<Self>) {
-        self.reset();
+        // self.reset();
     }
 }

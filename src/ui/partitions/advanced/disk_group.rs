@@ -1,11 +1,16 @@
 use crate::{
-    modules::disk::DiskLayout,
-    ui::partitions::{
-        advanced::{
-            add_partition_dialog::XAddPartitionDialogModel,
-            partition_row::{Partition, PartitionOut},
+    modules::disk::{DiskLayout, LinuxFs},
+    ui::{
+        list::list_model::ListItemMsg,
+        partitions::{
+            advanced::{
+                add_partition_dialog::{
+                    AddPartitionDialogInput, AddPartitionDialogModel, AddPartitionStackPage,
+                },
+                partition_row::{Partition, PartitionOut},
+            },
+            partition_page::CustomPartition,
         },
-        partition_page::CustomPartition,
     },
     utils::{SizeType, represent},
 };
@@ -26,7 +31,7 @@ pub struct AdvancedDiskGroup {
     pub size_type: SizeType,
     pub disk_layout: DiskLayout,
     // We create dialog model for each disk.
-    pub add_partition_dialog: Option<Controller<XAddPartitionDialogModel>>,
+    pub add_partition_dialog: Option<Controller<AddPartitionDialogModel>>,
 }
 
 #[derive(Debug)]
@@ -37,6 +42,8 @@ pub enum AdvancedDiskGroupMsg {
     Input(Option<String>),
     // Apply,
     Delete(String),
+    FileSystemSelect(String),
+    FileSystemDeSelect(String),
     // SetSizeType(SizeType),
     // Validate,
 }
@@ -230,15 +237,24 @@ impl FactoryComponent for AdvancedDiskGroup {
         //     system_packages: state.installed_system_packages.clone(),
         //     user_packages: state.installed_user_packages.clone(),
         // });
-        let add_partition_dialog = XAddPartitionDialogModel::builder()
-            .launch(XAddPartitionDialogModel {
+        let add_partition_dialog = AddPartitionDialogModel::builder()
+            .launch(AddPartitionDialogModel {
                 name: disk.name.clone(),
                 creating_partition: disk.creating_partition,
                 new_partition_size: disk.new_partition_size,
                 free_space: disk.free_space as f64,
                 total_size: disk.total_size,
                 size_type: disk.size_type,
-                ..Default::default()
+                size_adjustment_value: disk.free_space as f64,
+                stack_page: AddPartitionStackPage::default(),
+                file_system_list: FactoryVecDeque::builder().launch_default().forward(
+                    sender.input_sender(),
+                    |msg| match msg {
+                        ListItemMsg::Select(key) => AdvancedDiskGroupMsg::FileSystemSelect(key),
+                        ListItemMsg::Deselect(key) => AdvancedDiskGroupMsg::FileSystemDeSelect(key),
+                    },
+                ),
+                file_system_list_choices: vec![LinuxFs::Exfat, LinuxFs::Btrfs, LinuxFs::Ext4],
             })
             .detach();
 
@@ -460,6 +476,16 @@ impl FactoryComponent for AdvancedDiskGroup {
                     dialog
                         .widget()
                         .present(relm4::main_application().active_window().as_ref());
+                }
+            }
+            AdvancedDiskGroupMsg::FileSystemSelect(key) => {
+                if let Some(dialog) = &self.add_partition_dialog {
+                    dialog.emit(AddPartitionDialogInput::FileSystemSelect(key))
+                }
+            }
+            AdvancedDiskGroupMsg::FileSystemDeSelect(key) => {
+                if let Some(dialog) = &self.add_partition_dialog {
+                    dialog.emit(AddPartitionDialogInput::FileSystemDeSelect(key))
                 }
             }
         }
