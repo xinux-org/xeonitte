@@ -1,16 +1,9 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-20 20:08+0500\n"
-"PO-Revision-Date: 2026-10-27 17:02+0500\n"
-"Last-Translator: BeMeritus <bemerituss@gmail.com>\n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
 "Language-Team: \n"
 "Language: uz\n"
 "MIME-Version: 1.0\n"
@@ -20,487 +13,443 @@ msgstr ""
 
 #: data/uz.xinux.Xeonitte.desktop.in.in:2
 msgid "Install Xinux"
-msgstr "Xinux o‘rnatish"
+msgstr ""
 
 #: data/uz.xinux.Xeonitte.desktop.in.in:3
 msgid "Install"
-msgstr "O‘rnatish"
+msgstr ""
 
 #: data/uz.xinux.Xeonitte.desktop.in.in:9
 msgid "Installer;Xeonitte;"
-msgstr "O‘rnatuvchi;Xeonitte;"
+msgstr ""
 
 #: data/uz.xinux.Xeonitte.metainfo.xml.in.in:6 src/main.rs:23
 msgid "Xeonitte Installer"
-msgstr "Xeonitte o‘rnatuvchisi"
+msgstr ""
 
 #: data/uz.xinux.Xeonitte.metainfo.xml.in.in:7
 #: data/uz.xinux.Xeonitte.metainfo.xml.in.in:9
 msgid "A graphical installer for NixOS based distributions."
-msgstr "Xinux asosidagi distributivlar uchun grafik E-IMZO kalitlari menejeri."
+msgstr ""
 
 #: data/uz.xinux.Xeonitte.policy.in.in:8
 msgid "Give Xeonitte Installer root access"
-msgstr "Xeonitte o‘rnatuvchisiga root huquqini bering"
+msgstr ""
 
 #: data/uz.xinux.Xeonitte.policy.in.in:9
 msgid "Authentication is required to install operating system"
-msgstr "Operatsion tizimni o‘rnatish uchun autentifikatsiya talab qilinadi"
+msgstr ""
 
 #: src/ui/error/error_model.rs:57
 msgid "Installation Failed!"
-msgstr "O‘rnatish muvaffaqiyatsiz!"
+msgstr ""
 
 #: src/ui/error/error_model.rs:89
 msgid "Upload Report"
-msgstr "Hisobotni yuklash"
+msgstr ""
 
 #: src/ui/error/error_model.rs:102
 msgid "Failed to report"
-msgstr "Hisobot berib boʻlmadi"
+msgstr ""
 
 #: src/ui/error/error_model.rs:117
 msgid "Retry"
-msgstr "Qayta urinish"
+msgstr ""
 
 #: src/ui/error/error_model.rs:128
 msgid "Reported"
-msgstr "Yuborildi"
+msgstr ""
 
 #: src/ui/error/error_model.rs:145
 msgid "Processing..."
-msgstr "Jarayonda…"
+msgstr ""
 
 #: src/ui/error/error_model.rs:160
 msgid "Open Report"
-msgstr "Hisobot"
+msgstr ""
 
 #: src/ui/keyboard/keyboard_model.rs:65
 msgid "Keyboard Layout"
-msgstr "Klaviatura maketi"
+msgstr ""
 
 #: src/ui/keyboard/keyboard_model.rs:73
 msgid "Test the Keyboard Layout"
-msgstr "Klaviatura maketini sinash"
+msgstr ""
 
 #: src/ui/keyboard/keyboard_model.rs:111 src/ui/timezone/timezone_model.rs:92
 #: src/ui/welcome/welcome_model.rs:102
 msgid "Show less"
-msgstr "Kamroq ko‘rsatish"
+msgstr ""
 
 #: src/ui/keyboard/keyboard_model.rs:111 src/ui/timezone/timezone_model.rs:92
 #: src/ui/welcome/welcome_model.rs:102
 msgid "Show all"
-msgstr "Hammasini ko‘rsatish"
+msgstr ""
 
 #: src/ui/list/list_model.rs:66
 msgid "Clear"
-msgstr "Tiniq"
+msgstr ""
 
 #: src/ui/partitions/hibernation.rs:24
 msgid "Hibernation"
-msgstr "Gibernatsiya"
+msgstr ""
 
 #: src/ui/partitions/hibernation.rs:27
 msgid "Enable Hibernation"
-msgstr "Gibernatsiya rejimini yoqish"
+msgstr ""
 
 #: src/ui/partitions/luks_password.rs:29
 msgid "Encryption"
-msgstr "Shifrlash"
+msgstr ""
 
 #: src/ui/partitions/luks_password.rs:34
 msgid "Enable Disk Encryption"
-msgstr "Disk shifrlashni yoqish"
+msgstr ""
 
 #: src/ui/partitions/luks_password.rs:36
 msgid "Encrypt your disk with LUKS"
-msgstr "Diskni LUKS bilan shifrlash"
+msgstr ""
 
 #: src/ui/partitions/luks_password.rs:45
 msgid "Encryption Password"
-msgstr "Shifr paroli"
+msgstr ""
 
 #: src/ui/partitions/luks_password.rs:54 src/ui/user/user_model.rs:168
 msgid "Confirm Password"
-msgstr "Parolni tasdiqlash"
+msgstr ""
 
 #: src/ui/partitions/luks_password.rs:65
 msgid "Passwords do not match"
-msgstr "Parollar mos kelmadi"
+msgstr ""
 
 #: src/ui/partitions/luks_password.rs:72
 msgid "Password is required"
-msgstr "Parol talab qilinadi"
+msgstr ""
 
 #: src/ui/partitions/advanced/disk_group.rs:102
 msgid "Total"
-msgstr "Jami"
+msgstr ""
 
 #: src/ui/partitions/advanced/disk_group.rs:116
 msgid "Free"
-msgstr "Boʻsh"
+msgstr ""
 
 #: src/ui/partitions/advanced/disk_group.rs:168
 msgid "Free space"
-msgstr "Boʻsh joy"
+msgstr ""
 
-#: src/ui/partitions/advanced/disk_group.rs:337
+#: src/ui/partitions/advanced/disk_group.rs:333
 #: src/ui/partitions/partition_page.rs:422
 msgid "Leave as is"
-msgstr "Shundayligicha qoldirish"
+msgstr ""
 
 #: src/ui/partitions/partition_page.rs:133
 msgid "Select a disk"
-msgstr "Diskni tanlash"
+msgstr ""
 
 #: src/ui/partitions/partition_page.rs:138
 msgid "Disk will be formatted and all data will be lost"
-msgstr "Disk formatlanadi va barcha ma’lumotlar o‘chib ketadi"
+msgstr ""
 
 #: src/ui/partitions/partition_page.rs:156
 msgid "Advanced"
-msgstr "Murakkab"
+msgstr ""
 
 #: src/ui/partitions/partition_page.rs:171
 #: src/ui/partitions/partition_page.rs:276
 msgid "Refresh"
-msgstr "Yangilash"
+msgstr ""
 
 #: src/ui/partitions/partition_page.rs:181
 msgid "Select partitions"
-msgstr "Bo‘laklarni tanlash"
+msgstr ""
 
 #: src/ui/partitions/partition_page.rs:228
 msgid "Ready to install!"
-msgstr "O‘rnatishga tayyor!"
+msgstr ""
 
 #: src/ui/partitions/partition_page.rs:230
 msgid "Missing <tt>/boot</tt> partition"
-msgstr "<tt>/boot</tt> bo‘linmasi yetishmayapti"
+msgstr ""
 
 #: src/ui/partitions/partition_page.rs:232
 #: src/ui/partitions/partition_page.rs:240
 msgid "Missing <tt>/</tt> partition"
-msgstr "<tt>/</tt> bo‘lim yetishmayapti"
+msgstr ""
 
 #: src/ui/partitions/partition_page.rs:234
 #: src/ui/partitions/partition_page.rs:238
 msgid "Missing <tt>/</tt> and <tt>/boot</tt> partitions"
-msgstr "<tt>/</tt> va <tt>/boot</tt> bo‘limlari yetishmayapti"
+msgstr ""
 
 #: src/ui/partitions/partition_page.rs:261
 msgid "Basic"
-msgstr "Oddiy"
+msgstr ""
 
 #: src/ui/summary/summary_factory.rs:34
 msgid "Mountpoint:"
-msgstr "Ulash nuqtasi:"
+msgstr ""
 
 #: src/ui/summary/summary_factory.rs:41
 msgid "Do not mount"
-msgstr "Ulanmasin"
+msgstr ""
 
 #: src/ui/summary/summary_factory.rs:54
 msgid "Format:"
-msgstr "Format:"
+msgstr ""
 
 #: src/ui/summary/summary_factory.rs:61
 msgid "Do not format"
-msgstr "Formatlanmasin"
+msgstr ""
 
 #: src/ui/summary/summary_model.rs:59
 msgid "Summary"
-msgstr "Xulosa"
+msgstr ""
 
 #: src/ui/summary/summary_model.rs:64
 msgid "Language"
-msgstr "Til"
+msgstr ""
 
 #: src/ui/summary/summary_model.rs:75
 msgid "Keyboard"
-msgstr "Klaviatura"
+msgstr ""
 
 #: src/ui/summary/summary_model.rs:86 src/ui/timezone/timezone_model.rs:54
 msgid "Timezone"
-msgstr "Vaqt zonasi"
+msgstr ""
 
 #: src/ui/summary/summary_model.rs:98 src/ui/summary/summary_model.rs:116
 #: src/ui/summary/summary_model.rs:122
 msgid "Partitions"
-msgstr "Bo'laklar"
+msgstr ""
 
 #: src/ui/summary/summary_model.rs:104
 msgid "Full Disk"
-msgstr "Butun Disk"
+msgstr ""
 
 #: src/ui/summary/summary_model.rs:107
 msgid "Entire disk will be formatted"
-msgstr "Butun disk formatlanadi"
+msgstr ""
 
 #: src/ui/summary/summary_model.rs:132
 msgid "User"
-msgstr "Foydalanuvchi"
+msgstr ""
 
 #: src/ui/summary/summary_model.rs:136 src/ui/user/user_model.rs:114
 msgid "Name"
-msgstr "Nomi"
+msgstr ""
 
 #: src/ui/summary/summary_model.rs:154 src/ui/user/user_model.rs:124
 msgid "Username"
-msgstr "Foydalanuvchi nomi"
+msgstr ""
 
 #: src/ui/summary/summary_model.rs:172 src/ui/user/user_model.rs:184
 msgid "Hostname"
-msgstr "Host nomi"
+msgstr ""
 
 #: src/ui/user/user_model.rs:106
 msgid "Create a new user"
-msgstr "Yangi foydalanuvchi yaratish"
+msgstr ""
 
 #: src/ui/user/user_model.rs:158
 msgid "Password"
-msgstr "Parol"
+msgstr ""
 
 #: src/ui/user/user_model.rs:206
 msgid "Log in automatically"
-msgstr "Avtomatik kirish"
+msgstr ""
 
 #: src/ui/user/user_model.rs:213
 msgid "Use the same password for root account"
 msgstr ""
 
 #: src/ui/user/user_model.rs:222
-#, fuzzy
-#| msgid "Root password"
 msgid "Root user's password"
-msgstr "Root parol"
+msgstr ""
 
 #: src/ui/user/user_model.rs:228
 msgid "Root password"
-msgstr "Root parol"
+msgstr ""
 
 #: src/ui/user/user_model.rs:238
 msgid "Confirm root password"
-msgstr "Root parolini tasdiqlash"
+msgstr ""
 
 #: src/ui/welcome/welcome_model.rs:44
 msgid "Welcome!"
-msgstr "Xush kelibsiz!"
+msgstr ""
 
 #: src/ui/welcome/welcome_model.rs:49
 msgid "Choose a language"
-msgstr "Tilni tanlang"
+msgstr ""
 
 #: src/ui/quitdialog.rs:21
 msgid "Quit Installation"
-msgstr "Oʻrnatishdan chiqish"
+msgstr ""
 
 #: src/ui/quitdialog.rs:23
 msgid ""
 "Quitting while the installation is in progress may leave your system in an "
 "unbootable state!"
 msgstr ""
-"Oʻrnatish jarayonida dasturdan chiqish tizimingizni ishga tushirib "
-"boʻlmaydigan holatga keltirib qoʻyishi mumkin!"
 
 #: src/ui/quitdialog.rs:24 src/ui/quitdialog.rs:27
 msgid "Cancel"
-msgstr "Bekor qilish"
+msgstr ""
 
 #: src/ui/quitdialog.rs:25 src/ui/quitdialog.rs:29
 msgid "Quit"
-msgstr "Chiqish"
+msgstr ""
 
 #: src/ui/window.rs:199
 msgid "%d Installer"
-msgstr "%d oʻrnatish"
+msgstr ""
 
 #: src/ui/window.rs:207
 msgid "Step %d of %f"
-msgstr "%d/%f-bosqich"
+msgstr ""
 
 #: src/ui/window.rs:216
-msgid "Installing…"
-msgstr "O‘rnatilmoqda…"
+msgid "Installing"
+msgstr ""
 
 #: src/ui/window.rs:223
 msgid "Installation Finished"
-msgstr "O‘rnatish yakunlandi"
+msgstr ""
 
 #: src/ui/window.rs:230
 msgid "Installation Failed"
-msgstr "O‘rnatish muvaffaqiyatsiz"
+msgstr ""
 
 #: src/ui/window.rs:323
 msgid "Finished!"
-msgstr "Tamom!"
+msgstr ""
 
 #: src/ui/window.rs:336
 msgid "Reboot"
-msgstr "Qayta ishga tushirish"
+msgstr ""
 
 #: src/ui/window.rs:352
 msgid "No Internet"
-msgstr "Internet yo‘q"
+msgstr ""
 
 #: src/ui/window.rs:353
 msgid "Please connect to the Internet to continue"
-msgstr "Davom etish uchun internetga ulaning"
+msgstr ""
 
 #: src/utils/branding.rs:13
 msgid "Configurable and Customizable"
-msgstr "Sozlash va Moslash mumkin"
+msgstr ""
 
 #: src/utils/branding.rs:15
 msgid ""
 "Easily modify and manage your system configuration with the power of nix"
 msgstr ""
-"NixOS yordamida tizim sozlamalarini osongina o‘zgartiring va boshqaring"
 
 #: src/utils/branding.rs:20
 msgid "Nix Package Manager"
-msgstr "Nix paket menejeri"
+msgstr ""
 
 #: src/utils/branding.rs:22
 msgid "Keep your system stable with Nix's reliable and reproducible packages"
 msgstr ""
-"Nix’ning ishonchli va takrorlanadigan paketlari bilan tizimingizni barqaror "
-"saqlang"
 
 #: src/utils/branding.rs:27
 msgid "Over 140,000 packages available"
-msgstr "140,000dan ortiq paketlar mavjud"
+msgstr ""
 
 #: src/utils/branding.rs:29 src/utils/branding.rs:55
 msgid "Easily find and install all the packages you need on your Xinux system"
-msgstr "Xinux tizimida kerakli barcha paketlarni osongina toping va o‘rnating"
+msgstr ""
 
 #: src/utils/branding.rs:34
 msgid "E-Imzo Manager"
-msgstr "E-IMZO menejer"
+msgstr ""
 
 #: src/utils/branding.rs:35
 msgid "A graphical E-Imzo keys manager for NixOS based distributions."
-msgstr "NixOS asosidagi distributivlar uchun grafik E-Imzo kalitlar menejeri."
+msgstr ""
 
 #: src/utils/branding.rs:39
 msgid "Software Center"
-msgstr "Dasturiy taminot"
+msgstr ""
 
 #: src/utils/branding.rs:41
 msgid "A graphical app store for Nix built with libadwaita, GTK4, and Relm4."
 msgstr ""
-"Libadwaita, GTK4 va Relm4 yordamida yaratilgan, nix uchun moʻljallangan "
-"grafik ilovalar doʻkoni."
 
 #: src/utils/branding.rs:46
 msgid "Module Manager"
-msgstr "Modul menager"
+msgstr ""
 
 #: src/utils/branding.rs:48
 msgid ""
 "The goal of this project is to provide a simple graphical tool for modifying "
 "and managing desktop Xinux configurations."
 msgstr ""
-"Ushbu loyihaning maqsadi — ish stolida Xinux konfiguratsiyalarini "
-"o‘zgartirish va boshqarish uchun qulay grafik ilovalar taqdim etish."
 
 #: src/utils/branding.rs:53
 msgid "Uzbek Keyboard Layout"
-msgstr "Oʻzbek klaviatura maketi"
+msgstr ""
 
 #: src/utils/flow.rs:61
 msgid "Extra Options"
-msgstr "Qo‘shimcha parametrlar"
+msgstr ""
 
 #: src/utils/flow.rs:65
 msgid "Flatpak"
-msgstr "Flatpak"
+msgstr ""
 
 #: src/utils/flow.rs:66
 msgid "Enable Flatpak support"
-msgstr "Flatpak paket menejerini yoqish"
+msgstr ""
 
 #: src/utils/flow.rs:72
 msgid "AppImage"
-msgstr "AppImage paket menejerini yoqish"
+msgstr ""
 
 #: src/utils/flow.rs:74
 msgid ""
 "Enable AppImage support by installing the \"appimage-run\" package. For "
 "AppImages to work, you must run them with the \"appimage-run\" command."
 msgstr ""
-"\"appimage-run\" paketini oʻrnatish orqali AppImage qoʻllab-quvvatlashini "
-"yoqing. AppImage fayllari ishlashi uchun \"appimage-run\" buyrugʻi yordamida "
-"ishga tushirishingiz kerak."
 
 #: src/utils/flow.rs:81
 msgid "Minimal"
-msgstr "Minimal"
+msgstr ""
 
 #: src/utils/flow.rs:82
 msgid "Install minimal Xinux without GNOME core apps"
-msgstr "GNOME asosiy ilovalarisiz, minimal Xinux tizimini oʻrnatish"
+msgstr ""
 
 #: src/utils/flow.rs:96
 msgid "LTS"
-msgstr "LTS (stabil)"
+msgstr ""
 
 #: src/utils/flow.rs:97
 msgid "Install the latest LTS kernel"
-msgstr "So‘nggi LTS linux yadrosini o‘rnatish"
+msgstr ""
 
 #: src/utils/flow.rs:103
 msgid "Latest"
-msgstr "Soʻnggi"
+msgstr ""
 
 #: src/utils/flow.rs:104
 msgid "Install the latest kernel"
-msgstr "Soʻnggi yadro versiyasini o‘rnatish"
+msgstr ""
 
 #: src/utils/flow.rs:110
 msgid "Libre"
-msgstr "Libre"
+msgstr ""
 
 #: src/utils/flow.rs:111
 msgid "Install the libre kernel"
-msgstr "Libre kernel oʻrnatish"
+msgstr ""
 
 #: src/utils/flow.rs:117
 msgid "Zen"
-msgstr "Zen"
+msgstr ""
 
 #: src/utils/flow.rs:118
 msgid "Install the Zen kernel"
-msgstr "Zen kernel oʻrnatish"
-
-#~ msgid "Format"
-#~ msgstr "Format"
-
-#~ msgid "Mount"
-#~ msgstr "Ulash"
-
-#~ msgid "Encrypt"
-#~ msgstr "Shifrlash"
-
-#~ msgid "Encrypt this partition with LUKS"
-#~ msgstr "Boʻlakni LUKS bilan shifrlash"
-
-#~ msgid "Delete"
-#~ msgstr "Oʻchirish"
-
-#~ msgid "Enter the new partition size"
-#~ msgstr "Yangi boʻlak hajmini kiriting"
-
-#~ msgid "<b>Installation Failed</b>"
-#~ msgstr "<b>Muvaffaqiyatsiz oʻrnatish</b>"
-
-#~ msgid "Launch GParted"
-#~ msgstr "GParted ishga tushirish"
-
-#~ msgid "Custom mount point"
-#~ msgstr "Yangi ulash nuqtasi"
-
-#~ msgid "Mount point exists"
-#~ msgstr "Ulash nuqtasi mavjud"
+msgstr ""

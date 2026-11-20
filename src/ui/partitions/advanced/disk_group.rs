@@ -1,5 +1,6 @@
 use crate::modules;
 use crate::modules::disk;
+use crate::modules::disk::fs::ContentUI;
 use crate::ui::list::list_model::ListItem;
 use crate::ui::partitions::partition_page::MOUNT_POINT_LIST;
 use crate::{
@@ -19,6 +20,7 @@ use crate::{
     utils::{SizeType, represent},
 };
 use gettextrs::gettext;
+use log::debug;
 use relm4::{adw::prelude::*, factory::*, *};
 use size::Size;
 use std::ops::AddAssign;
@@ -50,6 +52,8 @@ pub enum AdvancedDiskGroupMsg {
     FileSystemDeSelect(String),
     // SetSizeType(SizeType),
     // Validate,
+    NoOperation,
+    PartitionContent(String),
 }
 
 pub enum AdvancedDiskGroupOut {
@@ -253,27 +257,38 @@ impl FactoryComponent for AdvancedDiskGroup {
             filesystem_list_factory: FactoryVecDeque::builder().launch_default().forward(
                 sender.input_sender(),
                 |msg| match msg {
-                    ListItemMsg::Select(key) => AdvancedDiskGroupMsg::FileSystemSelect(key),
-                    ListItemMsg::Deselect(key) => AdvancedDiskGroupMsg::FileSystemDeSelect(key),
+                    ListItemMsg::Select(id, _title) => AdvancedDiskGroupMsg::FileSystemSelect(id),
+                    ListItemMsg::Deselect(_key) => AdvancedDiskGroupMsg::NoOperation,
                 },
             ),
             filesystem_list_choices: vec![LinuxFs::Exfat, LinuxFs::Btrfs, LinuxFs::Ext4],
             mountpoint_list_factory: FactoryVecDeque::builder().launch_default().forward(
                 sender.input_sender(),
                 |msg| match msg {
-                    ListItemMsg::Select(key) => AdvancedDiskGroupMsg::FileSystemSelect(key),
+                    ListItemMsg::Select(_id, title) => {
+                        AdvancedDiskGroupMsg::FileSystemSelect(title)
+                    }
                     ListItemMsg::Deselect(key) => AdvancedDiskGroupMsg::FileSystemDeSelect(key),
+                },
+            ),
+            content_choise: ContentUI::Filesystem,
+            content_list_factory: FactoryVecDeque::builder().launch_default().forward(
+                sender.input_sender(),
+                |msg| match msg {
+                    ListItemMsg::Select(id, _title) => AdvancedDiskGroupMsg::PartitionContent(id),
+                    ListItemMsg::Deselect(_key) => AdvancedDiskGroupMsg::NoOperation,
                 },
             ),
         };
 
-        // Create filesystem widget components
+        // filesystem widget components
         let mut filesystem_list_guard = dialog_model.filesystem_list_factory.guard();
         let fs_group = gtk::CheckButton::new();
         for choice in &dialog_model.filesystem_list_choices {
             let item = ListItem {
+                id: choice.as_str().to_owned().into(),
                 title: choice.as_str().to_owned(),
-                // description: choice.description.clone(),
+                description: "description".into(),
                 group: Some(fs_group.clone()),
                 selected: choice == &LinuxFs::Exfat,
                 ..Default::default()
@@ -282,18 +297,15 @@ impl FactoryComponent for AdvancedDiskGroup {
         }
         filesystem_list_guard.drop();
 
-        // Create mountpoint widget components
-        let mut mountpoint_list_guard = dialog_model.mountpoint_list_factory.guard();
-        for choice in MOUNT_POINT_LIST.read().clone() {
-            let item = ListItem {
-                title: choice.to_owned(),
-                group: None,
-                selected: false,
-                ..Default::default()
-            };
-            mountpoint_list_guard.push_back(item);
+        // Partiiton Content (ext4, swap, luks) widget components
+        let mut content_list_factory_guard = dialog_model.content_list_factory.guard();
+        let content_list_group = gtk::CheckButton::new();
+        for choice in &ContentUI::content_list() {
+            let mut item = choice.to_list_item();
+            item.group = content_list_group.clone().into();
+            content_list_factory_guard.push_back(item);
         }
-        mountpoint_list_guard.drop();
+        content_list_factory_guard.drop();
 
         let add_partition_dialog = AddPartitionDialogModel::builder()
             .launch(dialog_model)
@@ -537,6 +549,13 @@ impl FactoryComponent for AdvancedDiskGroup {
             AdvancedDiskGroupMsg::FileSystemDeSelect(key) => {
                 if let Some(dialog) = &self.add_partition_dialog {
                     dialog.emit(AddPartitionDialogInput::FileSystemDeSelect(key))
+                }
+            }
+            AdvancedDiskGroupMsg::NoOperation => {}
+            AdvancedDiskGroupMsg::PartitionContent(partition_content) => {
+                debug!("AdvancedDiskGroupMsg::PartitionContent: {partition_content}");
+                if let Some(dialog) = &self.add_partition_dialog {
+                    dialog.emit(AddPartitionDialogInput::SetContent(partition_content))
                 }
             }
         }

@@ -1,505 +1,442 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
-#, fuzzy
-msgid ""
-msgstr ""
-"Project-Id-Version: \n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-20 20:08+0500\n"
-"PO-Revision-Date: 2026-10-27 17:00+0500\n"
-"Last-Translator: BeMeritus <bemerituss@gmail.com>\n"
-"Language-Team: \n"
-"Language: ru\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 3.10\n"
-
 #: data/uz.xinux.Xeonitte.desktop.in.in:2
 msgid "Install Xinux"
-msgstr "Установить Xinux"
+msgstr ""
 
 #: data/uz.xinux.Xeonitte.desktop.in.in:3
 msgid "Install"
-msgstr "Установить"
+msgstr ""
 
 #: data/uz.xinux.Xeonitte.desktop.in.in:9
 msgid "Installer;Xeonitte;"
-msgstr "Установщик;Xeonitte;"
+msgstr ""
 
 #: data/uz.xinux.Xeonitte.metainfo.xml.in.in:6 src/main.rs:23
 msgid "Xeonitte Installer"
-msgstr "Установщик Xeonitte"
+msgstr ""
 
 #: data/uz.xinux.Xeonitte.metainfo.xml.in.in:7
 #: data/uz.xinux.Xeonitte.metainfo.xml.in.in:9
 msgid "A graphical installer for NixOS based distributions."
-msgstr "Графический менеджер ключей E-IMZO для дистрибутивов на базе NixOS."
+msgstr ""
 
 #: data/uz.xinux.Xeonitte.policy.in.in:8
 msgid "Give Xeonitte Installer root access"
-msgstr "Предоставьте установщику Xeonitte root-доступ"
+msgstr ""
 
 #: data/uz.xinux.Xeonitte.policy.in.in:9
 msgid "Authentication is required to install operating system"
-msgstr "Для установки операционной системы требуется аутентификация"
+msgstr ""
 
 #: src/ui/error/error_model.rs:57
 msgid "Installation Failed!"
-msgstr "Установка не удалась!"
+msgstr ""
 
 #: src/ui/error/error_model.rs:89
 msgid "Upload Report"
-msgstr "Загрузить отчет"
+msgstr ""
 
 #: src/ui/error/error_model.rs:102
 msgid "Failed to report"
-msgstr "Не удалось сообщить об ошибке"
+msgstr ""
 
 #: src/ui/error/error_model.rs:117
 msgid "Retry"
-msgstr "Повторить"
+msgstr ""
 
 #: src/ui/error/error_model.rs:128
 msgid "Reported"
-msgstr "Сообщено"
+msgstr ""
 
 #: src/ui/error/error_model.rs:145
 msgid "Processing..."
-msgstr "Обработка…"
+msgstr ""
 
 #: src/ui/error/error_model.rs:160
 msgid "Open Report"
-msgstr "Открыт отчет"
+msgstr ""
 
 #: src/ui/keyboard/keyboard_model.rs:65
 msgid "Keyboard Layout"
-msgstr "Раскладка клавиатуры"
+msgstr ""
 
 #: src/ui/keyboard/keyboard_model.rs:73
 msgid "Test the Keyboard Layout"
-msgstr "Проверьте раскладку клавиатуры"
+msgstr ""
 
 #: src/ui/keyboard/keyboard_model.rs:111 src/ui/timezone/timezone_model.rs:92
 #: src/ui/welcome/welcome_model.rs:102
 msgid "Show less"
-msgstr "Показать меньше"
+msgstr ""
 
 #: src/ui/keyboard/keyboard_model.rs:111 src/ui/timezone/timezone_model.rs:92
 #: src/ui/welcome/welcome_model.rs:102
 msgid "Show all"
-msgstr "Показать все"
+msgstr ""
 
 #: src/ui/list/list_model.rs:66
 msgid "Clear"
-msgstr "Очистить"
+msgstr ""
 
 #: src/ui/partitions/hibernation.rs:24
 msgid "Hibernation"
-msgstr "Гибернация"
+msgstr ""
 
 #: src/ui/partitions/hibernation.rs:27
 msgid "Enable Hibernation"
-msgstr "Включить гибернацию"
+msgstr ""
 
 #: src/ui/partitions/luks_password.rs:29
 msgid "Encryption"
-msgstr "Шифрование"
+msgstr ""
 
 #: src/ui/partitions/luks_password.rs:34
 msgid "Enable Disk Encryption"
-msgstr "Включить шифрование диска"
+msgstr ""
 
 #: src/ui/partitions/luks_password.rs:36
 msgid "Encrypt your disk with LUKS"
-msgstr "Зашифруйте диск с помощью LUKS"
+msgstr ""
 
 #: src/ui/partitions/luks_password.rs:45
 msgid "Encryption Password"
-msgstr "Пароль шифрования"
+msgstr ""
 
 #: src/ui/partitions/luks_password.rs:54 src/ui/user/user_model.rs:168
 msgid "Confirm Password"
-msgstr "Подтвердите пароль"
+msgstr ""
 
 #: src/ui/partitions/luks_password.rs:65
 msgid "Passwords do not match"
-msgstr "Пароли не совпадают"
+msgstr ""
 
 #: src/ui/partitions/luks_password.rs:72
 msgid "Password is required"
-msgstr "Требуется пароль"
+msgstr ""
 
 #: src/ui/partitions/advanced/disk_group.rs:102
 msgid "Total"
-msgstr "Всего"
+msgstr ""
 
 #: src/ui/partitions/advanced/disk_group.rs:116
 msgid "Free"
-msgstr "Свободно"
+msgstr ""
 
 #: src/ui/partitions/advanced/disk_group.rs:168
 msgid "Free space"
-msgstr "Свободное место"
+msgstr ""
 
-#: src/ui/partitions/advanced/disk_group.rs:337
+#: src/ui/partitions/advanced/disk_group.rs:333
 #: src/ui/partitions/partition_page.rs:422
 msgid "Leave as is"
-msgstr "Оставить как есть"
+msgstr ""
 
 #: src/ui/partitions/partition_page.rs:133
 msgid "Select a disk"
-msgstr "Выберите диск"
+msgstr ""
 
 #: src/ui/partitions/partition_page.rs:138
 msgid "Disk will be formatted and all data will be lost"
-msgstr "Диск будет отформатирован, и все данные будут потеряны."
+msgstr ""
 
 #: src/ui/partitions/partition_page.rs:156
 msgid "Advanced"
-msgstr "Передовой"
+msgstr ""
 
 #: src/ui/partitions/partition_page.rs:171
 #: src/ui/partitions/partition_page.rs:276
 msgid "Refresh"
-msgstr "Обновить"
+msgstr ""
 
 #: src/ui/partitions/partition_page.rs:181
 msgid "Select partitions"
-msgstr "Выберите разделы"
+msgstr ""
 
 #: src/ui/partitions/partition_page.rs:228
 msgid "Ready to install!"
-msgstr "Готово к установке!"
+msgstr ""
 
 #: src/ui/partitions/partition_page.rs:230
 msgid "Missing <tt>/boot</tt> partition"
-msgstr "Отсутствует раздел <tt>/boot</tt>"
+msgstr ""
 
 #: src/ui/partitions/partition_page.rs:232
 #: src/ui/partitions/partition_page.rs:240
 msgid "Missing <tt>/</tt> partition"
-msgstr "Отсутствует раздел <tt>/</tt>"
+msgstr ""
 
 #: src/ui/partitions/partition_page.rs:234
 #: src/ui/partitions/partition_page.rs:238
 msgid "Missing <tt>/</tt> and <tt>/boot</tt> partitions"
-msgstr "Отсутствуют разделы <tt>/</tt> и <tt>/boot</tt>"
+msgstr ""
 
 #: src/ui/partitions/partition_page.rs:261
 msgid "Basic"
-msgstr "Базовый"
+msgstr ""
 
 #: src/ui/summary/summary_factory.rs:34
 msgid "Mountpoint:"
-msgstr "Точка монтирования:"
+msgstr ""
 
 #: src/ui/summary/summary_factory.rs:41
 msgid "Do not mount"
-msgstr "Не монтировать"
+msgstr ""
 
 #: src/ui/summary/summary_factory.rs:54
 msgid "Format:"
-msgstr "Формат:"
+msgstr ""
 
 #: src/ui/summary/summary_factory.rs:61
 msgid "Do not format"
-msgstr "Не форматировать"
+msgstr ""
 
 #: src/ui/summary/summary_model.rs:59
 msgid "Summary"
-msgstr "Сводка"
+msgstr ""
 
 #: src/ui/summary/summary_model.rs:64
 msgid "Language"
-msgstr "Язык"
+msgstr ""
 
 #: src/ui/summary/summary_model.rs:75
 msgid "Keyboard"
-msgstr "Клавиатура"
+msgstr ""
 
 #: src/ui/summary/summary_model.rs:86 src/ui/timezone/timezone_model.rs:54
 msgid "Timezone"
-msgstr "Часовой пояс"
+msgstr ""
 
 #: src/ui/summary/summary_model.rs:98 src/ui/summary/summary_model.rs:116
 #: src/ui/summary/summary_model.rs:122
 msgid "Partitions"
-msgstr "Разделы"
+msgstr ""
 
 #: src/ui/summary/summary_model.rs:104
 msgid "Full Disk"
-msgstr "Полный диск"
+msgstr ""
 
 #: src/ui/summary/summary_model.rs:107
 msgid "Entire disk will be formatted"
-msgstr "Весь диск будет отформатирован"
+msgstr ""
 
 #: src/ui/summary/summary_model.rs:132
 msgid "User"
-msgstr "Пользователь"
+msgstr ""
 
 #: src/ui/summary/summary_model.rs:136 src/ui/user/user_model.rs:114
 msgid "Name"
-msgstr "Имя"
+msgstr ""
 
 #: src/ui/summary/summary_model.rs:154 src/ui/user/user_model.rs:124
 msgid "Username"
-msgstr "Имя пользователя"
+msgstr ""
 
 #: src/ui/summary/summary_model.rs:172 src/ui/user/user_model.rs:184
 msgid "Hostname"
-msgstr "Имя хоста"
+msgstr ""
 
 #: src/ui/user/user_model.rs:106
 msgid "Create a new user"
-msgstr "Создать нового пользователя"
+msgstr ""
 
 #: src/ui/user/user_model.rs:158
 msgid "Password"
-msgstr "Пароль"
+msgstr ""
 
 #: src/ui/user/user_model.rs:206
 msgid "Log in automatically"
-msgstr "Войти автоматически"
+msgstr ""
 
 #: src/ui/user/user_model.rs:213
 msgid "Use the same password for root account"
 msgstr ""
 
 #: src/ui/user/user_model.rs:222
-#, fuzzy
-#| msgid "Root password"
 msgid "Root user's password"
-msgstr "Пароль root"
+msgstr ""
 
 #: src/ui/user/user_model.rs:228
 msgid "Root password"
-msgstr "Пароль root"
+msgstr ""
 
 #: src/ui/user/user_model.rs:238
 msgid "Confirm root password"
-msgstr "Подтвердите пароль root"
+msgstr ""
 
 #: src/ui/welcome/welcome_model.rs:44
 msgid "Welcome!"
-msgstr "Добро пожаловать!"
+msgstr ""
 
 #: src/ui/welcome/welcome_model.rs:49
 msgid "Choose a language"
-msgstr "Выберите язык"
+msgstr ""
 
 #: src/ui/quitdialog.rs:21
 msgid "Quit Installation"
-msgstr "Выйти из установки"
+msgstr ""
 
 #: src/ui/quitdialog.rs:23
 msgid ""
 "Quitting while the installation is in progress may leave your system in an "
 "unbootable state!"
 msgstr ""
-"Выход во время установки может привести к невозможности загрузки вашей "
-"системы!"
 
 #: src/ui/quitdialog.rs:24 src/ui/quitdialog.rs:27
 msgid "Cancel"
-msgstr "Отменить"
+msgstr ""
 
 #: src/ui/quitdialog.rs:25 src/ui/quitdialog.rs:29
 msgid "Quit"
-msgstr "Выйти"
+msgstr ""
 
 #: src/ui/window.rs:199
 msgid "%d Installer"
-msgstr "%d установщик"
+msgstr ""
 
 #: src/ui/window.rs:207
 msgid "Step %d of %f"
-msgstr "Этап %d из %f"
+msgstr ""
 
 #: src/ui/window.rs:216
-msgid "Installing…"
-msgstr "Установка..."
+msgid "Installing"
+msgstr ""
 
 #: src/ui/window.rs:223
 msgid "Installation Finished"
-msgstr "Установка завершена"
+msgstr ""
 
 #: src/ui/window.rs:230
 msgid "Installation Failed"
-msgstr "Установка не удалас"
+msgstr ""
 
 #: src/ui/window.rs:323
 msgid "Finished!"
-msgstr "Законченный!"
+msgstr ""
 
 #: src/ui/window.rs:336
 msgid "Reboot"
-msgstr "Перезагрузить"
+msgstr ""
 
 #: src/ui/window.rs:352
 msgid "No Internet"
-msgstr "Нет интернета"
+msgstr ""
 
 #: src/ui/window.rs:353
 msgid "Please connect to the Internet to continue"
-msgstr "Пожалуйста, подключитесь к Интернету, чтобы продолжить"
+msgstr ""
 
 #: src/utils/branding.rs:13
 msgid "Configurable and Customizable"
-msgstr "Настраиваемый и персонализируемый"
+msgstr ""
 
 #: src/utils/branding.rs:15
 msgid ""
 "Easily modify and manage your system configuration with the power of nix"
-msgstr "Легко изменяйте и управляйте конфигурацией системы с помощью никс"
+msgstr ""
 
 #: src/utils/branding.rs:20
 msgid "Nix Package Manager"
-msgstr "Nix Пакетный менеджер"
+msgstr ""
 
 #: src/utils/branding.rs:22
 msgid "Keep your system stable with Nix's reliable and reproducible packages"
 msgstr ""
-"Поддерживайте стабильность системы с помощью надежных и воспроизводимых "
-"пакетов nix"
 
 #: src/utils/branding.rs:27
 msgid "Over 140,000 packages available"
-msgstr "Доступно более 140 000 пакетов"
+msgstr ""
 
 #: src/utils/branding.rs:29 src/utils/branding.rs:55
 msgid "Easily find and install all the packages you need on your Xinux system"
 msgstr ""
-"Легко найдите и установите все необходимые пакеты в вашей системе Xinux"
 
 #: src/utils/branding.rs:34
 msgid "E-Imzo Manager"
-msgstr "E-IMZO менеджер"
+msgstr ""
 
 #: src/utils/branding.rs:35
 msgid "A graphical E-Imzo keys manager for NixOS based distributions."
-msgstr "Графический менеджер ключей E-IMZO для дистрибутивов на базе NixOS."
+msgstr ""
 
 #: src/utils/branding.rs:39
 msgid "Software Center"
-msgstr "Центр программного обеспечения"
+msgstr ""
 
 #: src/utils/branding.rs:41
 msgid "A graphical app store for Nix built with libadwaita, GTK4, and Relm4."
 msgstr ""
-"Графический магазин приложений для Nix, построенный на libვაita, GTK4 и "
-"Relm4."
 
 #: src/utils/branding.rs:46
 msgid "Module Manager"
-msgstr "Менеджер модулей"
+msgstr ""
 
 #: src/utils/branding.rs:48
 msgid ""
 "The goal of this project is to provide a simple graphical tool for modifying "
 "and managing desktop Xinux configurations."
 msgstr ""
-"Целью данного проекта является предоставление простого графического "
-"инструмента для изменения и управления конфигурациями рабочего стола Xinux."
 
 #: src/utils/branding.rs:53
 msgid "Uzbek Keyboard Layout"
-msgstr "Узбекская раскладка клавиатуры"
+msgstr ""
 
 #: src/utils/flow.rs:61
 msgid "Extra Options"
-msgstr "Дополнительные опции"
+msgstr ""
 
 #: src/utils/flow.rs:65
 msgid "Flatpak"
-msgstr "Flatpak"
+msgstr ""
 
 #: src/utils/flow.rs:66
 msgid "Enable Flatpak support"
-msgstr "Включить поддержку Flatpak"
+msgstr ""
 
 #: src/utils/flow.rs:72
 msgid "AppImage"
-msgstr "AppImage"
+msgstr ""
 
 #: src/utils/flow.rs:74
 msgid ""
 "Enable AppImage support by installing the \"appimage-run\" package. For "
 "AppImages to work, you must run them with the \"appimage-run\" command."
 msgstr ""
-"Включите поддержку AppImage, установив пакет \"appimage-run.\" Для работы "
-"AppImages необходимо запустить их с помощью команды \"appimage-run\"."
 
 #: src/utils/flow.rs:81
 msgid "Minimal"
-msgstr "Минимальный"
+msgstr ""
 
 #: src/utils/flow.rs:82
 msgid "Install minimal Xinux without GNOME core apps"
-msgstr "Установить минимальный Xinux без основных приложений GNOME"
+msgstr ""
 
 #: src/utils/flow.rs:96
 msgid "LTS"
-msgstr "LTS"
+msgstr ""
 
 #: src/utils/flow.rs:97
 msgid "Install the latest LTS kernel"
-msgstr "Установите последнее ядро LTS"
+msgstr ""
 
 #: src/utils/flow.rs:103
 msgid "Latest"
-msgstr "Последние"
+msgstr ""
 
 #: src/utils/flow.rs:104
 msgid "Install the latest kernel"
-msgstr "Установить последнее ядро"
+msgstr ""
 
 #: src/utils/flow.rs:110
 msgid "Libre"
-msgstr "Libre"
+msgstr ""
 
 #: src/utils/flow.rs:111
 msgid "Install the libre kernel"
-msgstr "Установить ядро Libra"
+msgstr ""
 
 #: src/utils/flow.rs:117
 msgid "Zen"
-msgstr "Zen"
+msgstr ""
 
 #: src/utils/flow.rs:118
 msgid "Install the Zen kernel"
-msgstr "Install the Zen kernel"
-
-#~ msgid "Format"
-#~ msgstr "Формат"
-
-#~ msgid "Mount"
-#~ msgstr "Моунт"
-
-#~ msgid "Encrypt"
-#~ msgstr "Зашифровать"
-
-#~ msgid "Encrypt this partition with LUKS"
-#~ msgstr "Зашифровать раздел с помощью LUKS"
-
-#~ msgid "Delete"
-#~ msgstr "Удалить"
-
-#~ msgid "Enter the new partition size"
-#~ msgstr "Введите новый размер раздела"
-
-#~ msgid "<b>Installation Failed</b>"
-#~ msgstr "<b>Установка не удалась</b>"
-
-#~ msgid "Launch GParted"
-#~ msgstr "Запустить GParted"
-
-#~ msgid "Custom mount point"
-#~ msgstr "Пользовательская точка монтирования"
-
-#~ msgid "Mount point exists"
-#~ msgstr "Точка монтирования существует"
+msgstr ""

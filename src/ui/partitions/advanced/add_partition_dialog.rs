@@ -6,7 +6,9 @@ use relm4::{adw::prelude::*, *};
 use relm4::{Component, ComponentParts, ComponentSender, gtk};
 
 use crate::modules::disk::LinuxFs;
+use crate::modules::disk::fs::ContentUI;
 use crate::ui::list::list_model::ListItem;
+use crate::ui::partitions::partition_page::MOUNT_POINT_LIST;
 use crate::utils::SizeType;
 
 #[derive(Debug)]
@@ -22,14 +24,17 @@ pub struct AddPartitionDialogModel {
     pub filesystem_list_factory: FactoryVecDeque<ListItem>,
     pub filesystem_list_choices: Vec<LinuxFs>,
     pub mountpoint_list_factory: FactoryVecDeque<ListItem>,
+    pub content_list_factory: FactoryVecDeque<ListItem>,
+    pub content_choise: ContentUI,
 }
 
 #[derive(Debug)]
 pub enum AddPartitionDialogInput {
-    SetPartitionSize(f64),
     SetStackPage(AddPartitionStackPage),
+    SetPartitionSize(f64),
     FileSystemSelect(String),
     FileSystemDeSelect(String),
+    SetContent(String),
 }
 
 #[derive(Debug)]
@@ -41,6 +46,7 @@ pub enum XAddPartitionDialogOutput {
 pub enum AddPartitionStackPage {
     #[default]
     Size,
+    Content,
     FilsSystemFormat,
     MountPoint,
 }
@@ -83,11 +89,64 @@ impl Component for AddPartitionDialogModel {
                                 #[watch]
                                 set_visible: true,
                                 connect_clicked[sender] => move |_| {
-                                    sender.input(AddPartitionDialogInput::SetStackPage(AddPartitionStackPage::FilsSystemFormat));
+                                    sender.input(AddPartitionDialogInput::SetStackPage(AddPartitionStackPage::Content));
                                 }
                             }
                         }
                     },
+                    AddPartitionStackPage::Content => {
+                        adw::HeaderBar {
+                            set_show_end_title_buttons: false,
+                            #[wrap(Some)]
+                            set_title_widget = &adw::WindowTitle {
+                                set_title: &gettext("Select Content"),
+                            },
+                            pack_start = &gtk::Button {
+                                set_label: &gettext("Size"),
+                                connect_clicked[sender] => move |_| {
+                                    sender.input(AddPartitionDialogInput::SetStackPage(AddPartitionStackPage::Size));
+                                }
+                            },
+                            pack_end = match model.content_choise {
+                                ContentUI::Filesystem => &gtk::Button {
+                                    set_label: &gettext("Next"),
+                                    add_css_class: "suggested-action",
+                                    #[watch]
+                                    set_visible: true,
+                                    connect_clicked[sender] => move |_| {
+                                        sender.input(AddPartitionDialogInput::SetStackPage(AddPartitionStackPage::FilsSystemFormat));
+                                    }
+                                },
+                                ContentUI::Btrfs => &gtk::Button {
+                                    set_label: &gettext("Subvolums"),
+                                    add_css_class: "suggested-action",
+                                    #[watch]
+                                    set_visible: true,
+                                    connect_clicked[sender] => move |_| {
+                                        sender.input(AddPartitionDialogInput::SetStackPage(AddPartitionStackPage::MountPoint));
+                                    }
+                                },
+                                ContentUI::Swap => &gtk::Button {
+                                    set_label: &gettext("Swap"),
+                                    add_css_class: "suggested-action",
+                                    #[watch]
+                                    set_visible: true,
+                                    // connect_clicked[sender] => move |_| {
+                                    //     sender.input(AddPartitionDialogInput::SetStackPage(AddPartitionStackPage::Content));
+                                    // }
+                                },
+                                ContentUI::Luks => &gtk::Button {
+                                    set_label: &gettext("Lusk"),
+                                    add_css_class: "suggested-action",
+                                    #[watch]
+                                    set_visible: true,
+                                    // connect_clicked[sender] => move |_| {
+                                    //     sender.input(AddPartitionDialogInput::SetStackPage(AddPartitionStackPage::Content));
+                                    // }
+                                },
+                            },
+                        }
+                    }
                     AddPartitionStackPage::FilsSystemFormat => {
                         adw::HeaderBar {
                             set_show_end_title_buttons: false,
@@ -98,7 +157,7 @@ impl Component for AddPartitionDialogModel {
                             pack_start = &gtk::Button {
                                 set_label: &gettext("Back"),
                                 connect_clicked[sender] => move |_| {
-                                    sender.input(AddPartitionDialogInput::SetStackPage(AddPartitionStackPage::Size));
+                                    sender.input(AddPartitionDialogInput::SetStackPage(AddPartitionStackPage::Content));
                                 }
                             },
                             pack_end = &gtk::Button {
@@ -206,6 +265,12 @@ impl Component for AddPartitionDialogModel {
                                 }
                             }
                         },
+                        AddPartitionStackPage::Content => {
+                            adw::PreferencesPage {
+                                #[local_ref]
+                                content_list_factory_widget -> adw::PreferencesGroup {},
+                            }
+                        },
                         AddPartitionStackPage::FilsSystemFormat => {
                             adw::PreferencesPage {
                                 #[local_ref]
@@ -247,6 +312,8 @@ impl Component for AddPartitionDialogModel {
             filesystem_list_factory: init.filesystem_list_factory,
             filesystem_list_choices: init.filesystem_list_choices,
             mountpoint_list_factory: init.mountpoint_list_factory,
+            content_choise: init.content_choise,
+            content_list_factory: init.content_list_factory,
         };
 
         // let mut list_guard = model.file_system_list_factory.guard();
@@ -264,6 +331,19 @@ impl Component for AddPartitionDialogModel {
         //     list_guard.push_back(item);
         // }
         // list_guard.drop();
+        // Create mountpoint widget components
+        // let mut mountpoint_list_guard = dialog_model.mountpoint_list_factory.guard();
+        // for choice in MOUNT_POINT_LIST.read().clone() {
+        //     let item = ListItem {
+        //         title: choice.to_owned(),
+        //         group: None,
+        //         selected: false,
+        //         ..Default::default()
+        //     };
+        //     mountpoint_list_guard.push_back(item);
+        // }
+        // mountpoint_list_guard.drop();
+        let content_list_factory_widget = model.content_list_factory.widget();
         let filesystem_list_factory_widget = model.filesystem_list_factory.widget();
         let mountpoint_list_factory_widget = model.mountpoint_list_factory.widget();
         let widgets = view_output!();
@@ -280,13 +360,14 @@ impl Component for AddPartitionDialogModel {
                     self.stack_page = stack_page;
                 }
             }
-            AddPartitionDialogInput::FileSystemSelect(key) => {
+            AddPartitionDialogInput::FileSystemSelect(filesystem) => {
                 // self.selected.push(key);
                 // sender.input(ListMsg::CheckSelected);
                 // let mut selected = self.choices.iter().cloned().collect::<HashMap<_, _>>();
                 // selected.retain(|k, _| self.selected.contains(k));
                 // sender.output(AppMsg::SetListConfig(self.id.to_string(), selected));
-                debug!("selected: {key}");
+
+                debug!("selected: {filesystem}");
             }
             AddPartitionDialogInput::FileSystemDeSelect(key) => {
                 // self.selected.retain(|k| k != &key);
@@ -295,6 +376,47 @@ impl Component for AddPartitionDialogModel {
                 // selected.retain(|k, _| self.selected.contains(k));
                 // sender.output(AppMsg::SetListConfig(self.id.to_string(), selected));
                 debug!("Unselected: {key}");
+            }
+            AddPartitionDialogInput::SetContent(partition_content) => {
+                let partition_content = ContentUI::from(&partition_content);
+                self.content_choise = partition_content;
+
+                match self.content_choise {
+                    ContentUI::Filesystem => {
+                        let mut filesystem_list_guard = self.filesystem_list_factory.guard();
+                        let fs_group = gtk::CheckButton::new();
+                        for choice in &self.filesystem_list_choices {
+                            let item = ListItem {
+                                id: choice.as_str().to_owned().into(),
+                                title: choice.as_str().to_owned(),
+                                // description: choice.description.clone(),
+                                group: Some(fs_group.clone()),
+                                selected: choice == &LinuxFs::Exfat,
+                                ..Default::default()
+                            };
+                            filesystem_list_guard.push_back(item);
+                        }
+                        filesystem_list_guard.drop();
+                    }
+                    ContentUI::Btrfs => {
+                        // Create mountpoint widget components
+                        let mut mountpoint_list_guard = self.mountpoint_list_factory.guard();
+                        for choice in MOUNT_POINT_LIST.read().clone() {
+                            let item = ListItem {
+                                title: choice.to_owned(),
+                                description: "description".into(),
+                                group: None,
+                                selected: false,
+                                ..Default::default()
+                            };
+                            mountpoint_list_guard.push_back(item);
+                        }
+                        mountpoint_list_guard.drop();
+                    }
+                    ContentUI::Swap => {}
+                    ContentUI::Luks => {}
+                }
+                // self.content_choise =
             }
         }
     }

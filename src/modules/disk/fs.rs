@@ -1,6 +1,7 @@
-use crate::modules::nix::NixExpr;
+use crate::{modules::nix::NixExpr, ui::list::list_model::ListItem};
 use serde::Serialize;
 use std::collections::BTreeMap;
+use vte::gtk;
 
 /// Linux filesystem formats for use with `Content::Filesystem`.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -42,6 +43,69 @@ pub enum Content {
     Luks(LuksContent),
     /// LVM physical volume contributing to a named volume group.
     LvmPv { vg: String },
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ContentUI {
+    Filesystem,
+    Btrfs,
+    Swap,
+    Luks,
+}
+
+impl ContentUI {
+    pub fn as_str(&self) -> &str {
+        match self {
+            ContentUI::Filesystem => "fs",
+            ContentUI::Btrfs => "btrfs",
+            ContentUI::Swap => "swap",
+            ContentUI::Luks => "luks",
+        }
+    }
+    pub fn from(str: &str) -> ContentUI {
+        match str {
+            "fs" => ContentUI::Filesystem,
+            "btrfs" => ContentUI::Btrfs,
+            "swap" => ContentUI::Swap,
+            "luks" => ContentUI::Luks,
+            _ => ContentUI::Filesystem,
+        }
+    }
+}
+
+impl ContentUI {
+    pub fn content_list() -> Vec<ContentUI> {
+        vec![Self::Filesystem, Self::Btrfs, Self::Swap, Self::Luks]
+    }
+    pub fn to_list_item(&self) -> ListItem {
+        match self {
+            Self::Filesystem => ListItem {
+                id: self.as_str().to_owned().into(),
+                title: "Basic filesystem".to_owned(),
+                description: "ext4, exfat, btrfs and others with single volume".to_owned(),
+                selected: true,
+                ..Default::default()
+            },
+            Self::Btrfs => ListItem {
+                id: self.as_str().to_owned().into(),
+                title: "Btrfs".to_owned(),
+                description: "subvolume support".to_owned(),
+                ..Default::default()
+            },
+            Self::Swap => ListItem {
+                id: self.as_str().to_owned().into(),
+                title: "Swapfile".to_owned(),
+                description: "swap space taken from disk".to_owned(),
+                ..Default::default()
+            },
+            Self::Luks => ListItem {
+                id: self.as_str().to_owned().into(),
+                title: "Luks".to_owned(),
+                description: "partition with password".to_owned(),
+                ..Default::default()
+            },
+        }
+    }
 }
 
 /// Simple formatted filesystem (`type = "filesystem"`).
