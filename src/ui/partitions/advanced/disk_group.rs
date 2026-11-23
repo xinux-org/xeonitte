@@ -242,6 +242,14 @@ impl FactoryComponent for AdvancedDiskGroup {
             size_type: disk.size_type,
             size_adjustment_value: disk.free_space as f64,
             stack_page: AddPartitionStackPage::default(),
+            content_choise: ContentUI::Filesystem,
+            content_list_factory: FactoryVecDeque::builder().launch_default().forward(
+                sender.input_sender(),
+                |msg| match msg {
+                    ListItemMsg::Select(id, _title) => AdvancedDiskGroupMsg::PartitionContent(id),
+                    ListItemMsg::Deselect(_key) => AdvancedDiskGroupMsg::NoOperation,
+                },
+            ),
             filesystem_list_factory: FactoryVecDeque::builder().launch_default().forward(
                 sender.input_sender(),
                 |msg| match msg {
@@ -258,15 +266,17 @@ impl FactoryComponent for AdvancedDiskGroup {
                     ListItemMsg::Deselect(key) => AdvancedDiskGroupMsg::FileSystemDeSelect(key),
                 },
             ),
-            content_choise: ContentUI::Filesystem,
-            content_list_factory: FactoryVecDeque::builder().launch_default().forward(
-                sender.input_sender(),
-                |msg| match msg {
-                    ListItemMsg::Select(id, _title) => AdvancedDiskGroupMsg::PartitionContent(id),
-                    ListItemMsg::Deselect(_key) => AdvancedDiskGroupMsg::NoOperation,
-                },
-            ),
         };
+
+        // Partiiton Content (ext4, swap, luks) widget components. Single selection
+        let mut content_list_factory_guard = dialog_model.content_list_factory.guard();
+        let content_list_group = gtk::CheckButton::new();
+        for choice in &ContentUI::content_list() {
+            let mut item = choice.to_list_item();
+            item.group = content_list_group.clone().into();
+            content_list_factory_guard.push_back(item);
+        }
+        content_list_factory_guard.drop();
 
         // filesystem widget components
         let mut filesystem_list_guard = dialog_model.filesystem_list_factory.guard();
@@ -283,16 +293,6 @@ impl FactoryComponent for AdvancedDiskGroup {
             filesystem_list_guard.push_back(item);
         }
         filesystem_list_guard.drop();
-
-        // Partiiton Content (ext4, swap, luks) widget components. Single selection
-        let mut content_list_factory_guard = dialog_model.content_list_factory.guard();
-        let content_list_group = gtk::CheckButton::new();
-        for choice in &ContentUI::content_list() {
-            let mut item = choice.to_list_item();
-            item.group = content_list_group.clone().into();
-            content_list_factory_guard.push_back(item);
-        }
-        content_list_factory_guard.drop();
 
         let add_partition_dialog = AddPartitionDialogModel::builder()
             .launch(dialog_model)

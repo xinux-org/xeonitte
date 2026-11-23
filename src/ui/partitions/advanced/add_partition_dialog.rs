@@ -315,33 +315,6 @@ impl Component for AddPartitionDialogModel {
             content_list_factory: init.content_list_factory,
         };
 
-        // let mut list_guard = model.file_system_list_factory.guard();
-        // let fs_group = gtk::CheckButton::new();
-        // for choice in &model.file_system_list_choices {
-        //     let item = ListItem {
-        //         title: choice.as_str().to_owned(),
-        //         // description: choice.description.clone(),
-        //         group: Some(fs_group.clone()),
-        //         // locale: model.locale.clone(),
-        //         // tracker: 0,
-        //         selected: choice == &LinuxFs::Exfat,
-        //         ..Default::default()
-        //     };
-        //     list_guard.push_back(item);
-        // }
-        // list_guard.drop();
-        // Create mountpoint widget components
-        // let mut mountpoint_list_guard = dialog_model.mountpoint_list_factory.guard();
-        // for choice in MOUNT_POINT_LIST.read().clone() {
-        //     let item = ListItem {
-        //         title: choice.to_owned(),
-        //         group: None,
-        //         selected: false,
-        //         ..Default::default()
-        //     };
-        //     mountpoint_list_guard.push_back(item);
-        // }
-        // mountpoint_list_guard.drop();
         let content_list_factory_widget = model.content_list_factory.widget();
         let filesystem_list_factory_widget = model.filesystem_list_factory.widget();
         let mountpoint_list_factory_widget = model.mountpoint_list_factory.widget();
