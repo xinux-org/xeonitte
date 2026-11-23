@@ -127,18 +127,6 @@ impl FactoryComponent for AdvancedDiskGroup {
                                 set_halign: gtk::Align::End,
                                 set_valign: gtk::Align::Center,
                                 set_spacing: 12,
-                                // gtk::Box {
-                                //     set_orientation: gtk::Orientation::Horizontal,
-                                //     add_css_class: "linked",
-                                //     gtk::Button {
-                                //         set_icon_name: "edit-undo",
-                                //         add_css_class: "raised",
-                                //     },
-                                //     gtk::Button {
-                                //         set_icon_name: "edit-redo",
-                                //         add_css_class: "raised"
-                                //     }
-                                // },
                                 #[name = "add_partition_button"]
                                 gtk::Button {
                                     #[watch]
