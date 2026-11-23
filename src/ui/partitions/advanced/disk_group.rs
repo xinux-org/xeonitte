@@ -297,7 +297,7 @@ impl FactoryComponent for AdvancedDiskGroup {
         }
         filesystem_list_guard.drop();
 
-        // Partiiton Content (ext4, swap, luks) widget components
+        // Partiiton Content (ext4, swap, luks) widget components. Single selection
         let mut content_list_factory_guard = dialog_model.content_list_factory.guard();
         let content_list_group = gtk::CheckButton::new();
         for choice in &ContentUI::content_list() {

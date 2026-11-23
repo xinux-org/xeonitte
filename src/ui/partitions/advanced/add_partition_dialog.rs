@@ -378,12 +378,14 @@ impl Component for AddPartitionDialogModel {
                 debug!("Unselected: {key}");
             }
             AddPartitionDialogInput::SetContent(partition_content) => {
+                debug!("---------partition_content--------: {}", partition_content);
                 let partition_content = ContentUI::from(&partition_content);
                 self.content_choise = partition_content;
 
                 match self.content_choise {
                     ContentUI::Filesystem => {
                         let mut filesystem_list_guard = self.filesystem_list_factory.guard();
+                        filesystem_list_guard.clear();
                         let fs_group = gtk::CheckButton::new();
                         for choice in &self.filesystem_list_choices {
                             let item = ListItem {
@@ -401,6 +403,7 @@ impl Component for AddPartitionDialogModel {
                     ContentUI::Btrfs => {
                         // Create mountpoint widget components
                         let mut mountpoint_list_guard = self.mountpoint_list_factory.guard();
+                        mountpoint_list_guard.clear();
                         for choice in MOUNT_POINT_LIST.read().clone() {
                             let item = ListItem {
                                 title: choice.to_owned(),
