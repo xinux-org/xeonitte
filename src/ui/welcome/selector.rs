@@ -71,7 +71,7 @@ impl SimpleComponent for Selector {
     view! {
         adw::PreferencesGroup {
             gtk::ScrolledWindow {
-                set_height_request: 384,
+                set_height_request: 391,
                 add_css_class: "rounded-scroll",
 
                 #[local_ref]
