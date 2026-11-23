@@ -21,11 +21,11 @@ pub struct AddPartitionDialogModel {
     pub total_size: u64,
     pub size_type: SizeType,
     pub size_adjustment_value: f64,
+    pub content_choise: ContentUI,
+    pub content_list_factory: FactoryVecDeque<ListItem>,
     pub filesystem_list_factory: FactoryVecDeque<ListItem>,
     pub mountpoint_list_factory: FactoryVecDeque<ListItem>,
-    pub content_list_factory: FactoryVecDeque<ListItem>,
     pub stack_page: AddPartitionStackPage,
-    pub content_choise: ContentUI,
 }
 
 #[derive(Debug)]
@@ -76,8 +76,6 @@ impl Component for AddPartitionDialogModel {
                             },
                             pack_start = &gtk::Button {
                                 set_label: &gettext("Cancel"),
-                                #[watch]
-                                set_visible: true,
                                 connect_clicked[dialog] => move |_| {
                                     dialog.close();
                                     dialog.set_can_close(true);
@@ -86,8 +84,6 @@ impl Component for AddPartitionDialogModel {
                             pack_end = &gtk::Button {
                                 set_label: &gettext("Next"),
                                 add_css_class: "suggested-action",
-                                #[watch]
-                                set_visible: true,
                                 connect_clicked[sender] => move |_| {
                                     sender.input(AddPartitionDialogInput::SetStackPage(AddPartitionStackPage::Content));
                                 }
@@ -107,12 +103,14 @@ impl Component for AddPartitionDialogModel {
                                     sender.input(AddPartitionDialogInput::SetStackPage(AddPartitionStackPage::Size));
                                 }
                             },
+                            // 1. FilesSystems with single mountpoint named ContentUI::Filesystem (ext, exfat ...)
+                            // 2. With multiple mountpoints ContentUI::Btrfs (Btrfs)
+                            // 3. Swap options for swap
+                            // 4. Final Content struct will be wrapped to LuksContent if set true
                             pack_end = match model.content_choise {
                                 ContentUI::Filesystem => &gtk::Button {
                                     set_label: &gettext("Next"),
                                     add_css_class: "suggested-action",
-                                    #[watch]
-                                    set_visible: true,
                                     connect_clicked[sender] => move |_| {
                                         sender.input(AddPartitionDialogInput::SetStackPage(AddPartitionStackPage::FilsSystemFormat));
                                     }
@@ -120,8 +118,6 @@ impl Component for AddPartitionDialogModel {
                                 ContentUI::Btrfs => &gtk::Button {
                                     set_label: &gettext("Subvolums"),
                                     add_css_class: "suggested-action",
-                                    #[watch]
-                                    set_visible: true,
                                     connect_clicked[sender] => move |_| {
                                         sender.input(AddPartitionDialogInput::SetStackPage(AddPartitionStackPage::MountPoint));
                                     }
@@ -129,8 +125,6 @@ impl Component for AddPartitionDialogModel {
                                 ContentUI::Swap => &gtk::Button {
                                     set_label: &gettext("Swap"),
                                     add_css_class: "suggested-action",
-                                    #[watch]
-                                    set_visible: true,
                                     // connect_clicked[sender] => move |_| {
                                     //     sender.input(AddPartitionDialogInput::SetStackPage(AddPartitionStackPage::Content));
                                     // }
@@ -138,8 +132,6 @@ impl Component for AddPartitionDialogModel {
                                 ContentUI::Luks => &gtk::Button {
                                     set_label: &gettext("Lusk"),
                                     add_css_class: "suggested-action",
-                                    #[watch]
-                                    set_visible: true,
                                     // connect_clicked[sender] => move |_| {
                                     //     sender.input(AddPartitionDialogInput::SetStackPage(AddPartitionStackPage::Content));
                                     // }
@@ -163,8 +155,6 @@ impl Component for AddPartitionDialogModel {
                             pack_end = &gtk::Button {
                                 set_label: &gettext("Apply"),
                                 add_css_class: "suggested-action",
-                                #[watch]
-                                set_visible: true,
                                 connect_clicked[sender] => move |_| {
                                     sender.input(AddPartitionDialogInput::SetStackPage(AddPartitionStackPage::MountPoint));
                                 }
@@ -178,21 +168,27 @@ impl Component for AddPartitionDialogModel {
                             set_title_widget = &adw::WindowTitle {
                                 set_title: &gettext("Mount partition"),
                             },
-                            pack_start = &gtk::Button {
-                                set_label: &gettext("Back"),
-                                connect_clicked[sender] => move |_| {
-                                    sender.input(AddPartitionDialogInput::SetStackPage(AddPartitionStackPage::FilsSystemFormat));
-                                }
+                            pack_start = match model.content_choise {
+                                ContentUI::Filesystem => &gtk::Button {
+                                    set_label: &gettext("Back"),
+                                    connect_clicked[sender] => move |_| {
+                                        sender.input(AddPartitionDialogInput::SetStackPage(AddPartitionStackPage::FilsSystemFormat));
+                                    }
+                                },
+                                ContentUI::Btrfs | ContentUI::Swap | ContentUI::Luks => &gtk::Button {
+                                    set_label: &gettext("Back"),
+                                    connect_clicked[sender] => move |_| {
+                                        sender.input(AddPartitionDialogInput::SetStackPage(AddPartitionStackPage::Content));
+                                    }
+                                },
                             },
                             pack_end = &gtk::Button {
                                 set_label: &gettext("Apply"),
                                 add_css_class: "suggested-action",
-                                #[watch]
-                                set_visible: true,
                                 // #[watch]
                                 // set_sensitive: model.rebuild_sensitive,
                                 // connect_clicked[sender] => move |_| {
-                                //     sender.input(LanguageModelMsg::CheckSelected);
+                                //     sender.output(XAddPartitionDialogOutput::Apply);
                                 // }
                             },
                         }
@@ -356,37 +352,11 @@ impl Component for AddPartitionDialogModel {
 
                 match self.content_choise {
                     ContentUI::Filesystem => {
-                        let mut filesystem_list_guard = self.filesystem_list_factory.guard();
-                        filesystem_list_guard.clear();
-                        let fs_group = gtk::CheckButton::new();
-                        for choice in FILESYSTEM_LIST_CHOICES {
-                            let item: ListItem = ListItem {
-                                id: choice.as_str().to_owned().into(),
-                                title: choice.as_str().to_owned(),
-                                description: "description".into(),
-                                group: Some(fs_group.clone()),
-                                selected: choice == &LinuxFs::Exfat,
-                                ..Default::default()
-                            };
-                            filesystem_list_guard.push_back(item);
-                        }
-                        filesystem_list_guard.drop();
+                        // Create single mountpoint widget components
+                        self.refresh_mountpoint_list();
                     }
                     ContentUI::Btrfs => {
-                        // Create mountpoint widget components
-                        let mut mountpoint_list_guard = self.mountpoint_list_factory.guard();
-                        mountpoint_list_guard.clear();
-                        for choice in MOUNT_POINT_LIST.read().clone() {
-                            let item = ListItem {
-                                title: choice.to_owned(),
-                                description: "description".into(),
-                                group: None,
-                                selected: false,
-                                ..Default::default()
-                            };
-                            mountpoint_list_guard.push_back(item);
-                        }
-                        mountpoint_list_guard.drop();
+                        self.refresh_mountpoint_list();
                     }
                     ContentUI::Swap => {}
                     ContentUI::Luks => {}
@@ -394,5 +364,28 @@ impl Component for AddPartitionDialogModel {
                 // self.content_choise =
             }
         }
+    }
+}
+
+impl AddPartitionDialogModel {
+    fn refresh_mountpoint_list(&mut self) {
+        // Create mountpoint widget components
+        let mut mountpoint_list_guard = self.mountpoint_list_factory.guard();
+        mountpoint_list_guard.clear();
+        let group = match self.content_choise {
+            ContentUI::Filesystem => Some(gtk::CheckButton::new()),
+            ContentUI::Btrfs | ContentUI::Swap | ContentUI::Luks => None,
+        };
+        for choice in MOUNT_POINT_LIST.read().clone() {
+            let item = ListItem {
+                title: choice.to_owned(),
+                description: "description".into(),
+                group: group.clone(),
+                selected: false,
+                ..Default::default()
+            };
+            mountpoint_list_guard.push_back(item);
+        }
+        mountpoint_list_guard.drop();
     }
 }

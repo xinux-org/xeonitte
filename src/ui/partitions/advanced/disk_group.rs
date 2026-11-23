@@ -540,7 +540,6 @@ impl FactoryComponent for AdvancedDiskGroup {
             }
             AdvancedDiskGroupMsg::NoOperation => {}
             AdvancedDiskGroupMsg::PartitionContent(partition_content) => {
-                debug!("AdvancedDiskGroupMsg::PartitionContent: {partition_content}");
                 if let Some(dialog) = &self.add_partition_dialog {
                     dialog.emit(AddPartitionDialogInput::SetContent(partition_content))
                 }
