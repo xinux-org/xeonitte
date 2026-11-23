@@ -8,6 +8,7 @@ use relm4::{Component, ComponentParts, ComponentSender, gtk};
 use crate::modules::disk::LinuxFs;
 use crate::modules::disk::fs::ContentUI;
 use crate::ui::list::list_model::ListItem;
+use crate::ui::partitions::advanced::disk_group::FILESYSTEM_LIST_CHOICES;
 use crate::ui::partitions::partition_page::MOUNT_POINT_LIST;
 use crate::utils::SizeType;
 
@@ -20,11 +21,10 @@ pub struct AddPartitionDialogModel {
     pub total_size: u64,
     pub size_type: SizeType,
     pub size_adjustment_value: f64,
-    pub stack_page: AddPartitionStackPage,
     pub filesystem_list_factory: FactoryVecDeque<ListItem>,
-    pub filesystem_list_choices: Vec<LinuxFs>,
     pub mountpoint_list_factory: FactoryVecDeque<ListItem>,
     pub content_list_factory: FactoryVecDeque<ListItem>,
+    pub stack_page: AddPartitionStackPage,
     pub content_choise: ContentUI,
 }
 
@@ -310,7 +310,6 @@ impl Component for AddPartitionDialogModel {
             size_adjustment_value: init.free_space,
             stack_page: AddPartitionStackPage::Size,
             filesystem_list_factory: init.filesystem_list_factory,
-            filesystem_list_choices: init.filesystem_list_choices,
             mountpoint_list_factory: init.mountpoint_list_factory,
             content_choise: init.content_choise,
             content_list_factory: init.content_list_factory,
@@ -387,11 +386,11 @@ impl Component for AddPartitionDialogModel {
                         let mut filesystem_list_guard = self.filesystem_list_factory.guard();
                         filesystem_list_guard.clear();
                         let fs_group = gtk::CheckButton::new();
-                        for choice in &self.filesystem_list_choices {
-                            let item = ListItem {
+                        for choice in FILESYSTEM_LIST_CHOICES {
+                            let item: ListItem = ListItem {
                                 id: choice.as_str().to_owned().into(),
                                 title: choice.as_str().to_owned(),
-                                // description: choice.description.clone(),
+                                description: "description".into(),
                                 group: Some(fs_group.clone()),
                                 selected: choice == &LinuxFs::Exfat,
                                 ..Default::default()

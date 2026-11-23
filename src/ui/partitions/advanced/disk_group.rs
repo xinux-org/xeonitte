@@ -1,8 +1,6 @@
-use crate::modules;
 use crate::modules::disk;
 use crate::modules::disk::fs::ContentUI;
 use crate::ui::list::list_model::ListItem;
-use crate::ui::partitions::partition_page::MOUNT_POINT_LIST;
 use crate::{
     modules::disk::{DiskLayout, LinuxFs, MiB, PartitionDef, PartitionSize},
     ui::{
@@ -24,6 +22,8 @@ use log::debug;
 use relm4::{adw::prelude::*, factory::*, *};
 use size::Size;
 use std::ops::AddAssign;
+
+pub const FILESYSTEM_LIST_CHOICES: &[LinuxFs] = &[LinuxFs::Exfat, LinuxFs::Btrfs, LinuxFs::Ext4];
 
 #[derive(Debug)]
 pub struct AdvancedDiskGroup {
@@ -249,7 +249,6 @@ impl FactoryComponent for AdvancedDiskGroup {
                     ListItemMsg::Deselect(_key) => AdvancedDiskGroupMsg::NoOperation,
                 },
             ),
-            filesystem_list_choices: vec![LinuxFs::Exfat, LinuxFs::Btrfs, LinuxFs::Ext4],
             mountpoint_list_factory: FactoryVecDeque::builder().launch_default().forward(
                 sender.input_sender(),
                 |msg| match msg {
@@ -272,7 +271,7 @@ impl FactoryComponent for AdvancedDiskGroup {
         // filesystem widget components
         let mut filesystem_list_guard = dialog_model.filesystem_list_factory.guard();
         let fs_group = gtk::CheckButton::new();
-        for choice in &dialog_model.filesystem_list_choices {
+        for choice in FILESYSTEM_LIST_CHOICES {
             let item = ListItem {
                 id: choice.as_str().to_owned().into(),
                 title: choice.as_str().to_owned(),
