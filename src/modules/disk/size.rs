@@ -4,6 +4,7 @@ use std::marker::PhantomData;
 pub trait SizeUnit: 'static {
     const BYTES: u64;
     const DISKO_SUFFIX: &'static str;
+    const DISKO_SUFFIX_UI: &'static str;
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -18,19 +19,27 @@ pub struct TiB;
 impl SizeUnit for KiB {
     const BYTES: u64 = 1_024;
     const DISKO_SUFFIX: &'static str = "K";
+    const DISKO_SUFFIX_UI: &'static str = "KB";
 }
 impl SizeUnit for MiB {
     const BYTES: u64 = 1_024 * 1_024;
     const DISKO_SUFFIX: &'static str = "M";
+    const DISKO_SUFFIX_UI: &'static str = "MB";
 }
 impl SizeUnit for GiB {
     const BYTES: u64 = 1_024 * 1_024 * 1_024;
     const DISKO_SUFFIX: &'static str = "G";
+    const DISKO_SUFFIX_UI: &'static str = "GB";
 }
 impl SizeUnit for TiB {
     const BYTES: u64 = 1_024 * 1_024 * 1_024 * 1_024;
     const DISKO_SUFFIX: &'static str = "T";
+    const DISKO_SUFFIX_UI: &'static str = "TB";
 }
+
+// pub enum SizeVariants {
+//
+// }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Size<U: SizeUnit> {
@@ -52,6 +61,10 @@ impl<U: SizeUnit> Size<U> {
 
     pub fn to_disko_str(self) -> String {
         format!("{}{}", self.value, U::DISKO_SUFFIX)
+    }
+
+    pub fn to_disko_str_ui(self) -> String {
+        format!("{} {}", self.value, U::DISKO_SUFFIX_UI)
     }
 
     pub fn convert<V: SizeUnit>(self) -> Size<V> {
@@ -82,6 +95,15 @@ impl PartitionSize {
         match self {
             PartitionSize::Gib(s) => s.to_disko_str(),
             PartitionSize::Mib(s) => s.to_disko_str(),
+            PartitionSize::Percent(p) => format!("{}%", p),
+            PartitionSize::Exact { display, .. } => display.clone(),
+        }
+    }
+
+    pub fn to_disko_str_ui(&self) -> String {
+        match self {
+            PartitionSize::Gib(s) => s.to_disko_str_ui(),
+            PartitionSize::Mib(s) => s.to_disko_str_ui(),
             PartitionSize::Percent(p) => format!("{}%", p),
             PartitionSize::Exact { display, .. } => display.clone(),
         }

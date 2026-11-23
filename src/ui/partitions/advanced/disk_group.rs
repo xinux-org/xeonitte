@@ -1,8 +1,8 @@
-use crate::modules::disk;
 use crate::modules::disk::fs::ContentUI;
+use crate::modules::disk::{self, GiB};
 use crate::ui::list::list_model::ListItem;
 use crate::{
-    modules::disk::{DiskLayout, LinuxFs, MiB, PartitionDef, PartitionSize},
+    modules::disk::{DiskLayout, LinuxFs, MiB, PartitionDef},
     ui::{
         list::list_model::ListItemMsg,
         partitions::{
@@ -20,22 +20,18 @@ use crate::{
 use gettextrs::gettext;
 use log::debug;
 use relm4::{adw::prelude::*, factory::*, *};
-use size::Size;
-use std::ops::AddAssign;
 
 pub const FILESYSTEM_LIST_CHOICES: &[LinuxFs] = &[LinuxFs::Exfat, LinuxFs::Btrfs, LinuxFs::Ext4];
 
 #[derive(Debug)]
 pub struct AdvancedDiskGroup {
+    pub disk_layout: DiskLayout,
     pub name: String,
     pub brand_name: Option<String>,
     pub partitions: FactoryVecDeque<Partition>,
     pub creating_partition: bool,
-    pub new_partition_size: Size,
-    pub free_space: u64,
-    pub total_size: u64,
+    pub new_partition_size: size::Size,
     pub size_type: SizeType,
-    pub disk_layout: DiskLayout,
     // We create dialog model for each disk.
     pub add_partition_dialog: Option<Controller<AddPartitionDialogModel>>,
 }
@@ -104,7 +100,7 @@ impl FactoryComponent for AdvancedDiskGroup {
                                 },
                                 gtk::Label {
                                     #[watch]
-                                    set_text: &size::Size::from_bytes::<u64>(self.total_size).to_string(),
+                                    set_text: &self.disk_layout.total_space::<disk::GiB>().to_disko_str_ui(),
                                 },
                             },
                             gtk::Box {
@@ -119,7 +115,7 @@ impl FactoryComponent for AdvancedDiskGroup {
                                 #[name = "free_space"]
                                 gtk::Label {
                                     #[watch]
-                                    set_text: &self.free_space.to_string(),
+                                    set_text: &self.disk_layout.free_space::<disk::GiB>().to_disko_str_ui(),
                                 },
                             },
                             gtk::Box {
@@ -155,74 +151,11 @@ impl FactoryComponent for AdvancedDiskGroup {
                         adw::ActionRow {
                             set_title: &gettext("Free space"),
                             #[watch]
-                            set_subtitle: &self.free_space.to_string(),
+                            set_subtitle: &self.disk_layout.free_space::<GiB>().to_disko_str_ui(),
                             set_selectable: false,
                             set_activatable: false,
                         },
                     },
-                   // TODO: closing
-                    // #[name = "new_partition_box"]
-                    // gtk::Box {
-                    //     #[watch]
-                    //     set_visible: self.creating_partition,
-                    //     set_orientation: gtk::Orientation::Horizontal,
-                    //     set_valign: gtk::Align::Center,
-                    //     set_spacing: 12,
-                    //     set_margin_top: 6,
-                    //     #[name = "size_entry"]
-                    //     adw::EntryRow {
-                    //         #[watch]
-                    //         set_title: &gettext("Enter the new partition size"),
-                    //         set_input_purpose: gtk::InputPurpose::Number,
-                    //         set_max_length: 12,
-                    //         set_activates_default: true,
-                    //         set_hexpand: true,
-                    //         set_show_apply_button: false,
-                    //         #[iterate]
-                    //         add_css_class: ["focused", "frame"],
-                    //         inline_css: "padding-top: 6px; padding-bottom: 6px; border-radius: 12px;",
-                    //         connect_changed[sender] => move |x| {
-                    //             sender.input(PartitionGroupMsg::Input({
-                    //                 let text = x.text();
-                    //                 if text.is_empty() {
-                    //                     None
-                    //                 } else {
-                    //                     Some(text.into())
-                    //                 }
-                    //             }));
-                    //         }
-                    //     },
-                    //     #[name = "dropdown"]
-                    //     gtk::DropDown {
-                    //         set_valign: gtk::Align::Center,
-                    //         set_model: Some(&gtk::StringList::new(&["TiB", "GiB", "MiB", "KiB"])),
-                    //         connect_selected_item_notify[sender] => move |row| {
-                    //             let t = match row.selected() {
-                    //                 0 => SizeType::TB,
-                    //                 1 => SizeType::GB,
-                    //                 3 => SizeType::KB,
-                    //                 _ => SizeType::MB,
-                    //             };
-                    //             sender.input(PartitionGroupMsg::SetSizeType(t));
-                    //         },
-                    //     },
-                    //     gtk::Button {
-                    //        set_icon_name: "value-decrease",
-                    //        #[iterate]
-                    //        add_css_class: ["raised", "circular", "destructive-action"],
-                    //        set_valign: gtk::Align::Center,
-                    //        connect_clicked => PartitionGroupMsg::CloseEntry,
-                    //     },
-                    //     #[name = "apply_button"]
-                    //     gtk::Button {
-                    //         set_icon_name: "adw-entry-apply-symbolic",
-                    //         set_valign: gtk::Align::Center,
-                    //         #[iterate]
-                    //         add_css_class: ["suggested-action", "circular", "apply-button", "image-button", "disabled"],
-                    //         connect_activate => PartitionGroupMsg::Apply,
-                    //         connect_clicked => PartitionGroupMsg::Apply,
-                    //     },
-                    // },
                 },
             },
         }
@@ -234,13 +167,11 @@ impl FactoryComponent for AdvancedDiskGroup {
         //     user_packages: state.installed_user_packages.clone(),
         // });
         let mut dialog_model = AddPartitionDialogModel {
+            disk_layout: disk.disk_layout.clone(),
             name: disk.name.clone(),
             creating_partition: disk.creating_partition,
             new_partition_size: disk.new_partition_size,
-            free_space: disk.free_space as f64,
-            total_size: disk.total_size,
-            size_type: disk.size_type,
-            size_adjustment_value: disk.free_space as f64,
+            size_adjustment_value: disk.disk_layout.free_space::<MiB>().to_bytes() as f64,
             stack_page: AddPartitionStackPage::default(),
             content_choise: ContentUI::Filesystem,
             content_list_factory: FactoryVecDeque::builder().launch_default().forward(
@@ -308,20 +239,18 @@ impl FactoryComponent for AdvancedDiskGroup {
         let _ = disk
             .partitions
             .iter()
-            .map(|x| {
+            .map(|partition| {
                 let p = Partition {
-                    name: x.name.clone(),
-                    size: x.size,
                     mountrow: adw::ComboRow::new(),
-                    device: x.device.clone(),
+                    device: partition.device.clone(),
                     is_swap: false,
                     is_boot: false,
                     is_full: false,
                     // donotmount: gettext("Do not mount"),
                     donotformat: gettext("Leave as is"),
                     partition_disko: PartitionDef {
-                        label: Some(x.name.clone()),
-                        size: PartitionSize::Mib(disk::Size::<MiB>::new(x.size)),
+                        label: partition.partition_disko.label.clone(),
+                        size: partition.partition_disko.size.clone(),
                         type_code: None,
                         content: None,
                     },
@@ -335,8 +264,6 @@ impl FactoryComponent for AdvancedDiskGroup {
             brand_name: disk.brand_name,
             creating_partition: disk.creating_partition,
             new_partition_size: disk.new_partition_size,
-            free_space: disk.free_space,
-            total_size: disk.total_size,
             size_type: disk.size_type,
             partitions,
             disk_layout: disk.disk_layout,
@@ -365,41 +292,6 @@ impl FactoryComponent for AdvancedDiskGroup {
         match message {
             AdvancedDiskGroupMsg::ShowSizeEntry => {
                 self.creating_partition = true;
-                // let tip: SizeType = match self
-                //     .free_space
-                //     .to_string()
-                //     .split(" ")
-                //     .nth(1)
-                //     .unwrap_or_default()
-                // {
-                //     "TiB" => {
-                //         widgets.dropdown.set_selected(0);
-                //         SizeType::TB
-                //     }
-                //     "GiB" => {
-                //         widgets.dropdown.set_selected(1);
-                //         SizeType::GB
-                //     }
-                //     "MiB" => {
-                //         widgets.dropdown.set_selected(2);
-                //         SizeType::MB
-                //     }
-                //     _ => {
-                //         widgets.dropdown.set_selected(3);
-                //         SizeType::KB
-                //     }
-                // };
-                // self.size_type = tip;
-                // self.new_partition_size = self.free_space;
-                // widgets.size_entry.set_text(
-                //     format_size(self.new_partition_size)
-                //         .split(" ")
-                //         .nth(0)
-                //         .unwrap_or_default(),
-                // );
-                // widgets.size_entry.add_css_class("focused");
-                // widgets.apply_button.set_can_target(true);
-                // widgets.apply_button.remove_css_class("dimmed");
             }
 
             AdvancedDiskGroupMsg::CloseEntry => {
@@ -419,7 +311,7 @@ impl FactoryComponent for AdvancedDiskGroup {
                     }
                     Err(_) => {
                         if x.is_empty() {
-                            self.new_partition_size = Size::default();
+                            // self.new_partition_size = Size::default();
                         }
 
                         // widgets.size_entry.add_css_class("error");
@@ -428,100 +320,24 @@ impl FactoryComponent for AdvancedDiskGroup {
                     }
                 }
             }
-
-            //             PartitionGroupMsg::Apply => {
-            //                 if self.new_partition_size.bytes().is_positive() {
-            //                     let index = self.partitions.len() + 1;
-            //                     // let mut new_size = represent(
-            //                     //     self.size_type,
-            //                     //     widgets.size_entry.text().parse::<f64>().unwrap_or_default(),
-            //                     // );
-            //                     let free_size_ui =
-            //                         Size::from_str(widgets.free_space.text().as_str()).unwrap_or_default();
-            //
-            //                     let is_full = new_size.eq(&free_size_ui);
-            //                     if is_full {
-            //                         new_size = self.free_space;
-            //                         self.free_space = Size::from_bytes(0);
-            //                     } else {
-            //                         self.free_space.sub_assign(self.new_partition_size);
-            //                     }
-            //                     let device = self
-            //                         .partitions
-            //                         .front()
-            //                         .unwrap_or(&Partition {
-            //                             name: self.name.clone() + "1",
-            //                             size: 0,
-            //                             mountrow: adw::ComboRow::new(),
-            //                             device: self.name.clone(),
-            //                             is_swap: false,
-            //                             is_boot: false,
-            //                             is_full,
-            //                             donotmount: "".to_string(),
-            //                             donotformat: "".to_string(),
-            //                         })
-            //                         .device
-            //                         .clone();
-            //
-            //                     // fix partitioning bugs from removing 20MB
-            //                     // if new_size.ge(&Size::from_gb(1)) {
-            //                     //     new_size.sub_assign(Size::from_mb(20));
-            //                     // }
-            //                     self.partitions.guard().push_back({
-            //                         PartitionInit {
-            //                             name: format!("{device}{index}"),
-            //                             size: new_size.bytes() as u64,
-            //                             mountrow: adw::ComboRow::new(),
-            //                             device,
-            //                         }
-            //                     });
-            //                     sender.input(PartitionGroupMsg::CloseEntry);
-            //                 }
-            //                 sender.input(PartitionGroupMsg::Validate);
-            //             }
             AdvancedDiskGroupMsg::Delete(name) => {
                 let (index, partition) = self
                     .partitions
                     .iter()
-                    .cloned()
                     .enumerate()
-                    .find_map(|(i, x)| if x.name == name { Some((i, x)) } else { None })
+                    .find(|(_, partition)| {
+                        partition
+                            .partition_disko
+                            .label
+                            .as_deref()
+                            .map(|label| label == name)
+                            .unwrap_or_default()
+                    })
                     .unwrap();
 
-                self.free_space.add_assign(partition.size);
+                // self.free_space.add_assign(partition.partition_disko.size.to_bytes(disk_total));
                 self.partitions.guard().remove(index);
             }
-
-            //             PartitionGroupMsg::SetSizeType(x) => {
-            //                 // let new_size: Size = represent(
-            //                 //     x,
-            //                 //     widgets.size_entry.text().parse::<f64>().unwrap_or_default(),
-            //                 // );
-            //                 self.size_type = x;
-            //                 self.new_partition_size = new_size;
-            //                 // if self.free_space.ge(&new_size) {
-            //                 //     widgets.size_entry.remove_css_class("error");
-            //                 //     widgets.apply_button.set_can_target(true);
-            //                 //     widgets.apply_button.remove_css_class("dimmed");
-            //                 // } else {
-            //                 //     widgets.size_entry.add_css_class("error");
-            //                 //     widgets.apply_button.set_can_target(false);
-            //                 //     widgets.apply_button.add_css_class("dimmed");
-            //                 // }
-            //                 // widgets.size_entry.add_css_class("focused");
-            //             }
-            //
-            //             PartitionGroupMsg::Validate => {
-            //                 // if self.free_space.ge(&self.new_partition_size) {
-            //                 //     widgets.size_entry.remove_css_class("error");
-            //                 //     widgets.apply_button.set_can_target(true);
-            //                 //     widgets.apply_button.remove_css_class("dimmed");
-            //                 // } else {
-            //                 //     widgets.size_entry.add_css_class("error");
-            //                 //     widgets.apply_button.set_can_target(false);
-            //                 //     widgets.apply_button.add_css_class("dimmed");
-            //                 // }
-            //             }
             AdvancedDiskGroupMsg::AddPartitionDialog => {
                 if let Some(dialog) = &self.add_partition_dialog {
                     dialog

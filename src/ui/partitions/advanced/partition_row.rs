@@ -1,9 +1,4 @@
-use crate::modules;
-use crate::modules::disk::{MiB, Size};
-use crate::{
-    modules::disk::{PartitionDef, PartitionSize},
-    ui::partitions::partition_page::{PARTITION_BROKER, PartitionMsg},
-};
+use crate::modules::disk::PartitionDef;
 use gettextrs::gettext;
 use relm4::{
     actions::{RelmAction, RelmActionGroup},
@@ -14,16 +9,13 @@ use relm4::{
 
 #[derive(Debug, Clone)]
 pub struct Partition {
-    // example: /dev/nvme0n1p1
-    pub name: String,
-    pub size: u64,
     pub mountrow: adw::ComboRow,
     pub device: String,
     pub is_swap: bool,
     pub is_boot: bool,
     pub is_full: bool,
-    // pub donotmount: String,
     pub donotformat: String,
+    // example: /dev/nvme0n1p1
     pub partition_disko: PartitionDef,
 }
 
@@ -60,8 +52,8 @@ impl FactoryComponent for Partition {
     view! {
         #[root]
         &adw::ExpanderRow {
-            set_title: &size::Size::from_bytes(self.size).to_string(),
-            set_subtitle: &self.name,
+            set_title: &self.partition_disko.size.to_disko_str_ui(),
+            set_subtitle: &self.partition_disko.label.clone().unwrap(),
             #[name = "block_menu_id"]
             add_suffix = &gtk::MenuButton {
                 set_icon_name: "view-more-symbolic",
@@ -72,25 +64,25 @@ impl FactoryComponent for Partition {
             add_row = &adw::ActionRow {
                 set_title: "Mountpoint",
                 #[watch]
-                set_subtitle: &self.name,
+                set_subtitle: &self.partition_disko.label.clone().unwrap(),
                 set_subtitle_selectable: true,
             },
-            add_row = &adw::ComboRow {
-                #[watch]
-                set_title: &gettext("Format"),
-                // TODO: When switching language the "Leave as is" option does not update
-                set_model: Some(&gtk::StringList::new(&[&self.donotformat, "btrfs", "ext4", "ext3", "vfat", "ntfs", "xfs", "swap"])),
-                connect_selected_notify[sender, name = self.name.to_string(), device = self.device.to_string(), formatstring = self.donotformat.to_string(), size = self.size, is_full = self.is_full] => move |row| {
-                    if let Some(item) = row.selected_item() && let Ok(item) = item.downcast::<gtk::StringObject>() {
-                        if item.string() == formatstring {
-                            PARTITION_BROKER.send(PartitionMsg::RemoveFormatPartition(name.to_string()));
-                        } else {
-                            PARTITION_BROKER.send(PartitionMsg::AddFormatPartition(name.to_string(), item.string().to_string(), device.to_string(), size, is_full));
-                        }
-                        sender.input(PartitionRowMsg::SetSwap(item.string().eq("swap")));
-                    }
-                }
-            },
+            // add_row = &adw::ComboRow {
+            //     #[watch]
+            //     set_title: &gettext("Format"),
+            //     // TODO: When switching language the "Leave as is" option does not update
+            //     set_model: Some(&gtk::StringList::new(&[&self.donotformat, "btrfs", "ext4", "ext3", "vfat", "ntfs", "xfs", "swap"])),
+            //     connect_selected_notify[sender, name = self.name.to_string(), device = self.device.to_string(), formatstring = self.donotformat.to_string(), size = self.size, is_full = self.is_full] => move |row| {
+            //         if let Some(item) = row.selected_item() && let Ok(item) = item.downcast::<gtk::StringObject>() {
+            //             if item.string() == formatstring {
+            //                 PARTITION_BROKER.send(PartitionMsg::RemoveFormatPartition(name.to_string()));
+            //             } else {
+            //                 PARTITION_BROKER.send(PartitionMsg::AddFormatPartition(name.to_string(), item.string().to_string(), device.to_string(), size, is_full));
+            //             }
+            //             sender.input(PartitionRowMsg::SetSwap(item.string().eq("swap")));
+            //         }
+            //     }
+            // },
             // #[local_ref]
             // add_row = mountrow -> adw::ComboRow {
             //     #[watch]
@@ -111,38 +103,36 @@ impl FactoryComponent for Partition {
             //         }
             //     }
             // },
-            add_row = &adw::ActionRow {
-                #[watch]
-                set_visible: self.is_swap,
-                #[watch]
-                set_title: &gettext("Mount"),
-                add_suffix = &gtk::Label {
-                    set_text: "swap",
-                }
-            },
-            add_row = &adw::SwitchRow {
-                #[watch]
-                set_visible: !self.is_swap && !self.is_boot,
-                #[watch]
-                set_title: &gettext("Encrypt"),
-                #[watch]
-                set_subtitle: &gettext("Encrypt this partition with LUKS"),
-                connect_active_notify[name = self.name.to_string(), device = self.device.to_string(), size = self.size, is_full = self.is_full] => move |row| {
-                    PARTITION_BROKER.send(PartitionMsg::SetPartitionEncryption(
-                        name.to_string(),
-                        device.to_string(),
-                        size,
-                        row.is_active(),
-                        is_full
-                    ));
-                }
-            },
+            // add_row = &adw::ActionRow {
+            //     #[watch]
+            //     set_visible: self.is_swap,
+            //     #[watch]
+            //     set_title: &gettext("Mount"),
+            //     add_suffix = &gtk::Label {
+            //         set_text: "swap",
+            //     }
+            // },
+            // add_row = &adw::SwitchRow {
+            //     #[watch]
+            //     set_visible: !self.is_swap && !self.is_boot,
+            //     #[watch]
+            //     set_title: &gettext("Encrypt"),
+            //     #[watch]
+            //     set_subtitle: &gettext("Encrypt this partition with LUKS"),
+            //     connect_active_notify[name = self.name.to_string(), device = self.device.to_string(), size = self.size, is_full = self.is_full] => move |row| {
+            //         PARTITION_BROKER.send(PartitionMsg::SetPartitionEncryption(
+            //             name.to_string(),
+            //             device.to_string(),
+            //             size,
+            //             row.is_active(),
+            //             is_full
+            //         ));
+            //     }
+            // },
         }
     }
     fn init_model(parent: Self::Init, _index: &DynamicIndex, _sender: FactorySender<Self>) -> Self {
         Partition {
-            name: parent.name.clone(),
-            size: parent.size,
             mountrow: parent.mountrow,
             device: parent.device,
             // donotmount: parent.donotmount,
@@ -199,7 +189,9 @@ impl FactoryComponent for Partition {
                 self.is_boot = status;
             }
             PartitionRowMsg::Delete => _sender
-                .output(PartitionOut::Delete(self.name.clone()))
+                .output(PartitionOut::Delete(
+                    self.partition_disko.label.clone().unwrap(),
+                ))
                 .unwrap(),
         }
     }

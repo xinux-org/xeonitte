@@ -411,8 +411,6 @@ impl SimpleComponent for PartitionModel {
                             size::Size::from_bytes(part.size)
                         );
                         part_guard.push_back(Partition {
-                            name: part.name.clone(),
-                            size: part.size,
                             mountrow: adw::ComboRow::new(),
                             device: disk.name.to_string(),
                             is_swap: false,
@@ -431,18 +429,12 @@ impl SimpleComponent for PartitionModel {
 
                     part_guard.drop();
 
-                    let used = part_factoryvec
-                        .iter()
-                        .map(|partition| partition.size)
-                        .sum::<u64>();
                     advansed_partition_groups_guard.push_back(AdvancedDiskGroup {
                         name: disk.name.to_string(),
                         brand_name: get_disk_brand_name(&disk.name),
                         partitions: part_factoryvec,
                         creating_partition: false,
                         new_partition_size: Size::default(),
-                        free_space: disk.size - used,
-                        total_size: disk.size,
                         size_type: SizeType::MB,
                         disk_layout: DiskLayout::new(disk.id_path(), disk.size),
                         add_partition_dialog: None,
@@ -629,8 +621,18 @@ impl SimpleComponent for PartitionModel {
                             for i in 0..partition_group_guard.len() {
                                 let partition_guard = partition_group_guard[i].partitions.guard();
                                 for j in 0..partition_guard.len() {
-                                    if partition_guard[j].name != name {
-                                        trace!("Deselecting {} {}", partition_guard[j].name, mount);
+                                    if partition_guard[j].partition_disko.label.clone().unwrap()
+                                        != name
+                                    {
+                                        trace!(
+                                            "Deselecting {} {}",
+                                            partition_guard[j]
+                                                .partition_disko
+                                                .label
+                                                .clone()
+                                                .unwrap(),
+                                            mount
+                                        );
                                         partition_guard
                                             .send(j, PartitionRowMsg::Deselect(mount.to_string()));
                                     }

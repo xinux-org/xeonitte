@@ -5,21 +5,17 @@ use relm4::{adw::prelude::*, *};
 
 use relm4::{Component, ComponentParts, ComponentSender, gtk};
 
-use crate::modules::disk::LinuxFs;
 use crate::modules::disk::fs::ContentUI;
+use crate::modules::disk::{DiskLayout, GiB, MiB};
 use crate::ui::list::list_model::ListItem;
-use crate::ui::partitions::advanced::disk_group::FILESYSTEM_LIST_CHOICES;
 use crate::ui::partitions::partition_page::MOUNT_POINT_LIST;
-use crate::utils::SizeType;
 
 #[derive(Debug)]
 pub struct AddPartitionDialogModel {
+    pub disk_layout: DiskLayout,
     pub name: String,
     pub creating_partition: bool,
     pub new_partition_size: size::Size,
-    pub free_space: f64,
-    pub total_size: u64,
-    pub size_type: SizeType,
     pub size_adjustment_value: f64,
     pub content_choise: ContentUI,
     pub content_list_factory: FactoryVecDeque<ListItem>,
@@ -215,7 +211,7 @@ impl Component for AddPartitionDialogModel {
                                     #[name(size_adjustment)]
                                     set_adjustment = &gtk::Adjustment {
                                       #[watch]
-                                      set_upper: model.free_space,
+                                      set_upper: model.disk_layout.free_space::<MiB>().to_bytes() as f64,
                                       set_step_increment: 1.0,
                                       set_page_increment: 10.0,
                                       // #[block_signal(upper_handler)]
@@ -231,7 +227,7 @@ impl Component for AddPartitionDialogModel {
                                     set_title: "Free Space",
                                     set_subtitle: "Space following new partition",
                                     #[watch]
-                                    set_text: &format!("{} MB", (model.free_space - model.size_adjustment_value)),
+                                    set_text: &format!("{} MB", (model.disk_layout.free_space::<MiB>().to_bytes() as f64 - model.size_adjustment_value)),
                                     #[wrap(Some)]
                                     #[name(free_following_adjustment)]
                                     set_adjustment = &gtk::Adjustment {
@@ -297,13 +293,11 @@ impl Component for AddPartitionDialogModel {
         sender: ComponentSender<Self>,
     ) -> ComponentParts<Self> {
         let model = Self {
+            disk_layout: init.disk_layout,
             name: init.name,
             creating_partition: init.creating_partition,
             new_partition_size: init.new_partition_size,
-            free_space: init.free_space,
-            total_size: init.total_size,
-            size_type: init.size_type,
-            size_adjustment_value: init.free_space,
+            size_adjustment_value: init.size_adjustment_value,
             stack_page: AddPartitionStackPage::Size,
             filesystem_list_factory: init.filesystem_list_factory,
             mountpoint_list_factory: init.mountpoint_list_factory,
@@ -358,7 +352,6 @@ impl Component for AddPartitionDialogModel {
                     ContentUI::Swap => {}
                     ContentUI::Luks => {}
                 }
-                // self.content_choise =
             }
         }
     }
