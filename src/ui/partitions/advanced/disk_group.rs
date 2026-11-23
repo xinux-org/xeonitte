@@ -297,6 +297,7 @@ impl FactoryComponent for AdvancedDiskGroup {
         let add_partition_dialog = AddPartitionDialogModel::builder()
             .launch(dialog_model)
             .detach();
+        add_partition_dialog.emit(AddPartitionDialogInput::SetContent("fs".into()));
 
         let mut partitions = FactoryVecDeque::builder()
             .launch(gtk::ListBox::default())

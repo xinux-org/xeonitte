@@ -351,11 +351,8 @@ impl Component for AddPartitionDialogModel {
                 self.content_choise = partition_content;
 
                 match self.content_choise {
-                    ContentUI::Filesystem => {
-                        // Create single mountpoint widget components
-                        self.refresh_mountpoint_list();
-                    }
-                    ContentUI::Btrfs => {
+                    ContentUI::Filesystem | ContentUI::Btrfs => {
+                        // Create single/multiple mountpoint widget components
                         self.refresh_mountpoint_list();
                     }
                     ContentUI::Swap => {}
