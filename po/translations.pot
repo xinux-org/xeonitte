@@ -8,13 +8,13 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-20 20:33+0500\n"
+"POT-Creation-Date: 2026-11-24 15:30+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
 #: data/uz.xinux.Xeonitte.desktop.in.in:2
@@ -132,20 +132,20 @@ msgstr ""
 msgid "Password is required"
 msgstr ""
 
-#: src/ui/partitions/advanced/disk_group.rs:102
+#: src/ui/partitions/advanced/disk_group.rs:98
 msgid "Total"
 msgstr ""
 
-#: src/ui/partitions/advanced/disk_group.rs:116
+#: src/ui/partitions/advanced/disk_group.rs:112
 msgid "Free"
 msgstr ""
 
-#: src/ui/partitions/advanced/disk_group.rs:168
+#: src/ui/partitions/advanced/disk_group.rs:152
 msgid "Free space"
 msgstr ""
 
-#: src/ui/partitions/advanced/disk_group.rs:333
-#: src/ui/partitions/partition_page.rs:422
+#: src/ui/partitions/advanced/disk_group.rs:250
+#: src/ui/partitions/partition_page.rs:420
 msgid "Leave as is"
 msgstr ""
 
@@ -316,7 +316,7 @@ msgid "Step %d of %f"
 msgstr ""
 
 #: src/ui/window.rs:216
-msgid "Installing…"
+msgid "Installing"
 msgstr ""
 
 #: src/ui/window.rs:223

@@ -113,20 +113,20 @@ msgstr ""
 msgid "Password is required"
 msgstr ""
 
-#: src/ui/partitions/advanced/disk_group.rs:102
+#: src/ui/partitions/advanced/disk_group.rs:98
 msgid "Total"
 msgstr ""
 
-#: src/ui/partitions/advanced/disk_group.rs:116
+#: src/ui/partitions/advanced/disk_group.rs:112
 msgid "Free"
 msgstr ""
 
-#: src/ui/partitions/advanced/disk_group.rs:168
+#: src/ui/partitions/advanced/disk_group.rs:152
 msgid "Free space"
 msgstr ""
 
-#: src/ui/partitions/advanced/disk_group.rs:333
-#: src/ui/partitions/partition_page.rs:422
+#: src/ui/partitions/advanced/disk_group.rs:250
+#: src/ui/partitions/partition_page.rs:420
 msgid "Leave as is"
 msgstr ""
 

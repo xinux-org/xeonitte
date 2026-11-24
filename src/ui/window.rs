@@ -213,7 +213,7 @@ impl Component for AppModel {
                             StackPage::Install => {
                                 gtk::Label {
                                     #[watch]
-                                    set_label: &gettext("Installing…"),
+                                    set_label: &gettext("Installing"),
                                     add_css_class: "heading",
                                 }
                             },
