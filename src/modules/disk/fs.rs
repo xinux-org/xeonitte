@@ -72,7 +72,7 @@ impl ContentUI {
 
 impl ContentUI {
     pub fn content_list() -> Vec<ContentUI> {
-        vec![Self::Filesystem, Self::Btrfs, Self::Swap, Self::Luks]
+        vec![Self::Filesystem, Self::Btrfs, Self::Swap]
     }
     pub fn to_list_item(&self) -> ListItem {
         match self {
