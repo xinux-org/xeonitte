@@ -91,7 +91,6 @@ impl SimpleComponent for Selector {
         root: Self::Root,
         sender: ComponentSender<Self>,
     ) -> ComponentParts<Self> {
-        // create elements from input
         let mut rows = FactoryVecDeque::builder()
             .launch(gtk::Box::default())
             .forward(sender.output_sender(), identity);
