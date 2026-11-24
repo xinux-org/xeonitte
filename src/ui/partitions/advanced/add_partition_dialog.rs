@@ -125,13 +125,6 @@ impl Component for AddPartitionDialogModel {
                                     //     sender.input(AddPartitionDialogInput::SetStackPage(AddPartitionStackPage::Content));
                                     // }
                                 },
-                                ContentUI::Luks => &gtk::Button {
-                                    set_label: &gettext("Lusk"),
-                                    add_css_class: "suggested-action",
-                                    // connect_clicked[sender] => move |_| {
-                                    //     sender.input(AddPartitionDialogInput::SetStackPage(AddPartitionStackPage::Content));
-                                    // }
-                                },
                             },
                         }
                     }
@@ -171,7 +164,7 @@ impl Component for AddPartitionDialogModel {
                                         sender.input(AddPartitionDialogInput::SetStackPage(AddPartitionStackPage::FilsSystemFormat));
                                     }
                                 },
-                                ContentUI::Btrfs | ContentUI::Swap | ContentUI::Luks => &gtk::Button {
+                                ContentUI::Btrfs | ContentUI::Swap => &gtk::Button {
                                     set_label: &gettext("Back"),
                                     connect_clicked[sender] => move |_| {
                                         sender.input(AddPartitionDialogInput::SetStackPage(AddPartitionStackPage::Content));
@@ -350,7 +343,6 @@ impl Component for AddPartitionDialogModel {
                         self.refresh_mountpoint_list();
                     }
                     ContentUI::Swap => {}
-                    ContentUI::Luks => {}
                 }
             }
         }
@@ -364,7 +356,7 @@ impl AddPartitionDialogModel {
         mountpoint_list_guard.clear();
         let group = match self.content_choise {
             ContentUI::Filesystem => Some(gtk::CheckButton::new()),
-            ContentUI::Btrfs | ContentUI::Swap | ContentUI::Luks => None,
+            ContentUI::Btrfs | ContentUI::Swap => None,
         };
         for choice in MOUNT_POINT_LIST.read().clone() {
             let item = ListItem {

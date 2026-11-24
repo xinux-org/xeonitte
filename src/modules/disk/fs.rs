@@ -50,7 +50,6 @@ pub enum ContentUI {
     Filesystem,
     Btrfs,
     Swap,
-    Luks,
 }
 
 impl ContentUI {
@@ -59,7 +58,6 @@ impl ContentUI {
             ContentUI::Filesystem => "fs",
             ContentUI::Btrfs => "btrfs",
             ContentUI::Swap => "swap",
-            ContentUI::Luks => "luks",
         }
     }
     pub fn from(str: &str) -> ContentUI {
@@ -67,7 +65,6 @@ impl ContentUI {
             "fs" => ContentUI::Filesystem,
             "btrfs" => ContentUI::Btrfs,
             "swap" => ContentUI::Swap,
-            "luks" => ContentUI::Luks,
             _ => ContentUI::Filesystem,
         }
     }
@@ -96,12 +93,6 @@ impl ContentUI {
                 id: self.as_str().to_owned().into(),
                 title: "Swapfile".to_owned(),
                 description: "swap space taken from disk".to_owned(),
-                ..Default::default()
-            },
-            Self::Luks => ListItem {
-                id: self.as_str().to_owned().into(),
-                title: "Luks".to_owned(),
-                description: "partition with password".to_owned(),
                 ..Default::default()
             },
         }
