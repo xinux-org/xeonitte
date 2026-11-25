@@ -38,3 +38,6 @@ src/ui/quitdialog.rs
 src/ui/window.rs
 src/utils/branding.rs
 src/utils/flow.rs
+
+
+src/modules/disk/fs.rs

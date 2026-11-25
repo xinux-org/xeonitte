@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-24 15:32+0500\n"
+"POT-Creation-Date: 2026-11-25 18:50+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -132,19 +132,19 @@ msgstr ""
 msgid "Password is required"
 msgstr ""
 
-#: src/ui/partitions/advanced/disk_group.rs:98
+#: src/ui/partitions/advanced/disk_group.rs:99
 msgid "Total"
 msgstr ""
 
-#: src/ui/partitions/advanced/disk_group.rs:112
+#: src/ui/partitions/advanced/disk_group.rs:113
 msgid "Free"
 msgstr ""
 
-#: src/ui/partitions/advanced/disk_group.rs:152
+#: src/ui/partitions/advanced/disk_group.rs:153
 msgid "Free space"
 msgstr ""
 
-#: src/ui/partitions/advanced/disk_group.rs:250
+#: src/ui/partitions/advanced/disk_group.rs:254
 #: src/ui/partitions/partition_page.rs:420
 msgid "Leave as is"
 msgstr ""
@@ -458,4 +458,28 @@ msgstr ""
 
 #: src/utils/flow.rs:118
 msgid "Install the Zen kernel"
+msgstr ""
+
+#: src/modules/disk/fs.rs:71
+msgid "Basic filesystem"
+msgstr ""
+
+#: src/modules/disk/fs.rs:72
+msgid "Btrfs"
+msgstr ""
+
+#: src/modules/disk/fs.rs:73
+msgid "Swapfile"
+msgstr ""
+
+#: src/modules/disk/fs.rs:79
+msgid "ext4, exfat, btrfs and others with single volume"
+msgstr ""
+
+#: src/modules/disk/fs.rs:80
+msgid "subvolume support"
+msgstr ""
+
+#: src/modules/disk/fs.rs:81
+msgid "swap space taken from disk"
 msgstr ""

@@ -6,7 +6,7 @@ use relm4::{adw::prelude::*, *};
 use relm4::{Component, ComponentParts, ComponentSender, gtk};
 
 use crate::modules::disk::fs::ContentUI;
-use crate::modules::disk::{DiskLayout, GiB, MiB};
+use crate::modules::disk::{DiskLayout, MiB, PartitionDef};
 use crate::ui::list::list_model::ListItem;
 use crate::ui::partitions::partition_page::MOUNT_POINT_LIST;
 
@@ -18,10 +18,11 @@ pub struct AddPartitionDialogModel {
     pub new_partition_size: size::Size,
     pub size_adjustment_value: f64,
     pub content_choise: ContentUI,
-    pub content_list_factory: FactoryVecDeque<ListItem>,
+    pub content_list_factory: FactoryVecDeque<crate::ui::list::new_list::ListItem<ContentUI>>,
     pub filesystem_list_factory: FactoryVecDeque<ListItem>,
     pub mountpoint_list_factory: FactoryVecDeque<ListItem>,
     pub stack_page: AddPartitionStackPage,
+    pub partition_disko: Option<PartitionDef>,
 }
 
 #[derive(Debug)]
@@ -30,7 +31,7 @@ pub enum AddPartitionDialogInput {
     SetPartitionSize(f64),
     FileSystemSelect(String),
     FileSystemDeSelect(String),
-    SetContent(String),
+    SetContent(ContentUI),
 }
 
 #[derive(Debug)]
@@ -296,6 +297,7 @@ impl Component for AddPartitionDialogModel {
             mountpoint_list_factory: init.mountpoint_list_factory,
             content_choise: init.content_choise,
             content_list_factory: init.content_list_factory,
+            partition_disko: init.partition_disko,
         };
 
         let content_list_factory_widget = model.content_list_factory.widget();
@@ -316,13 +318,31 @@ impl Component for AddPartitionDialogModel {
                 }
             }
             AddPartitionDialogInput::FileSystemSelect(filesystem) => {
-                // self.selected.push(key);
-                // sender.input(ListMsg::CheckSelected);
-                // let mut selected = self.choices.iter().cloned().collect::<HashMap<_, _>>();
-                // selected.retain(|k, _| self.selected.contains(k));
-                // sender.output(AppMsg::SetListConfig(self.id.to_string(), selected));
-
-                debug!("selected: {filesystem}");
+                //                 let partition_type = LinuxFs::as_str(&filesystem);
+                //
+                //                 self.partition_disko = match partition_type {
+                //                     ContentUI::Filesystem => PartitionDef {
+                //                         label: None,
+                //                         size: PartitionSize::Gib(Size::new(2)),
+                //                         type_code: None,
+                //                         content: Some(Content::Filesystem(Fs::default())),
+                //                     },
+                //                     ContentUI::Btrfs => PartitionDef {
+                //                         label: None,
+                //                         size: PartitionSize::Gib(Size::new(2)),
+                //                         type_code: None,
+                //                         content: Some(Content::Btrfs(BtrfsContent::default())),
+                //                     },
+                //                     ContentUI::Swap => PartitionDef {
+                //                         label: None,
+                //                         size: PartitionSize::Gib(Size::new(2)),
+                //                         type_code: None,
+                //                         content: Some(Content::Btrfs(BtrfsContent::default())),
+                //                     },
+                //                 }
+                //                 .into();
+                //                 debug!("selected: {filesystem}");
+                //                 debug!("self.partition_disko: {:?}", self.partition_disko);
             }
             AddPartitionDialogInput::FileSystemDeSelect(key) => {
                 // self.selected.retain(|k| k != &key);
@@ -333,8 +353,10 @@ impl Component for AddPartitionDialogModel {
                 debug!("Unselected: {key}");
             }
             AddPartitionDialogInput::SetContent(partition_content) => {
-                debug!("---------partition_content--------: {}", partition_content);
-                let partition_content = ContentUI::from(&partition_content);
+                debug!(
+                    "---------partition_content--------: {:?}",
+                    partition_content
+                );
                 self.content_choise = partition_content;
 
                 match self.content_choise {

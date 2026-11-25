@@ -1,7 +1,8 @@
-use crate::{modules::nix::NixExpr, ui::list::list_model::ListItem};
+use crate::modules::nix::NixExpr;
+use gettextrs::gettext;
+use relm4::gtk;
 use serde::Serialize;
 use std::collections::BTreeMap;
-use vte::gtk;
 
 /// Linux filesystem formats for use with `Content::Filesystem`.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -45,11 +46,29 @@ pub enum Content {
     LvmPv { vg: String },
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone)]
 pub enum ContentUI {
     Filesystem,
     Btrfs,
     Swap,
+}
+
+impl crate::ui::list::new_list::WithIdAndTitle for ContentUI {
+    fn title(&self) -> String {
+        match self {
+            ContentUI::Filesystem => gettext("Basic filesystem"),
+            ContentUI::Btrfs => gettext("Btrfs"),
+            ContentUI::Swap => gettext("Swapfile"),
+        }
+    }
+
+    fn subtitle(&self) -> String {
+        match self {
+            ContentUI::Filesystem => gettext("ext4, exfat, btrfs and others with single volume"),
+            ContentUI::Btrfs => gettext("subvolume support"),
+            ContentUI::Swap => gettext("swap space taken from disk"),
+        }
+    }
 }
 
 impl ContentUI {
@@ -74,27 +93,18 @@ impl ContentUI {
     pub fn content_list() -> Vec<ContentUI> {
         vec![Self::Filesystem, Self::Btrfs, Self::Swap]
     }
-    pub fn to_list_item(&self) -> ListItem {
-        match self {
-            Self::Filesystem => ListItem {
-                id: self.as_str().to_owned().into(),
-                title: "Basic filesystem".to_owned(),
-                description: "ext4, exfat, btrfs and others with single volume".to_owned(),
-                selected: true,
-                ..Default::default()
-            },
-            Self::Btrfs => ListItem {
-                id: self.as_str().to_owned().into(),
-                title: "Btrfs".to_owned(),
-                description: "subvolume support".to_owned(),
-                ..Default::default()
-            },
-            Self::Swap => ListItem {
-                id: self.as_str().to_owned().into(),
-                title: "Swapfile".to_owned(),
-                description: "swap space taken from disk".to_owned(),
-                ..Default::default()
-            },
+
+    pub fn to_list_item(
+        self,
+        group: Option<gtk::CheckButton>,
+        locale: Option<String>,
+    ) -> crate::ui::list::new_list::ListItem<Self> {
+        let selected = matches!(self, ContentUI::Filesystem);
+        crate::ui::list::new_list::ListItem {
+            item: self,
+            group,
+            locale,
+            selected,
         }
     }
 }
@@ -134,7 +144,7 @@ impl Fs {
 }
 
 /// Btrfs filesystem with subvolumes (`type = "btrfs"`).
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct BtrfsContent {
     #[serde(skip_serializing_if = "Vec::is_empty")]
