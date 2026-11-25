@@ -15,7 +15,6 @@ pub struct Partition {
     pub is_boot: bool,
     pub is_full: bool,
     pub donotformat: String,
-    // example: /dev/nvme0n1p1
     pub partition_disko: PartitionDef,
 }
 
