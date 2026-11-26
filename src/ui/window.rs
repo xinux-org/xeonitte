@@ -219,7 +219,7 @@ impl Component for AppModel {
                                     set_label: &gettext("Step %d of %f")
                                         .replace("%d", &(model.current_page + 1).to_string())
                                         .replace("%f", &model.carouselpages.len().to_string()),
-                                    add_css_class: "custom-heading",
+                                    add_css_class: "heading",
                                 }
                             },
                             StackPage::Install => {

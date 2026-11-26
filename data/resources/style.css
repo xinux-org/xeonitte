@@ -4,28 +4,13 @@
 }
 
 /* make the components inside our custom component to not use any default spacings */
-.selector * {
+.selector-box * {
     padding: 0px;
     margin: 0px;
     font-size: 0px;
     font-weight: 1;
     line-height: 0px;
     min-height: 0px;
-}
-
-.welcome-title-1 {
-    font-size: 24px;
-    font-style: normal;
-    font-weight: 700;
-    line-height: 120%; /* 36px */
-}
-
-.custom-heading {
-    font-size: 16px;
-    font-style: normal;
-    font-weight: 700;
-    line-height: 120%; /* 16.8px */
-
 }
 
 .custom-button-text {
@@ -36,7 +21,7 @@
     letter-spacing: -0.08px;
 }
 
-.selector {
+.selector-box {
     background-color: var(--selector-bg-color);
 }
 

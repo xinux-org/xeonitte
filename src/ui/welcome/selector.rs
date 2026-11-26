@@ -80,7 +80,7 @@ impl SimpleComponent for Selector {
                     set_spacing: 1,
                     set_hexpand: true,
                     set_overflow: gtk::Overflow::Hidden,
-                    add_css_class: "selector",
+                    add_css_class: "selector-box",
                 },
             }
         }
