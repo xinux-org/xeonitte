@@ -38,6 +38,7 @@ pub enum AddPartitionDialogInput {
     SetContent(ContentUI),
     MountpointSelect(String),
     MountpointDeSelect(String),
+    ClearMountpointList,
 }
 
 #[derive(Debug)]
@@ -169,12 +170,14 @@ impl Component for AddPartitionDialogModel {
                                 ContentUI::Filesystem => &gtk::Button {
                                     set_label: &gettext("Back"),
                                     connect_clicked[sender] => move |_| {
+                                        sender.input(AddPartitionDialogInput::ClearMountpointList);
                                         sender.input(AddPartitionDialogInput::SetStackPage(AddPartitionStackPage::FilsSystemFormat));
                                     }
                                 },
                                 ContentUI::Btrfs | ContentUI::Swap => &gtk::Button {
                                     set_label: &gettext("Back"),
                                     connect_clicked[sender] => move |_| {
+                                        sender.input(AddPartitionDialogInput::ClearMountpointList);
                                         sender.input(AddPartitionDialogInput::SetStackPage(AddPartitionStackPage::Content));
                                     }
                                 },
@@ -182,6 +185,8 @@ impl Component for AddPartitionDialogModel {
                             pack_end = &gtk::Button {
                                 set_label: &gettext("Apply"),
                                 add_css_class: "suggested-action",
+                                #[watch]
+                                set_sensitive: !model.mountpoint_list.is_empty(),
                                 // #[watch]
                                 // set_sensitive: model.rebuild_sensitive,
                                 // connect_clicked[sender] => move |_| {
@@ -377,6 +382,7 @@ impl Component for AddPartitionDialogModel {
                 debug!("removed mountpoint: {:?}", id);
                 self.mountpoint_list.retain(|mountpoint| mountpoint != &id);
             }
+            AddPartitionDialogInput::ClearMountpointList => self.mountpoint_list.clear(),
         }
     }
 }
