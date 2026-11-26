@@ -99,7 +99,7 @@ impl SimpleComponent for Selector {
         let group = gtk::ToggleButton::new();
         init.list.iter().enumerate().for_each(|(index, row)| {
             rows.guard().push_back(SelectorRow {
-                is_default: init.default.clone().is_some_and(|value| value == index),
+                is_default: init.default.is_some_and(|value| value == index),
                 content: row.into(),
                 group: group.clone(),
             });

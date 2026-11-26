@@ -72,18 +72,14 @@ impl SimpleComponent for WelcomeModel {
             })
             .forward(sender.input_sender(), move |msg| match msg {
                 SelectorRowOutput::Select(index) => {
-                    let selected =
-                        formatted_languages
-                            .iter()
-                            .nth(index)
-                            .and_then(|selected_title| {
-                                languages.iter().find_map(|locale| {
-                                    locale
-                                        .variants
-                                        .iter()
-                                        .find(|utf| utf.title == *selected_title)
-                                })
-                            });
+                    let selected = formatted_languages.get(index).and_then(|selected_title| {
+                        languages.iter().find_map(|locale| {
+                            locale
+                                .variants
+                                .iter()
+                                .find(|utf| utf.title == *selected_title)
+                        })
+                    });
                     WelcomeMsg::SetSelected(selected.map(|utf| utf.code.clone()))
                 }
             });
@@ -107,7 +103,7 @@ impl SimpleComponent for WelcomeModel {
         self.reset();
         match msg {
             WelcomeMsg::SetSelected(lang) => {
-                info!("Selected language: {:?}", &lang);
+                info!("Selected language: {:?}", lang);
                 // TODO: Change output and input signal values with SharedState
                 sender.output(AppMsg::SetLanguageConfig(lang.clone()));
                 sender.output(AppMsg::SetCanGoForward(lang.is_some()));
@@ -161,7 +157,7 @@ impl WelcomeModel {
                 locale
                     .variants
                     .iter()
-                    .filter(|LocaleUtf { code, .. }| default_langs_codes.contains(&code))
+                    .filter(|LocaleUtf { code, .. }| default_langs_codes.contains(code))
                     .collect::<Vec<_>>()
                     .is_empty()
             })
@@ -171,8 +167,7 @@ impl WelcomeModel {
 
         let variants = mutable_languages
             .iter()
-            .map(|locale| locale.variants.clone())
-            .flatten();
+            .flat_map(|locale| locale.variants.clone());
 
         let titles: Vec<String> = variants.clone().map(|utf| utf.title).collect();
 
