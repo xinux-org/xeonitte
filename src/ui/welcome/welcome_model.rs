@@ -68,7 +68,7 @@ impl SimpleComponent for WelcomeModel {
         let languages_component = Selector::builder()
             .launch(SelectorInit {
                 default: default_index,
-                vec: formatted_languages.clone(),
+                list: formatted_languages.clone(),
             })
             .forward(sender.input_sender(), move |msg| match msg {
                 SelectorRowOutput::Select(index) => {

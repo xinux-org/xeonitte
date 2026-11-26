@@ -59,7 +59,7 @@ pub struct Selector {
 
 pub struct SelectorInit {
     pub default: Option<usize>,
-    pub vec: Vec<String>,
+    pub list: Vec<String>,
 }
 
 #[relm4::component(pub)]
@@ -97,7 +97,7 @@ impl SimpleComponent for Selector {
 
         // add rows to the selector component's factory
         let group = gtk::ToggleButton::new();
-        init.vec.iter().enumerate().for_each(|(index, row)| {
+        init.list.iter().enumerate().for_each(|(index, row)| {
             rows.guard().push_back(SelectorRow {
                 is_default: init.default.clone().is_some_and(|value| value == index),
                 content: row.into(),
