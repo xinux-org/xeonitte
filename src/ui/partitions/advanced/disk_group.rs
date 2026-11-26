@@ -1,6 +1,6 @@
 use crate::modules::disk::fs::ContentUI;
 use crate::modules::disk::{self, GiB};
-use crate::ui::list::list_model::{ListItem, ListItemMsgGeneric};
+use crate::ui::list::list_model::{ListItem, ListItemGeneric, ListItemMsgGeneric, WithIdAndTitle};
 use crate::{
     modules::disk::{DiskLayout, LinuxFs, MiB, PartitionDef},
     ui::{
@@ -44,8 +44,8 @@ pub enum AdvancedDiskGroupMsg {
     Input(Option<String>),
     // Apply,
     Delete(String),
-    FileSystemSelect(String),
-    FileSystemDeSelect(String),
+    FileSystemSelect(LinuxFs),
+    FileSystemDeSelect,
     // SetSizeType(SizeType),
     // Validate,
     NoOperation,
@@ -183,46 +183,37 @@ impl FactoryComponent for AdvancedDiskGroup {
             ),
             filesystem_list_factory: FactoryVecDeque::builder().launch_default().forward(
                 sender.input_sender(),
-                |msg| match msg {
-                    ListItemMsg::Select(id, _title) => AdvancedDiskGroupMsg::FileSystemSelect(id),
-                    ListItemMsg::Deselect(_key) => AdvancedDiskGroupMsg::NoOperation,
+                |msg: ListItemMsgGeneric<LinuxFs>| match msg {
+                    ListItemMsgGeneric::Select(id) => AdvancedDiskGroupMsg::FileSystemSelect(id),
+                    ListItemMsgGeneric::Deselect(_id) => AdvancedDiskGroupMsg::FileSystemDeSelect,
                 },
             ),
             mountpoint_list_factory: FactoryVecDeque::builder().launch_default().forward(
                 sender.input_sender(),
                 |msg| match msg {
-                    ListItemMsg::Select(_id, title) => {
-                        AdvancedDiskGroupMsg::FileSystemSelect(title)
-                    }
-                    ListItemMsg::Deselect(key) => AdvancedDiskGroupMsg::FileSystemDeSelect(key),
+                    ListItemMsg::Select(_id, title) => AdvancedDiskGroupMsg::NoOperation,
+                    ListItemMsg::Deselect(key) => AdvancedDiskGroupMsg::NoOperation,
                 },
             ),
             partition_disko: None,
+            linux_fs: None,
         };
 
         // Partiiton Content (ext4, swap, luks) widget components. Single selection
         let content_list_group = gtk::CheckButton::new();
         dialog_model.content_list_factory.extend(
-            ContentUI::content_list()
+            ContentUI::all_list()
                 .into_iter()
                 .map(|item| item.to_list_item(content_list_group.clone().into(), None)),
         );
 
         // filesystem widget components
-        let mut filesystem_list_guard = dialog_model.filesystem_list_factory.guard();
         let fs_group = gtk::CheckButton::new();
-        for choice in FILESYSTEM_LIST_CHOICES {
-            let item = ListItem {
-                id: choice.as_str().to_owned().into(),
-                title: choice.as_str().to_owned(),
-                description: "description".into(),
-                group: Some(fs_group.clone()),
-                selected: choice == &LinuxFs::Exfat,
-                ..Default::default()
-            };
-            filesystem_list_guard.push_back(item);
-        }
-        filesystem_list_guard.drop();
+        dialog_model.filesystem_list_factory.extend(
+            LinuxFs::all_list()
+                .into_iter()
+                .map(|item| item.to_list_item(fs_group.clone().into(), None)),
+        );
 
         let add_partition_dialog = AddPartitionDialogModel::builder()
             .launch(dialog_model)
@@ -344,14 +335,14 @@ impl FactoryComponent for AdvancedDiskGroup {
                         .present(relm4::main_application().active_window().as_ref());
                 }
             }
-            AdvancedDiskGroupMsg::FileSystemSelect(key) => {
+            AdvancedDiskGroupMsg::FileSystemSelect(id) => {
                 if let Some(dialog) = &self.add_partition_dialog {
-                    dialog.emit(AddPartitionDialogInput::FileSystemSelect(key))
+                    dialog.emit(AddPartitionDialogInput::SelectLinuxFs(id))
                 }
             }
-            AdvancedDiskGroupMsg::FileSystemDeSelect(key) => {
+            AdvancedDiskGroupMsg::FileSystemDeSelect => {
                 if let Some(dialog) = &self.add_partition_dialog {
-                    dialog.emit(AddPartitionDialogInput::FileSystemDeSelect(key))
+                    dialog.emit(AddPartitionDialogInput::DeSelectLinuxFs);
                 }
             }
             AdvancedDiskGroupMsg::NoOperation => {}

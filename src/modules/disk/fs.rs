@@ -31,6 +31,50 @@ impl LinuxFs {
             LinuxFs::Ntfs => "ntfs",
         }
     }
+
+    pub fn all_list() -> Vec<LinuxFs> {
+        vec![LinuxFs::Exfat, LinuxFs::Btrfs, LinuxFs::Ext4]
+    }
+
+    pub fn to_list_item(
+        self,
+        group: Option<gtk::CheckButton>,
+        locale: Option<String>,
+    ) -> ListItemGeneric<Self> {
+        let selected: bool = matches!(self, LinuxFs::Ext4);
+        ListItemGeneric {
+            item: self,
+            group,
+            locale,
+            selected,
+        }
+    }
+}
+
+impl WithIdAndTitle for LinuxFs {
+    fn title(&self) -> String {
+        match self {
+            LinuxFs::Ext4 => self.as_str().to_string(),
+            LinuxFs::Btrfs => self.as_str().to_string(),
+            LinuxFs::Xfs => self.as_str().to_string(),
+            LinuxFs::F2fs => self.as_str().to_string(),
+            LinuxFs::Bcachefs => self.as_str().to_string(),
+            LinuxFs::Exfat => self.as_str().to_string(),
+            LinuxFs::Ntfs => self.as_str().to_string(),
+        }
+    }
+
+    fn subtitle(&self) -> String {
+        match self {
+            LinuxFs::Ext4 => self.as_str().to_string(),
+            LinuxFs::Btrfs => self.as_str().to_string(),
+            LinuxFs::Xfs => self.as_str().to_string(),
+            LinuxFs::F2fs => self.as_str().to_string(),
+            LinuxFs::Bcachefs => self.as_str().to_string(),
+            LinuxFs::Exfat => self.as_str().to_string(),
+            LinuxFs::Ntfs => self.as_str().to_string(),
+        }
+    }
 }
 
 /// Disko content type for a partition or encrypted/virtual device.
@@ -93,7 +137,7 @@ impl ContentUI {
 }
 
 impl ContentUI {
-    pub fn content_list() -> Vec<ContentUI> {
+    pub fn all_list() -> Vec<ContentUI> {
         vec![Self::Filesystem, Self::Btrfs, Self::Swap]
     }
 
@@ -102,7 +146,7 @@ impl ContentUI {
         group: Option<gtk::CheckButton>,
         locale: Option<String>,
     ) -> ListItemGeneric<Self> {
-        let selected = matches!(self, ContentUI::Filesystem);
+        let selected: bool = matches!(self, ContentUI::Filesystem);
         ListItemGeneric {
             item: self,
             group,

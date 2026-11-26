@@ -6,7 +6,10 @@ use relm4::{adw::prelude::*, *};
 use relm4::{Component, ComponentParts, ComponentSender, gtk};
 
 use crate::modules::disk::fs::ContentUI;
-use crate::modules::disk::{DiskLayout, MiB, PartitionDef};
+use crate::modules::disk::{
+    BtrfsContent, Content, DiskLayout, Fs, LinuxFs, MiB, PartitionDef, PartitionSize, Size,
+    SwapContent,
+};
 use crate::ui::list::list_model::{ListItem, ListItemGeneric};
 use crate::ui::partitions::partition_page::MOUNT_POINT_LIST;
 
@@ -18,8 +21,9 @@ pub struct AddPartitionDialogModel {
     pub new_partition_size: size::Size,
     pub size_adjustment_value: f64,
     pub content_choise: ContentUI,
+    pub linux_fs: Option<LinuxFs>,
     pub content_list_factory: FactoryVecDeque<ListItemGeneric<ContentUI>>,
-    pub filesystem_list_factory: FactoryVecDeque<ListItem>,
+    pub filesystem_list_factory: FactoryVecDeque<ListItemGeneric<LinuxFs>>,
     pub mountpoint_list_factory: FactoryVecDeque<ListItem>,
     pub stack_page: AddPartitionStackPage,
     pub partition_disko: Option<PartitionDef>,
@@ -29,8 +33,8 @@ pub struct AddPartitionDialogModel {
 pub enum AddPartitionDialogInput {
     SetStackPage(AddPartitionStackPage),
     SetPartitionSize(f64),
-    FileSystemSelect(String),
-    FileSystemDeSelect(String),
+    SelectLinuxFs(LinuxFs),
+    DeSelectLinuxFs,
     SetContent(ContentUI),
 }
 
@@ -63,7 +67,7 @@ impl Component for AddPartitionDialogModel {
             set_vexpand: true,
             #[wrap(Some)]
             set_child = &adw::ToolbarView {
-                add_top_bar = match model.stack_page {
+                add_top_bar = match &model.stack_page {
                     AddPartitionStackPage::Size => {
                         adw::HeaderBar {
                             set_show_end_title_buttons: false,
@@ -104,7 +108,7 @@ impl Component for AddPartitionDialogModel {
                             // 2. With multiple mountpoints ContentUI::Btrfs (Btrfs)
                             // 3. Swap options for swap
                             // 4. Final Content struct will be wrapped to LuksContent if set true
-                            pack_end = match model.content_choise {
+                            pack_end = match &model.content_choise {
                                 ContentUI::Filesystem => &gtk::Button {
                                     set_label: &gettext("Next"),
                                     add_css_class: "suggested-action",
@@ -139,6 +143,7 @@ impl Component for AddPartitionDialogModel {
                             pack_start = &gtk::Button {
                                 set_label: &gettext("Back"),
                                 connect_clicked[sender] => move |_| {
+                                    sender.input(AddPartitionDialogInput::DeSelectLinuxFs);
                                     sender.input(AddPartitionDialogInput::SetStackPage(AddPartitionStackPage::Content));
                                 }
                             },
@@ -298,6 +303,7 @@ impl Component for AddPartitionDialogModel {
             content_choise: init.content_choise,
             content_list_factory: init.content_list_factory,
             partition_disko: init.partition_disko,
+            linux_fs: init.linux_fs,
         };
 
         let content_list_factory_widget = model.content_list_factory.widget();
@@ -317,55 +323,48 @@ impl Component for AddPartitionDialogModel {
                     self.stack_page = stack_page;
                 }
             }
-            AddPartitionDialogInput::FileSystemSelect(filesystem) => {
-                //                 let partition_type = LinuxFs::as_str(&filesystem);
-                //
-                //                 self.partition_disko = match partition_type {
-                //                     ContentUI::Filesystem => PartitionDef {
-                //                         label: None,
-                //                         size: PartitionSize::Gib(Size::new(2)),
-                //                         type_code: None,
-                //                         content: Some(Content::Filesystem(Fs::default())),
-                //                     },
-                //                     ContentUI::Btrfs => PartitionDef {
-                //                         label: None,
-                //                         size: PartitionSize::Gib(Size::new(2)),
-                //                         type_code: None,
-                //                         content: Some(Content::Btrfs(BtrfsContent::default())),
-                //                     },
-                //                     ContentUI::Swap => PartitionDef {
-                //                         label: None,
-                //                         size: PartitionSize::Gib(Size::new(2)),
-                //                         type_code: None,
-                //                         content: Some(Content::Btrfs(BtrfsContent::default())),
-                //                     },
-                //                 }
-                //                 .into();
-                //                 debug!("selected: {filesystem}");
-                //                 debug!("self.partition_disko: {:?}", self.partition_disko);
+            AddPartitionDialogInput::SelectLinuxFs(filesystem) => {
+                debug!("SelectLinuxFs: {filesystem:?}");
+                self.linux_fs = Some(filesystem);
             }
-            AddPartitionDialogInput::FileSystemDeSelect(key) => {
-                // self.selected.retain(|k| k != &key);
-                // sender.input(ListMsg::CheckSelected);
-                // let mut selected = self.choices.iter().cloned().collect::<HashMap<_, _>>();
-                // selected.retain(|k, _| self.selected.contains(k));
-                // sender.output(AppMsg::SetListConfig(self.id.to_string(), selected));
-                debug!("Unselected: {key}");
-            }
+            AddPartitionDialogInput::DeSelectLinuxFs => self.linux_fs = None,
             AddPartitionDialogInput::SetContent(partition_content) => {
-                debug!(
-                    "---------partition_content--------: {:?}",
-                    partition_content
-                );
                 self.content_choise = partition_content;
 
                 match self.content_choise {
-                    ContentUI::Filesystem | ContentUI::Btrfs => {
-                        // Create single/multiple mountpoint widget components
+                    ContentUI::Filesystem => {
                         self.refresh_mountpoint_list();
+
+                        self.partition_disko = PartitionDef {
+                            label: None,
+                            size: PartitionSize::Gib(Size::new(2)),
+                            type_code: None,
+                            content: Some(Content::Filesystem(Fs::default())),
+                        }
+                        .into();
                     }
-                    ContentUI::Swap => {}
+                    ContentUI::Btrfs => {
+                        self.refresh_mountpoint_list();
+
+                        self.partition_disko = PartitionDef {
+                            label: None,
+                            size: PartitionSize::Gib(Size::new(2)),
+                            type_code: None,
+                            content: Some(Content::Btrfs(BtrfsContent::default())),
+                        }
+                        .into();
+                    }
+                    ContentUI::Swap => {
+                        self.partition_disko = PartitionDef {
+                            label: None,
+                            size: PartitionSize::Gib(Size::new(2)),
+                            type_code: None,
+                            content: Some(Content::Swap(SwapContent::default())),
+                        }
+                        .into();
+                    }
                 }
+                debug!("self.partition_disko: {:?}", self.partition_disko);
             }
         }
     }
@@ -381,7 +380,7 @@ impl AddPartitionDialogModel {
             ContentUI::Btrfs | ContentUI::Swap => None,
         };
         for choice in MOUNT_POINT_LIST.read().clone() {
-            let item = ListItem {
+            let item: ListItem = ListItem {
                 title: choice.to_owned(),
                 description: "description".into(),
                 group: group.clone(),
