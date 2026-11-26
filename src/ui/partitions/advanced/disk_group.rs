@@ -1,6 +1,6 @@
 use crate::modules::disk::fs::ContentUI;
 use crate::modules::disk::{self, GiB};
-use crate::ui::list::list_model::ListItem;
+use crate::ui::list::list_model::{ListItem, ListItemMsgGeneric};
 use crate::{
     modules::disk::{DiskLayout, LinuxFs, MiB, PartitionDef},
     ui::{
@@ -176,13 +176,9 @@ impl FactoryComponent for AdvancedDiskGroup {
             content_choise: ContentUI::Filesystem,
             content_list_factory: FactoryVecDeque::builder().launch_default().forward(
                 sender.input_sender(),
-                |msg: crate::ui::list::new_list::ListItemMsg<ContentUI>| match msg {
-                    crate::ui::list::new_list::ListItemMsg::Select(id) => {
-                        AdvancedDiskGroupMsg::PartitionContent(id)
-                    }
-                    crate::ui::list::new_list::ListItemMsg::Deselect(_key) => {
-                        AdvancedDiskGroupMsg::NoOperation
-                    }
+                |msg: ListItemMsgGeneric<ContentUI>| match msg {
+                    ListItemMsgGeneric::Select(id) => AdvancedDiskGroupMsg::PartitionContent(id),
+                    ListItemMsgGeneric::Deselect(_key) => AdvancedDiskGroupMsg::NoOperation,
                 },
             ),
             filesystem_list_factory: FactoryVecDeque::builder().launch_default().forward(

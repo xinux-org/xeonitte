@@ -1,4 +1,7 @@
-use crate::modules::nix::NixExpr;
+use crate::{
+    modules::nix::NixExpr,
+    ui::list::list_model::{ListItemGeneric, WithIdAndTitle},
+};
 use gettextrs::gettext;
 use relm4::gtk;
 use serde::Serialize;
@@ -53,7 +56,7 @@ pub enum ContentUI {
     Swap,
 }
 
-impl crate::ui::list::new_list::WithIdAndTitle for ContentUI {
+impl WithIdAndTitle for ContentUI {
     fn title(&self) -> String {
         match self {
             ContentUI::Filesystem => gettext("Basic filesystem"),
@@ -98,9 +101,9 @@ impl ContentUI {
         self,
         group: Option<gtk::CheckButton>,
         locale: Option<String>,
-    ) -> crate::ui::list::new_list::ListItem<Self> {
+    ) -> ListItemGeneric<Self> {
         let selected = matches!(self, ContentUI::Filesystem);
-        crate::ui::list::new_list::ListItem {
+        ListItemGeneric {
             item: self,
             group,
             locale,

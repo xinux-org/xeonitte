@@ -7,7 +7,7 @@ use relm4::{Component, ComponentParts, ComponentSender, gtk};
 
 use crate::modules::disk::fs::ContentUI;
 use crate::modules::disk::{DiskLayout, MiB, PartitionDef};
-use crate::ui::list::list_model::ListItem;
+use crate::ui::list::list_model::{ListItem, ListItemGeneric};
 use crate::ui::partitions::partition_page::MOUNT_POINT_LIST;
 
 #[derive(Debug)]
@@ -18,7 +18,7 @@ pub struct AddPartitionDialogModel {
     pub new_partition_size: size::Size,
     pub size_adjustment_value: f64,
     pub content_choise: ContentUI,
-    pub content_list_factory: FactoryVecDeque<crate::ui::list::new_list::ListItem<ContentUI>>,
+    pub content_list_factory: FactoryVecDeque<ListItemGeneric<ContentUI>>,
     pub filesystem_list_factory: FactoryVecDeque<ListItem>,
     pub mountpoint_list_factory: FactoryVecDeque<ListItem>,
     pub stack_page: AddPartitionStackPage,

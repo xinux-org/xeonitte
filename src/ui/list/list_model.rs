@@ -233,11 +233,67 @@ impl FactoryComponent for ListItem {
     }
 }
 
-// Used in partition creating
-// default id fiend used in parent component
-// but we need to use id alongside construction
-// #[derive(Debug)]
-// pub struct ListItemRecord<ENUM> {
-//     pub id: ENUM,
-//     pub list_item: ListItem,
-// }
+pub trait WithIdAndTitle: std::fmt::Debug + Clone + 'static {
+    fn title(&self) -> String;
+    fn subtitle(&self) -> String;
+}
+
+// Factory component that has generic input
+#[derive(Default, Debug)]
+pub struct ListItemGeneric<T: WithIdAndTitle> {
+    pub item: T,
+    pub group: Option<gtk::CheckButton>,
+    pub locale: Option<String>,
+    pub selected: bool,
+}
+
+#[derive(Debug)]
+pub enum ListItemMsgGeneric<T> {
+    Select(T),
+    Deselect(T),
+}
+
+#[relm4::factory(pub)]
+impl<T: WithIdAndTitle> FactoryComponent for ListItemGeneric<T> {
+    type Init = ListItemGeneric<T>;
+    type Input = ();
+    type Output = ListItemMsgGeneric<T>;
+    type ParentWidget = adw::PreferencesGroup;
+    type CommandOutput = ();
+
+    view! {
+        adw::ActionRow {
+            // #[track(self.changed(ListItem::locale()))]
+            #[watch]
+            set_title: &gettext(self.item.title()),
+            // #[track(self.changed(ListItem::locale()))]
+            #[watch]
+            set_subtitle: &gettext(self.item.subtitle()),
+            set_activatable: true,
+            connect_activated[checkbtn] => move |_| {
+                checkbtn.activate();
+            },
+            #[name(checkbtn)]
+            add_suffix = &gtk::CheckButton {
+                set_group: self.group.as_ref(),
+                set_active: self.selected,
+                connect_toggled[sender, item = self.item.clone()] => move |checkbtn| {
+                    let item = item.clone();
+                    if checkbtn.is_active() {
+                        let _ = sender.output(ListItemMsgGeneric::Select(item));
+                    } else {
+                        let _ = sender.output(ListItemMsgGeneric::Deselect(item));
+                    }
+                },
+            }
+        }
+    }
+
+    fn init_model(parent: Self::Init, _index: &DynamicIndex, _sender: FactorySender<Self>) -> Self {
+        parent
+    }
+
+    fn update(&mut self, _message: Self::Input, _sender: FactorySender<Self>) {
+        // self.reset();
+    }
+}
