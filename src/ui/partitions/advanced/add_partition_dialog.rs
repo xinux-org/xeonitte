@@ -384,7 +384,7 @@ impl Component for AddPartitionDialogModel {
                 match self.content_choise {
                     ContentUI::Filesystem => {
                         self.partition_disko = PartitionDef {
-                            label: None,
+                            label: Some("tets".into()),
                             size: PartitionSize::Gib(Size::new(2)),
                             type_code: None,
                             content: Some(Content::Filesystem(fs)),
