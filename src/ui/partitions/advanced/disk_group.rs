@@ -1,6 +1,7 @@
 use crate::modules::disk::fs::ContentUI;
 use crate::modules::disk::{self, GiB};
 use crate::ui::list::list_model::ListItemMsgGeneric;
+use crate::ui::partitions::advanced::add_partition_dialog::AddPartitionDialogOutput;
 use crate::{
     modules::disk::{DiskLayout, LinuxFs, MiB, PartitionDef},
     ui::{
@@ -18,6 +19,7 @@ use crate::{
     utils::{SizeType, represent},
 };
 use gettextrs::gettext;
+use log::debug;
 use relm4::{adw::prelude::*, factory::*, *};
 
 pub const FILESYSTEM_LIST_CHOICES: &[LinuxFs] = &[LinuxFs::Exfat, LinuxFs::Btrfs, LinuxFs::Ext4];
@@ -51,6 +53,7 @@ pub enum AdvancedDiskGroupMsg {
     PartitionContent(ContentUI),
     MountpointSelect(String),
     MountpointDeSelect(String),
+    AddPartition(PartitionDef),
 }
 
 pub enum AdvancedDiskGroupOut {
@@ -186,7 +189,7 @@ impl FactoryComponent for AdvancedDiskGroup {
                 sender.input_sender(),
                 |msg: ListItemMsgGeneric<LinuxFs>| match msg {
                     ListItemMsgGeneric::Select(id) => AdvancedDiskGroupMsg::FileSystemSelect(id),
-                    ListItemMsgGeneric::Deselect(_id) => AdvancedDiskGroupMsg::FileSystemDeSelect,
+                    ListItemMsgGeneric::Deselect(_id) => AdvancedDiskGroupMsg::NoOperation,
                 },
             ),
             mountpoint_list_factory: FactoryVecDeque::builder().launch_default().forward(
@@ -197,7 +200,7 @@ impl FactoryComponent for AdvancedDiskGroup {
                 },
             ),
             partition_disko: None,
-            linux_fs: None,
+            linux_fs: LinuxFs::Ext4,
             mountpoint_list: vec![],
         };
 
@@ -219,7 +222,11 @@ impl FactoryComponent for AdvancedDiskGroup {
 
         let add_partition_dialog = AddPartitionDialogModel::builder()
             .launch(dialog_model)
-            .detach();
+            .forward(sender.input_sender(), |message| match message {
+                AddPartitionDialogOutput::Apply(partition_def) => {
+                    AdvancedDiskGroupMsg::AddPartition(partition_def)
+                }
+            });
         add_partition_dialog.emit(AddPartitionDialogInput::SetContent(ContentUI::Filesystem));
 
         let mut partitions = FactoryVecDeque::builder()
@@ -363,6 +370,13 @@ impl FactoryComponent for AdvancedDiskGroup {
                 }
             }
             AdvancedDiskGroupMsg::NoOperation => {}
+            AdvancedDiskGroupMsg::AddPartition(partition_def) => {
+                self.disk_layout.add_partition(partition_def);
+                debug!(
+                    "AAAAAAAAAAAAAAAAAA {:#?}",
+                    self.disk_layout.to_nix_module().render()
+                );
+            }
         }
         self.update_view(widgets, sender);
     }

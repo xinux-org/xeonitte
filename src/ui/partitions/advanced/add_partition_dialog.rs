@@ -20,7 +20,7 @@ pub struct AddPartitionDialogModel {
     pub new_partition_size: size::Size,
     pub size_adjustment_value: f64,
     pub content_choise: ContentUI,
-    pub linux_fs: Option<LinuxFs>,
+    pub linux_fs: LinuxFs,
     pub content_list_factory: FactoryVecDeque<ListItemGeneric<ContentUI>>,
     pub filesystem_list_factory: FactoryVecDeque<ListItemGeneric<LinuxFs>>,
     pub mountpoint_list_factory: FactoryVecDeque<ListItem>,
@@ -39,11 +39,12 @@ pub enum AddPartitionDialogInput {
     MountpointSelect(String),
     MountpointDeSelect(String),
     ClearMountpointList,
+    Apply,
 }
 
 #[derive(Debug)]
-pub enum XAddPartitionDialogOutput {
-    Apply,
+pub enum AddPartitionDialogOutput {
+    Apply(PartitionDef),
 }
 
 #[derive(Debug, Default, PartialEq, Eq)]
@@ -59,7 +60,7 @@ pub enum AddPartitionStackPage {
 impl Component for AddPartitionDialogModel {
     type Init = AddPartitionDialogModel;
     type Input = AddPartitionDialogInput;
-    type Output = ();
+    type Output = AddPartitionDialogOutput;
     type CommandOutput = ();
 
     view! {
@@ -187,11 +188,10 @@ impl Component for AddPartitionDialogModel {
                                 add_css_class: "suggested-action",
                                 #[watch]
                                 set_sensitive: !model.mountpoint_list.is_empty(),
-                                // #[watch]
-                                // set_sensitive: model.rebuild_sensitive,
-                                // connect_clicked[sender] => move |_| {
-                                //     sender.output(XAddPartitionDialogOutput::Apply);
-                                // }
+                                connect_clicked[sender, dialog] => move |_| {
+                                    sender.input(AddPartitionDialogInput::Apply);
+                                    dialog.close();
+                                }
                             },
                         }
                     }
@@ -322,7 +322,7 @@ impl Component for AddPartitionDialogModel {
         ComponentParts { model, widgets }
     }
 
-    fn update(&mut self, message: Self::Input, _sender: ComponentSender<Self>, _root: &Self::Root) {
+    fn update(&mut self, message: Self::Input, sender: ComponentSender<Self>, _root: &Self::Root) {
         match message {
             AddPartitionDialogInput::SetPartitionSize(size) => self.size_adjustment_value = size,
             AddPartitionDialogInput::SetStackPage(stack_page) => {
@@ -333,23 +333,15 @@ impl Component for AddPartitionDialogModel {
             }
             AddPartitionDialogInput::SelectLinuxFs(filesystem) => {
                 debug!("SelectLinuxFs: {filesystem:?}");
-                self.linux_fs = Some(filesystem);
+                self.linux_fs = filesystem;
             }
-            AddPartitionDialogInput::DeSelectLinuxFs => self.linux_fs = None,
+            AddPartitionDialogInput::DeSelectLinuxFs => {}
             AddPartitionDialogInput::SetContent(partition_content) => {
                 self.content_choise = partition_content;
 
                 match self.content_choise {
                     ContentUI::Filesystem => {
                         self.refresh_mountpoint_list();
-
-                        self.partition_disko = PartitionDef {
-                            label: None,
-                            size: PartitionSize::Gib(Size::new(2)),
-                            type_code: None,
-                            content: Some(Content::Filesystem(Fs::default())),
-                        }
-                        .into();
                     }
                     ContentUI::Btrfs => {
                         self.refresh_mountpoint_list();
@@ -383,6 +375,48 @@ impl Component for AddPartitionDialogModel {
                 self.mountpoint_list.retain(|mountpoint| mountpoint != &id);
             }
             AddPartitionDialogInput::ClearMountpointList => self.mountpoint_list.clear(),
+            AddPartitionDialogInput::Apply => {
+                let fs = match self.linux_fs.as_str() {
+                    "/boot" => Fs::efi(self.mountpoint_list.first().unwrap()),
+                    _ => Fs::linux(self.linux_fs.clone(), self.mountpoint_list.first().unwrap()),
+                };
+
+                match self.content_choise {
+                    ContentUI::Filesystem => {
+                        self.partition_disko = PartitionDef {
+                            label: None,
+                            size: PartitionSize::Gib(Size::new(2)),
+                            type_code: None,
+                            content: Some(Content::Filesystem(fs)),
+                        }
+                        .into();
+                    }
+                    ContentUI::Btrfs => {
+                        // self.partition_disko = PartitionDef {
+                        //     label: None,
+                        //     size: PartitionSize::Gib(Size::new(2)),
+                        //     type_code: None,
+                        //     content: Some(Content::Btrfs(BtrfsContent::default())),
+                        // }
+                        // .into();
+                    }
+                    ContentUI::Swap => {
+                        // self.partition_disko = PartitionDef {
+                        //     label: None,
+                        //     size: PartitionSize::Gib(Size::new(2)),
+                        //     type_code: None,
+                        //     content: Some(Content::Swap(SwapContent::default())),
+                        // }
+                        // .into();
+                    }
+                }
+                // }
+                //
+                sender.output(AddPartitionDialogOutput::Apply(
+                    self.partition_disko.clone().unwrap(),
+                ));
+                debug!("outputing of AddPartitionDialogOutput::Apply");
+            }
         }
     }
 }
