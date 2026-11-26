@@ -371,7 +371,7 @@ impl FactoryComponent for AdvancedDiskGroup {
             }
             AdvancedDiskGroupMsg::NoOperation => {}
             AdvancedDiskGroupMsg::AddPartition(partition_def) => {
-                self.disk_layout.add_partition(partition_def);
+                self.disk_layout = self.disk_layout.add_partition(partition_def).unwrap();
                 debug!(
                     "AAAAAAAAAAAAAAAAAA {:#?}",
                     self.disk_layout.to_nix_module().render()
