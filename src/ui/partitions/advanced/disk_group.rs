@@ -1,6 +1,6 @@
 use crate::modules::disk::fs::ContentUI;
 use crate::modules::disk::{self, GiB};
-use crate::ui::list::list_model::{ListItem, ListItemGeneric, ListItemMsgGeneric, WithIdAndTitle};
+use crate::ui::list::list_model::ListItemMsgGeneric;
 use crate::{
     modules::disk::{DiskLayout, LinuxFs, MiB, PartitionDef},
     ui::{
@@ -18,7 +18,6 @@ use crate::{
     utils::{SizeType, represent},
 };
 use gettextrs::gettext;
-use log::debug;
 use relm4::{adw::prelude::*, factory::*, *};
 
 pub const FILESYSTEM_LIST_CHOICES: &[LinuxFs] = &[LinuxFs::Exfat, LinuxFs::Btrfs, LinuxFs::Ext4];
@@ -50,6 +49,8 @@ pub enum AdvancedDiskGroupMsg {
     // Validate,
     NoOperation,
     PartitionContent(ContentUI),
+    MountpointSelect(String),
+    MountpointDeSelect(String),
 }
 
 pub enum AdvancedDiskGroupOut {
@@ -191,12 +192,13 @@ impl FactoryComponent for AdvancedDiskGroup {
             mountpoint_list_factory: FactoryVecDeque::builder().launch_default().forward(
                 sender.input_sender(),
                 |msg| match msg {
-                    ListItemMsg::Select(_id, title) => AdvancedDiskGroupMsg::NoOperation,
-                    ListItemMsg::Deselect(key) => AdvancedDiskGroupMsg::NoOperation,
+                    ListItemMsg::Select(id) => AdvancedDiskGroupMsg::MountpointSelect(id),
+                    ListItemMsg::Deselect(id) => AdvancedDiskGroupMsg::MountpointDeSelect(id),
                 },
             ),
             partition_disko: None,
             linux_fs: None,
+            mountpoint_list: vec![],
         };
 
         // Partiiton Content (ext4, swap, luks) widget components. Single selection
@@ -335,6 +337,11 @@ impl FactoryComponent for AdvancedDiskGroup {
                         .present(relm4::main_application().active_window().as_ref());
                 }
             }
+            AdvancedDiskGroupMsg::PartitionContent(partition_content) => {
+                if let Some(dialog) = &self.add_partition_dialog {
+                    dialog.emit(AddPartitionDialogInput::SetContent(partition_content))
+                }
+            }
             AdvancedDiskGroupMsg::FileSystemSelect(id) => {
                 if let Some(dialog) = &self.add_partition_dialog {
                     dialog.emit(AddPartitionDialogInput::SelectLinuxFs(id))
@@ -345,12 +352,17 @@ impl FactoryComponent for AdvancedDiskGroup {
                     dialog.emit(AddPartitionDialogInput::DeSelectLinuxFs);
                 }
             }
-            AdvancedDiskGroupMsg::NoOperation => {}
-            AdvancedDiskGroupMsg::PartitionContent(partition_content) => {
+            AdvancedDiskGroupMsg::MountpointSelect(id) => {
                 if let Some(dialog) = &self.add_partition_dialog {
-                    dialog.emit(AddPartitionDialogInput::SetContent(partition_content))
+                    dialog.emit(AddPartitionDialogInput::MountpointSelect(id))
                 }
             }
+            AdvancedDiskGroupMsg::MountpointDeSelect(id) => {
+                if let Some(dialog) = &self.add_partition_dialog {
+                    dialog.emit(AddPartitionDialogInput::MountpointDeSelect(id))
+                }
+            }
+            AdvancedDiskGroupMsg::NoOperation => {}
         }
         self.update_view(widgets, sender);
     }

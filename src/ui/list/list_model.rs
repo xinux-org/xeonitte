@@ -100,7 +100,7 @@ impl SimpleComponent for ListModel {
             list: FactoryVecDeque::builder().launch_default().forward(
                 sender.input_sender(),
                 |msg| match msg {
-                    ListItemMsg::Select(_id, key) => ListMsg::Select(key),
+                    ListItemMsg::Select(key) => ListMsg::Select(key),
                     ListItemMsg::Deselect(key) => ListMsg::Deselect(key),
                 },
             ),
@@ -119,7 +119,6 @@ impl SimpleComponent for ListModel {
         let mut list_guard = model.list.guard();
         for (key, choice) in &model.choices {
             let item = ListItem {
-                id: None,
                 title: key.to_string(),
                 description: choice.description.clone(),
                 group: model.group.clone(),
@@ -176,8 +175,6 @@ use relm4::{adw, factory::FactoryComponent};
 // #[tracker::track]
 #[derive(Debug, Default)]
 pub struct ListItem {
-    // Find to give id in generic type
-    pub id: Option<String>,
     pub title: String,
     pub description: String,
     pub group: Option<gtk::CheckButton>,
@@ -187,7 +184,7 @@ pub struct ListItem {
 
 #[derive(Debug)]
 pub enum ListItemMsg {
-    Select(String, String),
+    Select(String),
     Deselect(String),
 }
 
@@ -215,9 +212,9 @@ impl FactoryComponent for ListItem {
             add_suffix = &gtk::CheckButton {
                 set_group: self.group.as_ref(),
                 set_active: self.selected,
-                connect_toggled[sender, id = self.id.clone().unwrap_or_default(), title = self.title.to_string()] => move |checkbtn| {
+                connect_toggled[sender, title = self.title.to_string()] => move |checkbtn| {
                     if checkbtn.is_active() {
-                        let _ = sender.output(ListItemMsg::Select(id.to_string(), title.to_string()));
+                        let _ = sender.output(ListItemMsg::Select(title.to_string()));
                     } else {
                         let _ = sender.output(ListItemMsg::Deselect(title.to_string()));
                     }
@@ -233,6 +230,7 @@ impl FactoryComponent for ListItem {
     }
 }
 
+// =========================================================
 pub trait WithIdAndTitle: std::fmt::Debug + Clone + 'static {
     fn title(&self) -> String;
     fn subtitle(&self) -> String;

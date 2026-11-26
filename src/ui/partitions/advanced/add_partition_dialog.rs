@@ -1,9 +1,8 @@
 use gettextrs::gettext;
 use log::debug;
 use relm4::factory::FactoryVecDeque;
-use relm4::{adw::prelude::*, *};
-
 use relm4::{Component, ComponentParts, ComponentSender, gtk};
+use relm4::{adw::prelude::*, *};
 
 use crate::modules::disk::fs::ContentUI;
 use crate::modules::disk::{
@@ -27,6 +26,7 @@ pub struct AddPartitionDialogModel {
     pub mountpoint_list_factory: FactoryVecDeque<ListItem>,
     pub stack_page: AddPartitionStackPage,
     pub partition_disko: Option<PartitionDef>,
+    pub mountpoint_list: Vec<String>,
 }
 
 #[derive(Debug)]
@@ -36,6 +36,8 @@ pub enum AddPartitionDialogInput {
     SelectLinuxFs(LinuxFs),
     DeSelectLinuxFs,
     SetContent(ContentUI),
+    MountpointSelect(String),
+    MountpointDeSelect(String),
 }
 
 #[derive(Debug)]
@@ -304,6 +306,7 @@ impl Component for AddPartitionDialogModel {
             content_list_factory: init.content_list_factory,
             partition_disko: init.partition_disko,
             linux_fs: init.linux_fs,
+            mountpoint_list: init.mountpoint_list,
         };
 
         let content_list_factory_widget = model.content_list_factory.widget();
@@ -365,6 +368,14 @@ impl Component for AddPartitionDialogModel {
                     }
                 }
                 debug!("self.partition_disko: {:?}", self.partition_disko);
+            }
+            AddPartitionDialogInput::MountpointSelect(id) => {
+                debug!("added mountpoint: {:?}", id);
+                self.mountpoint_list.push(id);
+            }
+            AddPartitionDialogInput::MountpointDeSelect(id) => {
+                debug!("removed mountpoint: {:?}", id);
+                self.mountpoint_list.retain(|mountpoint| mountpoint != &id);
             }
         }
     }
