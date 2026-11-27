@@ -37,7 +37,6 @@ pub struct AdvancedDiskGroup {
 #[derive(Debug)]
 pub enum AdvancedDiskGroupMsg {
     AddPartitionDialog,
-    ShowSizeEntry,
     CloseEntry,
     Input(Option<String>),
     // Apply,
@@ -70,7 +69,6 @@ impl FactoryComponent for AdvancedDiskGroup {
     view! {
         adw::PreferencesGroup {
             gtk::Box {
-                set_visible: !self.name.contains("zram"),
                 set_hexpand: true,
                 set_orientation: gtk::Orientation::Horizontal,
                 set_spacing: 8,
@@ -283,10 +281,6 @@ impl FactoryComponent for AdvancedDiskGroup {
         sender: FactorySender<Self>,
     ) {
         match message {
-            AdvancedDiskGroupMsg::ShowSizeEntry => {
-                self.creating_partition = true;
-            }
-
             AdvancedDiskGroupMsg::CloseEntry => {
                 self.creating_partition = false;
                 // widgets.size_entry.remove_css_class("focused");
@@ -314,7 +308,7 @@ impl FactoryComponent for AdvancedDiskGroup {
                 }
             }
             AdvancedDiskGroupMsg::Delete(name) => {
-                let (index, partition) = self
+                let (index, _partition) = self
                     .partitions
                     .iter()
                     .enumerate()
@@ -328,8 +322,8 @@ impl FactoryComponent for AdvancedDiskGroup {
                     })
                     .unwrap();
 
-                // self.free_space.add_assign(partition.partition_disko.size.to_bytes(disk_total));
                 self.partitions.guard().remove(index);
+                // let a = self.partitions.iter().cloned().collect::<Vec<Partition>>();
             }
             AdvancedDiskGroupMsg::AddPartitionDialog => {
                 if let Some(dialog) = &self.add_partition_dialog {
@@ -365,14 +359,15 @@ impl FactoryComponent for AdvancedDiskGroup {
             }
             AdvancedDiskGroupMsg::NoOperation => {}
             AdvancedDiskGroupMsg::AddPartition(partition_def) => {
-                self.disk_layout = self
-                    .disk_layout
-                    .add_partition(partition_def.clone())
-                    .unwrap();
-                debug!(
-                    "AAAAAAAAAAAAAAAAAA {:#?}",
-                    self.disk_layout.to_nix_module().render()
-                );
+                // self.disk_layout = self
+                //     .disk_layout
+                //     .add_partition(partition_def.clone())
+                //     .unwrap();
+                // debug!(
+                //     "AAAAAAAAAAAAAAAAAA {:#?}",
+                //     self.disk_layout.to_nix_module().render()
+                // );
+                debug!("Partiiton added {:#?}", partition_def);
                 self.partitions.guard().push_back(Partition {
                     is_swap: false,
                     is_boot: false,

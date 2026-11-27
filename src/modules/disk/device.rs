@@ -27,7 +27,11 @@ impl Disk {
         // see for more: `ls -la /dev/disk/by-id/`
         let mut disks: Vec<Disk> = all
             .iter()
-            .filter(|d| d.is_disk() && d.id.is_some() && !d.name.contains("dm-"))
+            .filter(|d| {
+                d.is_disk()
+                    && d.id.is_some()
+                    && (!d.name.contains("dm-") || !d.name.contains("zram"))
+            })
             .map(|d| Disk {
                 name: d.name.clone(),
                 id: d.id.clone(),

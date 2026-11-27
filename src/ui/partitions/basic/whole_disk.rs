@@ -23,7 +23,6 @@ impl FactoryComponent for WholeDisk {
 
     view! {
         adw::ActionRow {
-            set_visible: !self.name.contains("zram"),
             set_title: &self.brand_name.as_ref().map_or_else(|| self.name.clone(), |brand_name| { brand_name.to_owned() }) ,
             #[watch]
             // Translators: Do NOT translate the '{}'
