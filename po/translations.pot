@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 17:34+0500\n"
+"POT-Creation-Date: 2026-11-27 13:42+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -130,19 +130,19 @@ msgstr ""
 msgid "Password is required"
 msgstr ""
 
-#: src/ui/partitions/advanced/disk_group.rs:99
+#: src/ui/partitions/advanced/disk_group.rs:102
 msgid "Total"
 msgstr ""
 
-#: src/ui/partitions/advanced/disk_group.rs:113
+#: src/ui/partitions/advanced/disk_group.rs:116
 msgid "Free"
 msgstr ""
 
-#: src/ui/partitions/advanced/disk_group.rs:153
+#: src/ui/partitions/advanced/disk_group.rs:156
 msgid "Free space"
 msgstr ""
 
-#: src/ui/partitions/advanced/disk_group.rs:254
+#: src/ui/partitions/advanced/disk_group.rs:249
 #: src/ui/partitions/partition_page.rs:420
 msgid "Leave as is"
 msgstr ""
@@ -301,39 +301,39 @@ msgstr ""
 msgid "Quit"
 msgstr ""
 
-#: src/ui/window.rs:210
+#: src/ui/window.rs:200
 msgid "%d Installer"
 msgstr ""
 
-#: src/ui/window.rs:218
+#: src/ui/window.rs:208
 msgid "Step %d of %f"
 msgstr ""
 
-#: src/ui/window.rs:227
-msgid "Installing…"
+#: src/ui/window.rs:217
+msgid "Installing"
 msgstr ""
 
-#: src/ui/window.rs:234
+#: src/ui/window.rs:224
 msgid "Installation Finished"
 msgstr ""
 
-#: src/ui/window.rs:241
+#: src/ui/window.rs:231
 msgid "Installation Failed"
 msgstr ""
 
-#: src/ui/window.rs:334
+#: src/ui/window.rs:326
 msgid "Finished!"
 msgstr ""
 
-#: src/ui/window.rs:347
+#: src/ui/window.rs:339
 msgid "Reboot"
 msgstr ""
 
-#: src/ui/window.rs:363
+#: src/ui/window.rs:355
 msgid "No Internet"
 msgstr ""
 
-#: src/ui/window.rs:364
+#: src/ui/window.rs:356
 msgid "Please connect to the Internet to continue"
 msgstr ""
 
@@ -454,26 +454,26 @@ msgstr ""
 msgid "Install the Zen kernel"
 msgstr ""
 
-#: src/modules/disk/fs.rs:71
+#: src/modules/disk/fs.rs:106
 msgid "Basic filesystem"
 msgstr ""
 
-#: src/modules/disk/fs.rs:72
+#: src/modules/disk/fs.rs:107
 msgid "Btrfs"
 msgstr ""
 
-#: src/modules/disk/fs.rs:73
+#: src/modules/disk/fs.rs:108
 msgid "Swapfile"
 msgstr ""
 
-#: src/modules/disk/fs.rs:79
+#: src/modules/disk/fs.rs:114
 msgid "ext4, exfat, btrfs and others with single volume"
 msgstr ""
 
-#: src/modules/disk/fs.rs:80
+#: src/modules/disk/fs.rs:115
 msgid "subvolume support"
 msgstr ""
 
-#: src/modules/disk/fs.rs:81
+#: src/modules/disk/fs.rs:116
 msgid "swap space taken from disk"
 msgstr ""
