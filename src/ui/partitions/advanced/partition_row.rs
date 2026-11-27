@@ -39,7 +39,8 @@ impl FactoryComponent for Partition {
         block_menu: {
             section! {
                 &gettext("Delete...") => DeletePartitionAction,
-                &gettext("Add Btrfs subvolume") => AddBtrfsSubvolumeAction,
+                &gettext("Edit mountpoint") => EditMountpointPartitionAction,
+                &gettext("Resize") => ResizePartitionAction,
             }
         }
     }
@@ -124,7 +125,12 @@ relm4::new_stateless_action!(
     "delete-partition"
 );
 relm4::new_stateless_action!(
-    AddBtrfsSubvolumeAction,
+    EditMountpointPartitionAction,
     PartitionActionGroup,
-    "add-btrfs-subvolume"
+    "edit-mountpoint-partition"
+);
+relm4::new_stateless_action!(
+    ResizePartitionAction,
+    PartitionActionGroup,
+    "resize-partition"
 );
