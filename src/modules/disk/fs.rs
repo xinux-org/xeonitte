@@ -301,6 +301,32 @@ impl Content {
             ])),
         }
     }
+
+    pub fn has_boot(&self) -> bool {
+        match self {
+            Content::Filesystem(fs) => fs.mountpoint.as_deref().is_some_and(|m| m.eq("/boot")),
+            Content::Btrfs(b) => b
+                .subvolumes
+                .iter()
+                .any(|(_s, subvol)| subvol.mountpoint.as_deref().is_some_and(|m| m.eq("/boot"))),
+            Content::Swap(..) => false,
+            Content::Luks(l) => l.content.has_boot(),
+            Content::LvmPv { .. } => false,
+        }
+    }
+
+    pub fn has_root(&self) -> bool {
+        match self {
+            Content::Filesystem(fs) => fs.mountpoint.as_deref().is_some_and(|m| m.eq("/")),
+            Content::Btrfs(b) => b
+                .subvolumes
+                .iter()
+                .any(|(_s, subvol)| subvol.mountpoint.as_deref().is_some_and(|m| m.eq("/"))),
+            Content::Swap(..) => false,
+            Content::Luks(l) => l.content.has_root(),
+            Content::LvmPv { .. } => false,
+        }
+    }
 }
 
 /// Serialize `val` to a `NixExpr::Attrs` and inject `"type"`.

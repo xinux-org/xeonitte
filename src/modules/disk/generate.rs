@@ -16,7 +16,7 @@ use std::collections::BTreeMap;
 pub fn disko_from_schema(schema: &PartitionSchema) -> NixModule {
     match schema {
         PartitionSchema::FullDisk(opts) => disko_from_full_disk(opts),
-        PartitionSchema::Custom(opts) => disko_from_custom(opts),
+        PartitionSchema::Custom(opts) => layouts_to_nix_module(opts),
     }
 }
 

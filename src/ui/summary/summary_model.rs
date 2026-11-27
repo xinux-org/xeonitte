@@ -237,11 +237,7 @@ impl SimpleComponent for SummaryModel {
                         x.passphrase = Some("*****".to_string());
                         Some(PartitionSchema::FullDisk(x))
                     }
-                    Some(PartitionSchema::Custom(mut x)) => {
-                        x.passphrase = Some("*****".to_string());
-                        Some(PartitionSchema::Custom(x))
-                    }
-                    None => None,
+                    Some(PartitionSchema::Custom(_)) | None => None,
                 };
                 debug!(
                     "SetConfig: {:?}, {:?}, {:?}, {:?}, {:?}",
@@ -268,14 +264,14 @@ impl SimpleComponent for SummaryModel {
                     self.prettykeyboard = layout;
                 }
 
-                if let Some(PartitionSchema::Custom(options)) = &self.partitionconfig {
-                    let mut partitions_guard = self.partitions.guard();
-                    partitions_guard.clear();
-                    for (name, partition) in &options.partitions {
-                        partitions_guard.push_back((name.to_string(), partition.clone()));
-                    }
-                    partitions_guard.drop();
-                }
+                // if let Some(PartitionSchema::Custom(options)) = &self.partitionconfig {
+                //     let mut partitions_guard = self.partitions.guard();
+                //     partitions_guard.clear();
+                //     for (name, partition) in &options.partitions {
+                //         partitions_guard.push_back((name.to_string(), partition.clone()));
+                //     }
+                //     partitions_guard.drop();
+                // }
             }
             SummaryMsg::ShowHostname(showhostname) => {
                 self.showhostname = showhostname;

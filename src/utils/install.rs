@@ -209,11 +209,11 @@ impl Worker for InstallAsyncModel {
                             mbrdisk = Some(disk.disk_id.clone());
                         }
                         PartitionSchema::Custom(options) => {
-                            for part in options.partitions.values() {
-                                if part.mountpoint == Some("/".to_string()) {
-                                    mbrdisk = Some(part.device.to_string());
-                                }
-                            }
+                            // for part in options.partitions.values() {
+                            //     if part.mountpoint == Some("/".to_string()) {
+                            //         mbrdisk = Some(part.device.to_string());
+                            //     }
+                            // }
                         }
                     }
                 }

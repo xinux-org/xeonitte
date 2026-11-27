@@ -56,8 +56,9 @@ pub enum AdvancedDiskGroupMsg {
     AddPartition(PartitionDef),
 }
 
+#[derive(Debug)]
 pub enum AdvancedDiskGroupOut {
-    ApplyOut(String, CustomPartition),
+    ApplyOut(PartitionDef),
     Delete(String),
 }
 
@@ -65,7 +66,7 @@ pub enum AdvancedDiskGroupOut {
 impl FactoryComponent for AdvancedDiskGroup {
     type Init = AdvancedDiskGroup;
     type Input = AdvancedDiskGroupMsg;
-    type Output = ();
+    type Output = AdvancedDiskGroupOut;
     type ParentWidget = gtk::Box;
     type CommandOutput = ();
 
