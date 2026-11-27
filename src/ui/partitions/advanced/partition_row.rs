@@ -10,7 +10,6 @@ use relm4::{
 #[derive(Debug, Clone)]
 pub struct Partition {
     pub mountrow: adw::ComboRow,
-    pub device: String,
     pub is_swap: bool,
     pub is_boot: bool,
     pub is_full: bool,
@@ -133,8 +132,6 @@ impl FactoryComponent for Partition {
     fn init_model(parent: Self::Init, _index: &DynamicIndex, _sender: FactorySender<Self>) -> Self {
         Partition {
             mountrow: parent.mountrow,
-            device: parent.device,
-            // donotmount: parent.donotmount,
             donotformat: parent.donotformat,
             is_swap: false,
             is_boot: false,

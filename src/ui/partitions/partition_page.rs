@@ -57,7 +57,6 @@ pub struct PartitionModel {
 pub enum PartitionMsg {
     SetMethod(PartitionMethod),
     SetFullDisk(String, String, u64),
-    AddPartition(PartitionDef),
     SetEncryption,
     SetHibernation(bool),
     SetPassphrase,
@@ -311,12 +310,7 @@ impl SimpleComponent for PartitionModel {
 
         let advanced_disk_factory = FactoryVecDeque::builder()
             .launch(gtk::Box::new(gtk::Orientation::Vertical, 20))
-            .forward(sender.input_sender(), |message| match message {
-                disk_group::AdvancedDiskGroupOut::ApplyOut(p) => PartitionMsg::AddPartition(p),
-                disk_group::AdvancedDiskGroupOut::Delete(_) => {
-                    todo!()
-                }
-            });
+            .detach();
 
         let model = PartitionModel {
             disks_list: vec![],
@@ -414,11 +408,9 @@ impl SimpleComponent for PartitionModel {
                         );
                         part_guard.push_back(Partition {
                             mountrow: adw::ComboRow::new(),
-                            device: disk.name.to_string(),
                             is_swap: false,
                             is_boot: false,
                             is_full: false,
-                            // donotmount: gettext("Do not mount"),
                             donotformat: gettext("Leave as is"),
                             partition_disko: PartitionDef {
                                 label: Some(part.name.clone()),
@@ -500,29 +492,6 @@ impl SimpleComponent for PartitionModel {
             }
             PartitionMsg::SetHibernation(x) => {
                 println!("HIBERNATION: {x}");
-            }
-            PartitionMsg::AddPartition(_partition) => {
-                trace!("AddPartition");
-                // if let Some(PartitionSchema::Custom(opts)) = &mut self.schema {
-                //     opts.partitions.insert(name, part);
-                // } else {
-                //     let mut partitions = HashMap::new();
-                //     partitions.insert(name, part.clone());
-                //     self.schema = Some(PartitionSchema::Custom(CustomOptions {
-                //         partitions,
-                //         disk_size: part.size,
-                //         encryption: self.luks_password.model().encryption_enabled,
-                //         passphrase: if self.luks_password.model().encryption_enabled
-                //             && !self.luks_password.model().passphrase.is_empty()
-                //         {
-                //             Some(self.luks_password.model().passphrase.clone())
-                //         } else {
-                //             None
-                //         },
-                //     }));
-                // }
-                sender.input(PartitionMsg::CheckSelected);
-                trace!("Schema: {:?}", self.schema);
             }
             PartitionMsg::CheckSelected => {
                 trace!("PartitionMsg::CheckSelected: {:?}", self.schema);

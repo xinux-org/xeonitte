@@ -242,7 +242,6 @@ impl FactoryComponent for AdvancedDiskGroup {
             .map(|partition| {
                 let p = Partition {
                     mountrow: adw::ComboRow::new(),
-                    device: partition.device.clone(),
                     is_swap: false,
                     is_boot: false,
                     is_full: false,
@@ -372,11 +371,22 @@ impl FactoryComponent for AdvancedDiskGroup {
             }
             AdvancedDiskGroupMsg::NoOperation => {}
             AdvancedDiskGroupMsg::AddPartition(partition_def) => {
-                self.disk_layout = self.disk_layout.add_partition(partition_def).unwrap();
+                self.disk_layout = self
+                    .disk_layout
+                    .add_partition(partition_def.clone())
+                    .unwrap();
                 debug!(
                     "AAAAAAAAAAAAAAAAAA {:#?}",
                     self.disk_layout.to_nix_module().render()
                 );
+                self.partitions.guard().push_back(Partition {
+                    mountrow: adw::ComboRow::new(),
+                    is_swap: false,
+                    is_boot: false,
+                    is_full: false,
+                    donotformat: gettext("Leave as is"),
+                    partition_disko: partition_def,
+                });
             }
         }
         self.update_view(widgets, sender);
