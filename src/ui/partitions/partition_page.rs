@@ -31,6 +31,11 @@ use crate::{
 // / va /boot bor yo'qligini tekshirish
 pub static DISK_LAYOUT_LIST: SharedState<Vec<DiskLayout>> = SharedState::new();
 
+// mountpoint roʻyxatdan turib tanlanadi
+// partitionda tanlangan mountpoint qayta tanlanmaydi.
+// Roʻyxatgan olib tashlanadi ishlatilgandi
+// Roʻyxatgan maxsus qoʻshilganida bori yo ishlatilib olib
+// tashlangani qayta qoʻshilmaydi
 pub static MOUNT_POINT_LIST: SharedState<Vec<String>> = SharedState::new();
 
 pub static PARTITION_BROKER: MessageBroker<PartitionMsg> = MessageBroker::new();
