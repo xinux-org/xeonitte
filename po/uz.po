@@ -2,9 +2,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-25 18:50+0500\n"
-"PO-Revision-Date: \n"
-"Last-Translator: \n"
+"POT-Creation-Date: 2026-11-17 17:34+0500\n"
+"PO-Revision-Date: 2026-10-27 17:02+0500\n"
+"Last-Translator: BeMeritus <bemerituss@gmail.com>\n"
 "Language-Team: \n"
 "Language: uz\n"
 "MIME-Version: 1.0\n"
@@ -78,12 +78,10 @@ msgid "Test the Keyboard Layout"
 msgstr ""
 
 #: src/ui/keyboard/keyboard_model.rs:111 src/ui/timezone/timezone_model.rs:92
-#: src/ui/welcome/welcome_model.rs:102
 msgid "Show less"
 msgstr ""
 
 #: src/ui/keyboard/keyboard_model.rs:111 src/ui/timezone/timezone_model.rs:92
-#: src/ui/welcome/welcome_model.rs:102
 msgid "Show all"
 msgstr ""
 
@@ -258,31 +256,29 @@ msgstr ""
 
 #: src/ui/user/user_model.rs:206
 msgid "Log in automatically"
-msgstr ""
+msgstr "Avtomatik kirish"
 
 #: src/ui/user/user_model.rs:213
 msgid "Use the same password for root account"
 msgstr ""
 
 #: src/ui/user/user_model.rs:222
+#, fuzzy
+#| msgid "Root password"
 msgid "Root user's password"
-msgstr ""
+msgstr "Root parol"
 
 #: src/ui/user/user_model.rs:228
 msgid "Root password"
-msgstr ""
+msgstr "Root parol"
 
 #: src/ui/user/user_model.rs:238
 msgid "Confirm root password"
-msgstr ""
+msgstr "Root parolini tasdiqlash"
 
-#: src/ui/welcome/welcome_model.rs:44
-msgid "Welcome!"
-msgstr ""
-
-#: src/ui/welcome/welcome_model.rs:49
-msgid "Choose a language"
-msgstr ""
+#: src/ui/welcome/welcome_model.rs:46
+msgid "Select a language"
+msgstr "Tilni tanlang"
 
 #: src/ui/quitdialog.rs:21
 msgid "Quit Installation"
@@ -302,39 +298,39 @@ msgstr ""
 msgid "Quit"
 msgstr ""
 
-#: src/ui/window.rs:199
+#: src/ui/window.rs:210
 msgid "%d Installer"
 msgstr ""
 
-#: src/ui/window.rs:207
+#: src/ui/window.rs:218
 msgid "Step %d of %f"
 msgstr ""
 
-#: src/ui/window.rs:216
-msgid "Installing"
-msgstr ""
+#: src/ui/window.rs:227
+msgid "Installing…"
+msgstr "O‘rnatilmoqda…"
 
-#: src/ui/window.rs:223
+#: src/ui/window.rs:234
 msgid "Installation Finished"
 msgstr ""
 
-#: src/ui/window.rs:230
+#: src/ui/window.rs:241
 msgid "Installation Failed"
 msgstr ""
 
-#: src/ui/window.rs:323
+#: src/ui/window.rs:334
 msgid "Finished!"
 msgstr ""
 
-#: src/ui/window.rs:336
+#: src/ui/window.rs:347
 msgid "Reboot"
 msgstr ""
 
-#: src/ui/window.rs:352
+#: src/ui/window.rs:363
 msgid "No Internet"
 msgstr ""
 
-#: src/ui/window.rs:353
+#: src/ui/window.rs:364
 msgid "Please connect to the Internet to continue"
 msgstr ""
 
@@ -455,13 +451,8 @@ msgstr ""
 msgid "Install the Zen kernel"
 msgstr ""
 
-#: src/modules/disk/fs.rs:71
-msgid "Basic filesystem"
-msgstr ""
-
-#: src/modules/disk/fs.rs:72
-msgid "Btrfs"
-msgstr ""
+#~ msgid "Welcome!"
+#~ msgstr "Xush kelibsiz!"
 
 #: src/modules/disk/fs.rs:73
 msgid "Swapfile"

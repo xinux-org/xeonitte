@@ -23,6 +23,12 @@ fn main() -> anyhow::Result<()> {
     glib::set_application_name(&gettext("Xeonitte Installer"));
 
     if let Ok(res) = gio::Resource::load(RESOURCES_FILE) {
+        info!("Trying to load CSS: {}", RESOURCES_FILE);
+        let data = res.lookup_data(
+            "/uz/xinux/Xeonitte/style.css",
+            gio::ResourceLookupFlags::NONE,
+        )?;
+        relm4::set_global_css(&glib::GString::from_utf8_checked(data.to_vec())?);
         info!("Resource loaded: {}", RESOURCES_FILE);
         gio::resources_register(&res);
     } else {

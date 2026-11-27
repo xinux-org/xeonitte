@@ -3,7 +3,6 @@ use crate::{
     ui::window::AppMsg,
     utils::{branding::get_slides, report::ErrorPhase},
 };
-use anyhow::Context;
 use gettextrs::gettext;
 use log::{debug, error};
 use relm4::{
@@ -333,7 +332,6 @@ pub struct InstallSlide {
     #[tracker::no_eq]
     pub locale: Option<String>,
 }
-
 #[relm4::factory(pub)]
 impl FactoryComponent for InstallSlide {
     type Init = InstallSlide;
