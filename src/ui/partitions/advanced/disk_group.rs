@@ -6,14 +6,11 @@ use crate::{
     modules::disk::{DiskLayout, LinuxFs, MiB, PartitionDef},
     ui::{
         list::list_model::ListItemMsg,
-        partitions::{
-            advanced::{
-                add_partition_dialog::{
-                    AddPartitionDialogInput, AddPartitionDialogModel, AddPartitionStackPage,
-                },
-                partition_row::{Partition, PartitionOut},
+        partitions::advanced::{
+            add_partition_dialog::{
+                AddPartitionDialogInput, AddPartitionDialogModel, AddPartitionStackPage,
             },
-            partition_page::CustomPartition,
+            partition_row::{Partition, PartitionOut},
         },
     },
     utils::{SizeType, represent},
@@ -241,12 +238,9 @@ impl FactoryComponent for AdvancedDiskGroup {
             .iter()
             .map(|partition| {
                 let p = Partition {
-                    mountrow: adw::ComboRow::new(),
                     is_swap: false,
                     is_boot: false,
                     is_full: false,
-                    // donotmount: gettext("Do not mount"),
-                    donotformat: gettext("Leave as is"),
                     partition_disko: PartitionDef {
                         label: partition.partition_disko.label.clone(),
                         size: partition.partition_disko.size.clone(),
@@ -380,11 +374,9 @@ impl FactoryComponent for AdvancedDiskGroup {
                     self.disk_layout.to_nix_module().render()
                 );
                 self.partitions.guard().push_back(Partition {
-                    mountrow: adw::ComboRow::new(),
                     is_swap: false,
                     is_boot: false,
                     is_full: false,
-                    donotformat: gettext("Leave as is"),
                     partition_disko: partition_def,
                 });
             }

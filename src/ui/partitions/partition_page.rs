@@ -407,11 +407,9 @@ impl SimpleComponent for PartitionModel {
                             size::Size::from_bytes(part.size)
                         );
                         part_guard.push_back(Partition {
-                            mountrow: adw::ComboRow::new(),
                             is_swap: false,
                             is_boot: false,
                             is_full: false,
-                            donotformat: gettext("Leave as is"),
                             partition_disko: PartitionDef {
                                 label: Some(part.name.clone()),
                                 size: PartitionSize::Mib(disk::Size::<MiB>::new(part.size)),
