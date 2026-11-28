@@ -67,7 +67,7 @@ impl FactoryComponent for AdvancedDiskGroup {
     type CommandOutput = ();
 
     view! {
-        adw::PreferencesGroup {
+        root = adw::PreferencesGroup {
             gtk::Box {
                 set_hexpand: true,
                 set_orientation: gtk::Orientation::Horizontal,
@@ -166,65 +166,6 @@ impl FactoryComponent for AdvancedDiskGroup {
         //     system_packages: state.installed_system_packages.clone(),
         //     user_packages: state.installed_user_packages.clone(),
         // });
-        let mut dialog_model = AddPartitionDialogModel {
-            disk_layout: disk.disk_layout.clone(),
-            name: disk.name.clone(),
-            creating_partition: disk.creating_partition,
-            new_partition_size: disk.new_partition_size,
-            size_adjustment_value: disk.disk_layout.free_space::<MiB>().to_bytes() as f64,
-            stack_page: AddPartitionStackPage::default(),
-            content_choise: ContentUI::Filesystem,
-            content_list_factory: FactoryVecDeque::builder().launch_default().forward(
-                sender.input_sender(),
-                |msg: ListItemMsgGeneric<ContentUI>| match msg {
-                    ListItemMsgGeneric::Select(id) => AdvancedDiskGroupMsg::PartitionContent(id),
-                    ListItemMsgGeneric::Deselect(_key) => AdvancedDiskGroupMsg::NoOperation,
-                },
-            ),
-            filesystem_list_factory: FactoryVecDeque::builder().launch_default().forward(
-                sender.input_sender(),
-                |msg: ListItemMsgGeneric<LinuxFs>| match msg {
-                    ListItemMsgGeneric::Select(id) => AdvancedDiskGroupMsg::FileSystemSelect(id),
-                    ListItemMsgGeneric::Deselect(_id) => AdvancedDiskGroupMsg::NoOperation,
-                },
-            ),
-            mountpoint_list_factory: FactoryVecDeque::builder().launch_default().forward(
-                sender.input_sender(),
-                |msg| match msg {
-                    ListItemMsg::Select(id) => AdvancedDiskGroupMsg::MountpointSelect(id),
-                    ListItemMsg::Deselect(id) => AdvancedDiskGroupMsg::MountpointDeSelect(id),
-                },
-            ),
-            partition_disko: None,
-            linux_fs: LinuxFs::Ext4,
-            mountpoint_list: vec![],
-        };
-
-        // Partiiton Content (ext4, swap, luks) widget components. Single selection
-        let content_list_group = gtk::CheckButton::new();
-        dialog_model.content_list_factory.extend(
-            ContentUI::all_list()
-                .into_iter()
-                .map(|item| item.to_list_item(content_list_group.clone().into(), None)),
-        );
-
-        // filesystem widget components
-        let fs_group = gtk::CheckButton::new();
-        dialog_model.filesystem_list_factory.extend(
-            LinuxFs::all_list()
-                .into_iter()
-                .map(|item| item.to_list_item(fs_group.clone().into(), None)),
-        );
-
-        let add_partition_dialog = AddPartitionDialogModel::builder()
-            .launch(dialog_model)
-            .forward(sender.input_sender(), |message| match message {
-                AddPartitionDialogOutput::Apply(partition_def) => {
-                    AdvancedDiskGroupMsg::AddPartition(partition_def)
-                }
-            });
-        add_partition_dialog.emit(AddPartitionDialogInput::SetContent(ContentUI::Filesystem));
-
         let mut partitions = FactoryVecDeque::builder()
             .launch(gtk::ListBox::default())
             .forward(sender.input_sender(), |output| match output {
@@ -258,7 +199,7 @@ impl FactoryComponent for AdvancedDiskGroup {
             size_type: disk.size_type,
             partitions,
             disk_layout: disk.disk_layout,
-            add_partition_dialog: Some(add_partition_dialog),
+            add_partition_dialog: None,
         }
     }
 
@@ -326,10 +267,10 @@ impl FactoryComponent for AdvancedDiskGroup {
                 // let a = self.partitions.iter().cloned().collect::<Vec<Partition>>();
             }
             AdvancedDiskGroupMsg::AddPartitionDialog => {
-                if let Some(dialog) = &self.add_partition_dialog {
-                    dialog
-                        .widget()
-                        .present(relm4::main_application().active_window().as_ref());
+                self.add_partition_dialog = Some(Self::init_dialog(self, &sender));
+
+                if let Some(d) = &self.add_partition_dialog {
+                    d.widget().present(Some(&widgets.root));
                 }
             }
             AdvancedDiskGroupMsg::PartitionContent(partition_content) => {
@@ -377,5 +318,73 @@ impl FactoryComponent for AdvancedDiskGroup {
             }
         }
         self.update_view(widgets, sender);
+    }
+}
+
+impl AdvancedDiskGroup {
+    pub fn init_dialog(
+        &mut self,
+        sender: &FactorySender<Self>,
+    ) -> Controller<AddPartitionDialogModel> {
+        let mut dialog_model = AddPartitionDialogModel {
+            disk_layout: self.disk_layout.clone(),
+            name: self.name.clone(),
+            creating_partition: self.creating_partition,
+            new_partition_size: self.new_partition_size,
+            size_adjustment_value: self.disk_layout.free_space::<MiB>().to_bytes() as f64,
+            stack_page: AddPartitionStackPage::default(),
+            content_choise: ContentUI::Filesystem,
+            content_list_factory: FactoryVecDeque::builder().launch_default().forward(
+                sender.input_sender(),
+                |msg: ListItemMsgGeneric<ContentUI>| match msg {
+                    ListItemMsgGeneric::Select(id) => AdvancedDiskGroupMsg::PartitionContent(id),
+                    ListItemMsgGeneric::Deselect(_key) => AdvancedDiskGroupMsg::NoOperation,
+                },
+            ),
+            filesystem_list_factory: FactoryVecDeque::builder().launch_default().forward(
+                sender.input_sender(),
+                |msg: ListItemMsgGeneric<LinuxFs>| match msg {
+                    ListItemMsgGeneric::Select(id) => AdvancedDiskGroupMsg::FileSystemSelect(id),
+                    ListItemMsgGeneric::Deselect(_id) => AdvancedDiskGroupMsg::NoOperation,
+                },
+            ),
+            mountpoint_list_factory: FactoryVecDeque::builder().launch_default().forward(
+                sender.input_sender(),
+                |msg| match msg {
+                    ListItemMsg::Select(id) => AdvancedDiskGroupMsg::MountpointSelect(id),
+                    ListItemMsg::Deselect(id) => AdvancedDiskGroupMsg::MountpointDeSelect(id),
+                },
+            ),
+            partition_disko: None,
+            linux_fs: LinuxFs::Ext4,
+            mountpoint_list: vec![],
+        };
+
+        // Partiiton Content (ext4, swap, luks) widget components. Single selection
+        let content_list_group = gtk::CheckButton::new();
+        dialog_model.content_list_factory.extend(
+            ContentUI::all_list()
+                .into_iter()
+                .map(|item| item.to_list_item(content_list_group.clone().into(), None)),
+        );
+
+        // filesystem widget components
+        let fs_group = gtk::CheckButton::new();
+        dialog_model.filesystem_list_factory.extend(
+            LinuxFs::all_list()
+                .into_iter()
+                .map(|item| item.to_list_item(fs_group.clone().into(), None)),
+        );
+
+        let add_partition_dialog = AddPartitionDialogModel::builder()
+            .launch(dialog_model)
+            .forward(sender.input_sender(), |message| match message {
+                AddPartitionDialogOutput::Apply(partition_def) => {
+                    AdvancedDiskGroupMsg::AddPartition(partition_def)
+                }
+            });
+        add_partition_dialog.emit(AddPartitionDialogInput::SetContent(ContentUI::Filesystem));
+
+        add_partition_dialog
     }
 }

@@ -11,10 +11,7 @@ use crate::{
     modules::disk::{self, Content, Disk, DiskLayout, MiB, PartitionDef, PartitionSize},
     ui::{
         partitions::{
-            advanced::{
-                disk_group::{self, AdvancedDiskGroup},
-                partition_row::Partition,
-            },
+            advanced::{disk_group::AdvancedDiskGroup, partition_row::Partition},
             basic::whole_disk::WholeDisk,
             hibernation::Hibernation,
             luks_password::{LuksPasswordComponent, LuksPasswordMsg},
